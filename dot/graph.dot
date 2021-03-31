@@ -1,0 +1,10 @@
+digraph {
+	Widget -> Label;
+	Widget -> Button;
+	Widget -> Text_Input;
+	Widget -> Progress_bar;
+	Widget -> Slider;
+	Widget -> Image;
+	Widget -> Checkbox;
+	Widget -> Window -> AsciiWindow;
+}

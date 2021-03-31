@@ -1,5 +1,5 @@
 #include<opencv2/opencv.hpp>
-#include"button.h"
+#include"zgui.h"
 using namespace std;
 
 cv::Ptr<cv::freetype::FreeType2> z::Widget::ft2_;

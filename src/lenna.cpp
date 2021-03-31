@@ -3,7 +3,7 @@
 #include<filesystem>
 #include<iostream>
 #include"cvmatrix.h"
-#include"button.h"
+#include"zgui.h"
 using namespace std;
 
 struct Pop : z::AsciiWindow, z::PopupInterface
@@ -89,7 +89,7 @@ struct Mywin : z::AsciiWindow
 		cv::moveWindow(title_, 500, 100);
 
 		B[0]->click( [this]() {
-			if(pop.open(cv::WINDOW_AUTOSIZE, 600, 200)) cv::destroyAllWindows();
+			if(pop.open(cv::WINDOW_AUTOSIZE, 600, 200) == 1) cv::destroyAllWindows();
 		} );
 		C[0]->on_change( [this](bool t) {
 			if(t) {
@@ -176,7 +176,8 @@ struct Mywin : z::AsciiWindow
 
 int main()
 {
-	Mywin win;
+	Mywin win, win2;
+	cout << cv::getWindowImageRect(win.title()) << endl;
 	return win.loop();
 }
 

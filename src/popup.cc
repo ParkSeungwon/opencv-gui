@@ -1,6 +1,6 @@
 #include<iostream>
 #include<opencv2/opencv.hpp>
-#include"button.h"
+#include"zgui.h"
 using namespace std;
 
 z::PopupInterface::PopupInterface(z::Window *p)
@@ -12,8 +12,8 @@ int z::PopupInterface::open(int flag, int x, int y)
 {
 	window_ptr_->start(flag);
 	if(x >= 0 && y >= 0) cv::moveWindow(window_ptr_->title(), x, y);
-	while(!closed_) {
-		try { cv::getWindowProperty(window_ptr_->title(), 0); }
+	while(!closed_) {//popup quit by quit(int) function
+		try { cv::getWindowProperty(window_ptr_->title(), 0); }//for x button close
 		catch(...) { break; }
 		if(int key = cv::waitKey(10); key != -1) window_ptr_->keyboard_callback(key);
 	}

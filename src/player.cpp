@@ -4,7 +4,7 @@
 #include<thread>
 #include<filesystem>
 #include<iostream>
-#include"button.h"
+#include"zgui.h"
 using namespace std;
 
 class Player : public z::AsciiWindow
@@ -30,6 +30,7 @@ public:
 				v.push_back(p.filename());
 		tie("open file", 30, *T[0], *B[4], v, 700, 150);//make combobox
 		S[0]->value(0);
+		S[0]->draw();
 		update(*S[0]);
 		start(cv::WINDOW_AUTOSIZE);
 
@@ -95,6 +96,7 @@ protected:
 	Glib::RefPtr<Glib::MainLoop> mainloop_;
 	Glib::RefPtr<Gst::Element> decodebin_, autoaudiosink_, filesrc_, audioconvert_;
 	sigc::connection conn_;
+	gint64 duration_;
 private:
 	bool update_pos() {
 		gint64 pos, dur;

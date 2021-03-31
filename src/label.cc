@@ -1,5 +1,5 @@
 #include<opencv2/opencv.hpp>
-#include"button.h"
+#include"zgui.h"
 using namespace std;
 
 z::Label::Label(string s, cv::Rect2i r) : z::Widget{r}

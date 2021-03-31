@@ -150,6 +150,7 @@ public:
 	int value();
 	void value(int);
 	void on_change(std::function<void(int)> f);//front int = value, second int = discard
+	void draw();
 protected:
 	int value_, start_, end_, step_, logical_length_, physical_length_;
 	bool hold_ = false;
@@ -159,7 +160,6 @@ private:
 	void move(int x, int y);
 	void ldown(int x, int y);
 	void lup(int x, int y);
-	void draw();
 	int to_pos(int val), to_val(int pos);
 	bool user_hold_ = false;
 };

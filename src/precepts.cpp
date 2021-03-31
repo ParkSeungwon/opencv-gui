@@ -1,7 +1,7 @@
 #include<cstdlib>
 #include<fstream>
 #include"option.h"
-#include"button.h"
+#include"zgui.h"
 using namespace std;
 
 struct Mywin : z::AsciiWindow
