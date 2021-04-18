@@ -81,7 +81,7 @@ struct Win : z::AsciiWindow
 	cv::Mat m;
 	int x, y;
 	cv::Scalar color;
-	z::Button bt{"added without ascii", {10, 410, 290, 30}};
+	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
 
 	Win() : z::AsciiWindow{R"(
 		WSample------------------------------------

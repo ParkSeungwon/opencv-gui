@@ -1,4 +1,5 @@
 #include<filesystem>
+#include<iostream>
 #include"zgui.h"
 using namespace std;
 
@@ -32,7 +33,7 @@ struct Win : z::AsciiWindow
 	cv::Mat m;
 	int x, y;
 	cv::Scalar color;
-	z::Button bt{"added without ascii", {10, 410, 290, 30}};
+	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
 
 	Win() : z::AsciiWindow{R"(
 		WSample------------------------------------
@@ -82,6 +83,7 @@ struct Win : z::AsciiWindow
 		*this + bt;
 		start();
 
+		bt.click([]() { cout << "hello" << endl; });
 		B[1]->click([this]() {
 				*I[0] = cv::imread(T[0]->value());
 				*this << *I[0];
