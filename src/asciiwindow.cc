@@ -25,7 +25,7 @@ using namespace std;
 
 
 z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int margin)
-	: z::Window{"", {0,0,1,1}}
+	: z::Window{"", {0, 0, 1, 1}}
 {//Button, Image, Slider, Label, Text, Chckbox, Window, Progress bar
 	uw_ = unit_width; uh_ = unit_height; margin_ = margin;
 	width = 1;
@@ -46,6 +46,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	height = art_.size() * unit_height;
 	width *= unit_width;
 	cv::resize(mat_, mat_, {width, height});
+	//resize({x, y, width, height});
 
 	parse_art();
 	//add to window

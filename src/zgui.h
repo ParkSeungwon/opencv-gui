@@ -87,12 +87,15 @@ class Window : public Widget
 public:
 	Window(std::string title, cv::Rect_<int> r);
 	void show();
+	void popup(Window &w);
+	void popdown();
 	Window &operator+(Widget &w);
+	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
 	int loop();
 	std::vector<Widget*>::iterator begin(), end();
 	void close();
-	void start(int flag = cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
+	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO);
 	void keyboard_callback(int key);
 	void update(const Widget &r);
 	std::string title();
@@ -133,7 +136,8 @@ public:
 	}
 protected:
 	std::string title_;
-	std::vector<Widget*> widgets_;
+	std::vector<Widget*> widgets_, backup_;
+	z::Window *popup_on_;
 };
 
 class Image : public Widget
@@ -177,7 +181,9 @@ protected:
 class AsciiWindow : public Window
 {
 public:
-	AsciiWindow(const char *asciiart, int unit_width = 10, int unit_height = 15, int margin = 1);
+	AsciiWindow(const char *asciiart, int unit_width = 10, int unit_height = 15, 
+			int margin = 1);//, int x = 0, int y = 0);
+	void title(std::string t) { title_ = t; }
 protected:
 	std::vector<std::shared_ptr<Slider>> S;
 	std::vector<std::shared_ptr<Button>> B;
@@ -192,6 +198,13 @@ private:
 	void parse_art();
 	int uw_, uh_, margin_;
 	std::vector<std::string> art_, parsed_;
+};
+
+class InnerPopup : public AsciiWindow
+{
+public:
+	InnerPopup(cv::Rect2i r);
+
 };
 
 class PopupInterface {

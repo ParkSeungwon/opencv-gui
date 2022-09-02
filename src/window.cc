@@ -67,6 +67,13 @@ z::Window& z::Window::operator+(z::Widget &w)
 	return *this;
 }
 
+z::Window& z::Window::operator-(z::Widget &w)
+{
+	widgets_.erase(std::remove(widgets_.begin(), widgets_.end(), &w));
+	mat_(w) = background_color_;
+	return *this;
+}
+
 void z::Window::resize(cv::Rect2i r)
 {
 	z::Widget::resize(r);
@@ -99,6 +106,35 @@ void z::Window::show()
 void z::Window::close()
 {
 	cv::destroyWindow(title_);
+}
+
+void z::Window::popup(z::Window &w) 
+{
+	popup_on_ = &w;
+	if(x == 0 && y == 0) {
+		x = (w.width - width) / 2;
+		y = (w.height - height) / 2;
+	}
+	w.backup_ = move(w.widgets_); //disable callback
+	w.shade_rect(*this);
+	for(auto &a : widgets_) {
+		a->x += x;
+		a->y += y;
+		w + *a;
+	}
+	w.show();
+}
+
+void z::Window::popdown()
+{
+	for(auto &a : widgets_) {
+		a->x -= x;
+		a->y -= y;
+	}
+	popup_on_->mat_ = background_color_;
+	popup_on_->widgets_.clear();
+	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
+	popup_on_->show();
 }
 
 void z::Window::start(int flag)

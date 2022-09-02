@@ -65,13 +65,13 @@ struct Win : z::AsciiWindow
 		| S0----------------------------------
 		| |1 100 1|
 		|
-		|
-		|
+		|                                B3-----
+		|                                |view|
 		|
 		|  C0 L0-  C1 L1-  C2 L2-   C3- L3----
 		|  |v||R|  || |G|  || |B|   ||  |New|
 		|
-		|)"}
+		|)", 20, 30, 1}
 	{
 		vector<string> v;
 		for(const filesystem::path &p : filesystem::directory_iterator("./"))
@@ -83,13 +83,20 @@ struct Win : z::AsciiWindow
 		*this + bt;
 		start();
 
-		bt.click([]() { cout << "hello" << endl; });
+		bt.click([this]() { cout << "hello" << endl; });
 		B[1]->click([this]() {
 				*I[0] = cv::imread(T[0]->value());
 				*this << *I[0];
 				m = I[0]->mat_.clone();
 		});
 		B[2]->click([this]() { pop.set("Really?", ""); if(pop.open()) cv::destroyAllWindows(); });
+		B[3]->click
+		( [this] () 
+			{ static int k = 0; k++; 
+				if(k %2) { *this - bt; show(); } 
+				else { *this + bt; show(); }
+			}
+		);
 		S[0]->on_change([this](int val) { draw_circle(); });
 		S[1]->on_change([this](int val) { draw_circle(); });
 		C[3]->on_change([this](bool t) {
@@ -107,7 +114,9 @@ struct Win : z::AsciiWindow
 		int x = m.cols * S[0]->value() / 100;
 		int y = m.rows * (100 - S[1]->value()) / 100;
 		cv::circle(I[0]->mat_, {x, y}, 30, color, 2);
-		*this << *I[0];
+		//*this << *I[0];
+		update(*I[0]);
+		show();
 	}
 };
 
