@@ -127,6 +127,7 @@ void z::Window::popup(z::Window &w)
 
 void z::Window::popdown()
 {
+	if(popup_on_ == nullptr) return;
 	for(auto &a : widgets_) {
 		a->x -= x;
 		a->y -= y;
@@ -135,6 +136,7 @@ void z::Window::popdown()
 	popup_on_->widgets_.clear();
 	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
 	popup_on_->show();
+	popup_on_ = nullptr;
 }
 
 void z::Window::start(int flag)

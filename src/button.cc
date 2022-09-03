@@ -20,7 +20,9 @@ void z::Button::label()
 	int baseline = 0;
 	auto sz = ft2_->getTextSize(text_, height * 0.8, -1, &baseline);
 	int pos = (width - sz.width) / 2;
+	drop_alpha();
 	ft2_->putText(mat_, text_, {pos, 0}, height * 0.8, {0,0,0}, -1, 4, false);
+	add_alpha();
 }
 
 void z::Button::click(function<void()> f) 
@@ -28,7 +30,7 @@ void z::Button::click(function<void()> f)
 	user_callback_[cv::EVENT_LBUTTONUP] = [f](int, int) {f();};
 }
 
-void z::Button::repaint(cv::Vec3b color)
+void z::Button::repaint(cv::Vec4b color)
 {
 	shade_rect({0, 0, width, height}, 3, color);
 	label();

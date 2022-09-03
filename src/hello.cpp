@@ -20,7 +20,7 @@ struct Win : z::AsciiWindow, z::PopupInterface
 		WHello------------------------------------------------
 		|
 		|    B0-------------
-		|    | Hello World |
+		|    | 우里 |
 		|    B1------------
 		|    | 우리는 |
 		|

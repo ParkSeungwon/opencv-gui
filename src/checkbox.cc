@@ -29,7 +29,7 @@ void z::CheckBox::checked(bool t)
 {
 	checked_ = t;
 	cv::rectangle(mat_, {2, 2}, {width - 2, width - 2},
-			checked_ ? cv::Scalar{0, 255, 0} : background_color_, -1); 
+			checked_ ? cv::Vec4b{0, 255, 0, 255} : background_color_, -1); 
 }
 
 void z::CheckBox::on_change(function<void(bool)> f)

@@ -16,7 +16,9 @@ void z::TextInput::key_event(int key, int)
 	else if(key >= 0x20 && key <= 0x7e) value_ += key;
 	else return;
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
+	drop_alpha();
 	ft2_->putText(mat_, value_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	add_alpha();
 }
 
 void z::TextInput::enter(function<void(string)> f)
@@ -33,5 +35,8 @@ void z::TextInput::value(string s)
 {
 	value_ = s;
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
+	drop_alpha();
 	ft2_->putText(mat_, value_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	add_alpha();
 }
+

@@ -22,14 +22,18 @@ public:
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
-	cv::Mat3b mat_;//widget shape
+	cv::Mat4b mat_;//widget shape
 
 protected:
-	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
-	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,
-			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);
+	static const cv::Vec4b background_color_, widget_color_, highlight_color_, click_color_;
+	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec4b color = widget_color_,
+			cv::Vec4b upper_left = highlight_color_, cv::Vec4b lower_right = click_color_);
 	bool focus_ = false;
 	static cv::Ptr<cv::freetype::FreeType2> ft2_;
+	void drop_alpha();
+	void add_alpha();
+private:
+	cv::Mat1b alpha_channel_;
 };
 
 class Label : public Widget
@@ -51,7 +55,7 @@ public:
 protected:
 	std::string text_;
 private:
-	void repaint(cv::Vec3b color);
+	void repaint(cv::Vec4b color);
 	void label();
 };
 
@@ -79,7 +83,7 @@ protected:
 	std::string value_;
 private:
 	void key_event(int key, int);
-	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
+	const cv::Vec4b white = cv::Vec4b{255, 255, 255, 255};
 };
 
 class Window : public Widget
@@ -131,13 +135,15 @@ public:
 		if(title != "") {
 			auto sz = ft2_->getTextSize(title, font, -1, &base);
 			cv::line(mat_, {ul.x + 20, ul.y}, {ul.x + sz.width + 40, ul.y}, background_color_, 1);
+			drop_alpha();
 			ft2_->putText(mat_, title, {ul.x + 30, ul.y - 5 - font / 2}, font, {0,0,0}, -1, 4, false);
+			add_alpha();
 		}
 	}
 protected:
 	std::string title_;
 	std::vector<Widget*> widgets_, backup_;
-	z::Window *popup_on_;
+	z::Window *popup_on_ = nullptr;
 };
 
 class Image : public Widget
