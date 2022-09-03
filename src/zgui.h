@@ -82,13 +82,20 @@ private:
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
 };
 
+struct Wrapped
+{
+	cv::Rect2i rect;
+	int fontsize;
+	std::string title;
+};
+
 class Window : public Widget
 {
 public:
 	Window(std::string title, cv::Rect_<int> r);
 	void show();
-	void popup(Window &w);
-	void popdown();
+	void popup(Window &w, std::function<void(int)> f);
+	void popdown(int value);
 	Window &operator+(Widget &w);
 	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
@@ -101,6 +108,7 @@ public:
 	std::string title();
 	void resize(cv::Rect2i r);
 	void tie(std::string title, int font, TextInput &t, Button &b, std::vector<std::string> v, int x = -1, int y = -1);
+	void tie2(std::string title, int font, TextInput &t, Button &b, std::vector<std::string> v);
 	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
 	template<class... T> void tie(T&... checks)
 	{//radio button
@@ -126,18 +134,17 @@ public:
 		auto p = std::minmax_element(xs.begin(), xs.end());
 		auto q = std::minmax_element(ys.begin(), ys.end());
 		cv::Point2i ul = {*p.first -N, *q.first -N};
-		cv::rectangle(mat_, ul, {*p.second + N, *q.second + N}, {100,100,100}, 1);
-		int base = 0;
-		if(title != "") {
-			auto sz = ft2_->getTextSize(title, font, -1, &base);
-			cv::line(mat_, {ul.x + 20, ul.y}, {ul.x + sz.width + 40, ul.y}, background_color_, 1);
-			ft2_->putText(mat_, title, {ul.x + 30, ul.y - 5 - font / 2}, font, {0,0,0}, -1, 4, false);
-		}
+		wrapped_.push_back({cv::Rect2i{ul, cv::Point{*p.second + N, *q.second + N}}, font, title});
+		draw_wrapped(wrapped_.back());
 	}
 protected:
 	std::string title_;
 	std::vector<Widget*> widgets_, backup_;
-	z::Window *popup_on_;
+	void draw_wrapped(const Wrapped &wr);
+private:
+	z::Window *popup_on_ = nullptr;
+	std::function<void(int)> popup_exit_func_;
+	std::vector<Wrapped> wrapped_;
 };
 
 class Image : public Widget

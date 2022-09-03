@@ -20,6 +20,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	}
 	if(!pw) return;
 
+	//if(event == cv::EVENT_MOUSEWHEEL) cout << cv::getMouseWheelDelta(flags) << endl;
 	if(event == cv::EVENT_MOUSEMOVE) {
 		if(!pw->focus()) {//enter event
 			pw->focus(true);
@@ -108,7 +109,7 @@ void z::Window::close()
 	cv::destroyWindow(title_);
 }
 
-void z::Window::popup(z::Window &w) 
+void z::Window::popup(z::Window &w, std::function<void(int)> f) 
 {
 	popup_on_ = &w;
 	if(x == 0 && y == 0) {
@@ -123,10 +124,12 @@ void z::Window::popup(z::Window &w)
 		w + *a;
 	}
 	w.show();
+	popup_exit_func_ = f;
 }
 
-void z::Window::popdown()
+void z::Window::popdown(int value)
 {
+	if(popup_on_ == nullptr) return;
 	for(auto &a : widgets_) {
 		a->x -= x;
 		a->y -= y;
@@ -134,7 +137,21 @@ void z::Window::popdown()
 	popup_on_->mat_ = background_color_;
 	popup_on_->widgets_.clear();
 	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
+	for(const auto &a : popup_on_->wrapped_) popup_on_->draw_wrapped(a);
 	popup_on_->show();
+	popup_on_ = nullptr;
+	popup_exit_func_(value);
+}
+
+void z::Window::draw_wrapped(const Wrapped &wr)
+{
+	cv::rectangle(mat_, wr.rect, {100,100,100}, 1);
+	int base = 0;
+	if(wr.title != "") {
+		auto sz = ft2_->getTextSize(wr.title, wr.fontsize, -1, &base);
+		cv::line(mat_, {wr.rect.x + 20, wr.rect.y}, {wr.rect.x + sz.width + 40, wr.rect.y}, background_color_, 1);
+		ft2_->putText(mat_, wr.title, {wr.rect.x + 30, wr.rect.y - 5 - wr.fontsize / 2}, wr.fontsize, {0,0,0}, -1, 4, false);
+	}
 }
 
 void z::Window::start(int flag)

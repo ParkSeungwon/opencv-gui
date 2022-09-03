@@ -71,13 +71,18 @@ struct Win : z::AsciiWindow
 		|  C0 L0-  C1 L1-  C2 L2-   C3- L3----
 		|  |v||R|  || |G|  || |B|   ||  |New|
 		|
-		|)", 20, 30, 1}
+		|
+		|
+		|
+		|
+		|
+		|)"}
 	{
 		vector<string> v;
 		for(const filesystem::path &p : filesystem::directory_iterator("./"))
 			if(is_regular_file(p) && p.extension() == ".png" || p.extension() == ".jpg")
 				v.push_back(p.filename());
-		tie("File open", 30, *T[0], *B[0], v);//combo box
+		tie2("File open", 30, *T[0], *B[0], v);//combo box
 		tie(*C[0], *C[1], *C[2]);//radio button
 		wrap("RGB", 20, 10, *C[0], *L[2]);//frame
 		*this + bt;

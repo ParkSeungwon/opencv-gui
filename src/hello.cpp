@@ -11,7 +11,7 @@ struct Win2 : z::PopupInterface, z::AsciiWindow
 	|      |Hello|
 	|)", 15, 22, 1}
 	{
-		B[0]->click([this](){ popdown();});
+		B[0]->click([this](){ popdown(0);});
 	}
 } ;
 
@@ -33,7 +33,7 @@ struct Win : z::AsciiWindow, z::PopupInterface
 	{ win3.title("sss");
 		start();
 		B[0]->click([this](){cout << "Hello" << endl; if(win2.open()) cv::destroyAllWindows();});
-		B[1]->click([this](){win3.popup(*this);});
+		B[1]->click([this](){win3.popup(*this, [](int i){cout << i << endl;});});
 	}
 
 	Win2 win2, win3;
