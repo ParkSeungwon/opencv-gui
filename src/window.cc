@@ -133,7 +133,7 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 		a->y += y;
 		w + *a;
 	}
-	w.show();
+	//w.show();
 	popup_exit_func_ = f;
 }
 
@@ -148,7 +148,7 @@ void z::Window::popdown(int value)
 	popup_on_->widgets_.clear();
 	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
 	for(const auto &a : popup_on_->wrapped_) popup_on_->draw_wrapped(a);
-	popup_on_->show();
+	//popup_on_->show();
 	popup_on_ = nullptr;
 	popup_exit_func_(value);
 }
