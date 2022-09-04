@@ -40,5 +40,5 @@ void z::Widget::resize(cv::Rect2i r) {
 }
 
 void z::Widget::update() {
-	*parent_ << *this;
+	if(parent_ != nullptr) *parent_ << *this;
 }

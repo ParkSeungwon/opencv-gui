@@ -4,7 +4,6 @@
 #include"zgui.h"
 using namespace std;
 
-void dig(int x, int y);
 struct Interface {
 	virtual void dig(int x, int y) {}
 	virtual void clear(int x, int y, string s) {}
@@ -16,7 +15,7 @@ struct Interface {
 Interface* Interface::pMine = nullptr;
 Interface* Interface::pWin = nullptr;
 
-class MineButton : public z::Button, Interface
+class MineButton : public z::Button, public Interface
 {
 public:
 	MineButton(int x, int y) : z::Button{"", cv::Rect2i{x*30, y*30, 30, 30}}
@@ -25,6 +24,7 @@ public:
 		user_callback_[cv::EVENT_RBUTTONUP] = [this](int, int)
 		{ if(text_ == " ") text("v");
 			else if(text_ == "v") text(" ");
+			update();
 		};
 		gui_callback_[EVENT_LEAVE] = [] (int, int) {};
 		gui_callback_[EVENT_ENTER] = [] (int, int) {};
@@ -59,7 +59,6 @@ struct Popup : z::AsciiWindow
 	}
 	void set_text(string s) {
 		B[0]->text(s);
-		z::Widget::update();
 	}
 };
 

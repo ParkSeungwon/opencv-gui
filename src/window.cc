@@ -73,6 +73,7 @@ z::Window& z::Window::operator-(z::Widget &w)
 {
 	widgets_.erase(std::remove(widgets_.begin(), widgets_.end(), &w));
 	mat_(w) = background_color_;
+	w.parent_ = nullptr;
 	return *this;
 }
 
