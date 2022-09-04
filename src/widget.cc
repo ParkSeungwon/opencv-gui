@@ -38,3 +38,7 @@ void z::Widget::resize(cv::Rect2i r) {
 	*this = r;
 	cv::resize(mat_, mat_, {r.width, r.height});
 }
+
+void z::Widget::update() {
+	if(parent_ != nullptr) *parent_ << *this;
+}

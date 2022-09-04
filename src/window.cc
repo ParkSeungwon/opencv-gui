@@ -13,8 +13,10 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 				w->gui_callback_[EVENT_LEAVE](x, y);
 				*p << *w;
 			}
-			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end())
+			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end()) {
 				w->user_callback_[EVENT_LEAVE](x, y);
+				*p << *w;
+			}
 			w->focus(false);
 		}
 	}
@@ -28,23 +30,29 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 				pw->gui_callback_[EVENT_ENTER](x, y);
 				*p << *pw;
 			} 
-			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end())
+			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end()) {
 				pw->user_callback_[EVENT_ENTER](x, y);
+				*p << *pw;
+			}
 		} else {//move event
 			if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 				pw->gui_callback_[event](x, y);
 				*p << *pw;
 			}
-			if(pw->user_callback_.find(event) != pw->user_callback_.end())
+			if(pw->user_callback_.find(event) != pw->user_callback_.end()) {
 				pw->user_callback_[event](x, y);
+				*p << *pw;
+			}
 		}
 	} else {//all other event
 		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 			pw->gui_callback_[event](x, y);
 			*p << *pw;
 		}
-		if(pw->user_callback_.find(event) != pw->user_callback_.end())
+		if(pw->user_callback_.find(event) != pw->user_callback_.end()) {
 			pw->user_callback_[event](x, y);
+			*p << *pw;
+		}
 	}
 }
 
@@ -65,6 +73,7 @@ z::Window& z::Window::operator+(z::Widget &w)
 	//lock_guard<mutex> lck{mtx_};
 	widgets_.push_back(&w);
 	w.mat_.copyTo(mat_(w));
+	w.parent_ = this;
 	return *this;
 }
 
@@ -72,6 +81,7 @@ z::Window& z::Window::operator-(z::Widget &w)
 {
 	widgets_.erase(std::remove(widgets_.begin(), widgets_.end(), &w));
 	mat_(w) = background_color_;
+	w.parent_ = nullptr;
 	return *this;
 }
 

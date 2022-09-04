@@ -10,7 +10,7 @@
 
 namespace z {
 
-
+class Window;
 class Widget : public cv::Rect_<int>
 {//base class for all widgets
 public:
@@ -23,6 +23,8 @@ public:
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
 	cv::Mat3b mat_;//widget shape
+	Window *parent_ = nullptr;
+	void update();
 
 protected:
 	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
@@ -50,9 +52,9 @@ public:
 	void text(std::string s);
 protected:
 	std::string text_;
+	void label();
 private:
 	void repaint(cv::Vec3b color);
-	void label();
 };
 
 class CheckBox : public Widget
