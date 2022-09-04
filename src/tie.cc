@@ -42,14 +42,14 @@ struct Tie2 : z::Window {
 	vector<shared_ptr<z::Button>> bts;
 };
 
-void z::Window::tie2(string title, int font, z::TextInput &t, z::Button &b, vector<string> v)
+void z::Window::tie2(string title, int font, z::TextInput &t, z::Button &b, const vector<string> &v)
 {//combobox
-  static vector<string> v2 = v;
-	static Tie2 vw{title, font, v2};
+  //static vector<string> v2 = v;
+	static Tie2 vw{title, font, v};
 	b.text("\u25bc");
 	update(b);
 	vw.resize({t.x, t.y+font, vw.width, vw.height});
-	b.click([&](){vw.popup(*this, [this, &t, v2](int i){t.value(v2[i]); *this << t; });});
+	b.click([&](){vw.popup(*this, [this, &t, &v](int i){t.value(v[i]); *this << t; });});
 }
 
 

@@ -97,7 +97,7 @@ class Window : public Widget
 public:
 	Window(std::string title, cv::Rect_<int> r);
 	void show();
-	void popup(Window &w, std::function<void(int)> f);
+	void popup(Window &w, std::function<void(int)> f = [](int){});
 	void popdown(int value);
 	Window &operator+(Widget &w);
 	Window &operator-(Widget &w);
@@ -111,7 +111,7 @@ public:
 	std::string title();
 	void resize(cv::Rect2i r);
 	void tie(std::string title, int font, TextInput &t, Button &b, std::vector<std::string> v, int x = -1, int y = -1);
-	void tie2(std::string title, int font, TextInput &t, Button &b, std::vector<std::string> v);
+	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
 	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
 	template<class... T> void tie(T&... checks)
 	{//radio button

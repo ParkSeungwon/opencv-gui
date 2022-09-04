@@ -1,5 +1,7 @@
 #include<iostream>
+#include<chrono>
 #include<thread>
+#include<sstream>
 #include<random>
 #include"zgui.h"
 using namespace std;
@@ -48,9 +50,9 @@ public:
 struct Popup : z::AsciiWindow
 {
 	Popup() : z::AsciiWindow{R"(
-	Wt-----------------------------
+	Wt------------------------
 	|
-	|    B0---------------
+	|    B0-------------
 	|    | Failed | 
 	|
 	)"}
@@ -72,13 +74,15 @@ struct Win : z::Window, Interface
 		}
 		start();
 		pWin = this;
+		tp_ = chrono::system_clock::now();
 	}
-
+	chrono::time_point<chrono::system_clock> tp_;
 	std::shared_ptr<MineButton> v[100][100] = {nullptr,};
 	Popup pop;
 	void popup(string s) { //set popup text and show
-		pop.set_text(s);
-		pop.popup(*this, [](int i){});
+		auto sec = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - tp_ );
+		pop.set_text ( s + " : " +  to_string(sec.count()) );
+		pop.popup(*this);
 	}
 	void clear(int x, int y, string s) {
 		v[x][y]->clear(s);

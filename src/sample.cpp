@@ -27,9 +27,26 @@ struct Pop : z::AsciiWindow, z::PopupInterface
 	}
 };
 
+struct Pop2 : z::AsciiWindow
+{
+	Pop2() : z::AsciiWindow{R"(
+	Wt------------------------
+	|
+	|  B0-------- B1-------
+	|  | 종료 | | 취소 |
+	|  |          |
+	|)"}
+	{
+		B[0]->click([this]() {popdown(1);});
+		B[1]->click([this]() {popdown(0);});
+	}
+};
+
+
 struct Win : z::AsciiWindow
 {
 	Pop pop;
+	Pop2 pop2;
 	cv::Mat m;
 	int x, y;
 	cv::Scalar color;
@@ -71,14 +88,14 @@ struct Win : z::AsciiWindow
 		|  C0 L0-  C1 L1-  C2 L2-   C3- L3----
 		|  |v||R|  || |G|  || |B|   ||  |New|
 		|
-		|
-		|
+		|  B4----
+		|  |종료|
 		|
 		|
 		|
 		|)"}
 	{
-		vector<string> v;
+		static vector<string> v;
 		for(const filesystem::path &p : filesystem::directory_iterator("./"))
 			if(is_regular_file(p) && p.extension() == ".png" || p.extension() == ".jpg")
 				v.push_back(p.filename());
@@ -102,6 +119,7 @@ struct Win : z::AsciiWindow
 				else { *this + bt; show(); }
 			}
 		);
+		B[4]->click([this](){pop2.popup(*this, [](int i){ if(i == 1) cv::destroyAllWindows();});});
 		S[0]->on_change([this](int val) { draw_circle(); });
 		S[1]->on_change([this](int val) { draw_circle(); });
 		C[3]->on_change([this](bool t) {
