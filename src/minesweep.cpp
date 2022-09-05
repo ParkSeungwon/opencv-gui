@@ -1,7 +1,7 @@
 #include<iostream>
+#include<fstream>
 #include<chrono>
-#include<thread>
-#include<sstream>
+#include<algorithm>
 #include<random>
 #include"zgui.h"
 using namespace std;
@@ -54,6 +54,7 @@ struct Popup : z::AsciiWindow
 	|
 	|    B0-------------
 	|    | Failed | 
+	|    |
 	|
 	)"}
 	{
@@ -82,10 +83,31 @@ struct Win : z::Window, Interface
 	void popup(string s) { //set popup text and show
 		auto sec = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - tp_ );
 		pop.set_text ( s + " : " +  to_string(sec.count()) );
+		if(s == "성공") {
+			append_file(sec.count());
+			best_score();
+		}
 		pop.popup(*this);
 	}
 	void clear(int x, int y, string s) {
 		v[x][y]->clear(s);
+	}
+	void append_file(int k) {
+		ofstream f{"bestscore.txt", fstream::app};
+		f << (width / 30) << ' ' << (height / 30) << ' ' << k << '\n';
+	}
+	void best_score() {
+		ifstream f{"bestscore.txt"};
+		int w, h, score;
+		vector<int> scores;
+		while(f >> w >> h >> score) {
+			if(w == width / 30 && h == height / 30) {
+				scores.push_back(score);
+			}
+		}
+		std::sort(scores.begin(), scores.end(), [](int a, int b) { return a < b; });
+		cout << "best score" << width / 30 << 'x' << height / 30 << endl;
+		for(int i=0; i<std::min(10, int(scores.size())); i++) cout << i+1 << ". " << scores[i] << endl;
 	}
 };
 
