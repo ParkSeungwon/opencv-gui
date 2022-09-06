@@ -5,6 +5,8 @@ using namespace std;
 void mouse_callback(int event, int x, int y, int flags, void *ptr)
 {//get mouse event
 	z::Window *p = (z::Window*)ptr;
+	x += p->scrolled_rect_.x;
+	y += p->scrolled_rect_.y;
 	z::Widget *pw = nullptr;
 	for(auto w : *p) { // assumption : zIndex increase
 		if(w->contains({x, y})) pw = w;//set 
@@ -69,7 +71,7 @@ z::Window& z::Window::operator+(z::Widget &w)
 	//lock_guard<mutex> lck{mtx_};
 	widgets_.push_back(&w);
 	w.parent_ = this;
-	w.on_register(this);
+	w.on_register();
 	return *this;
 }
 
@@ -85,9 +87,21 @@ z::Window& z::Window::operator-(z::Widget &w)
 	mat_(w) = background_color_;
 	w.parent_ = nullptr;
 	std::for_each(widgets_.begin(), widgets_.end(), [&w, this](auto *a) {
-		if((w & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() < w.zIndex()) *this << *a;
+		if((w & *a) != cv::Rect2i{0,0,0,0}) *this << *a;
 	});
 	return *this;
+}
+
+void z::Window::move_widget(z::Widget &w, cv::Point2i p)
+{ // move a widget that is already mounted
+	mat_(w) = background_color_;
+	std::for_each(widgets_.begin(), widgets_.end(), [&w, this](auto *a) {
+		if((w & *a) != cv::Rect2i{0,0,0,0}) *this << *a;
+	});
+	if(p.x + w.width > width || p.y + w.height > height) return;
+	w.x = p.x;
+	w.y = p.y;
+	*this << w;
 }
 
 void z::Window::resize(cv::Rect2i r)

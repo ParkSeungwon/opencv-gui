@@ -26,7 +26,7 @@ public:
 	cv::Mat3b mat_;//widget shape
 	void update();
 	Window *parent_;
-	virtual void on_register(Window *win) {}
+	virtual void on_register() {}
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
 
@@ -119,6 +119,7 @@ public:
 	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
 	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
 	void organize_accordingto_zindex();
+	void move_widget(Widget &w, cv::Point2i p);
 	template<class... T> void tie(T&... checks)
 	{//radio button
 		static std::vector<z::CheckBox*> v;
@@ -146,6 +147,7 @@ public:
 		wrapped_.push_back({cv::Rect2i{ul, cv::Point{*p.second + N, *q.second + N}}, font, title});
 		draw_wrapped(wrapped_.back());
 	}
+	cv::Rect2i scrolled_rect_ = cv::Rect2i{0,0,0,0};
 protected:
 	std::string title_;
 	std::vector<Widget*> widgets_, backup_;
@@ -166,21 +168,18 @@ public:
 	void show();
 	void set_ul(cv::Point2i p);
 	void set_br(cv::Point2i p);
-	cv::Rect2i scrolled_rect_ = cv::Rect2i{0,0,0,0};
-protected:
 };
 
 class Handle : public Widget
 {
 public:
 	Handle();
+	const static int widget_size_ = 30;
 private:
 	bool mouse_down_ = false;
-	const static int widget_size_ = 30;
-	ScrolledWindow *win_;
-	void on_register(Window *p);
+	ScrolledWindow *scwin_;
+	void on_register();
 };
-
 
 class Image : public Widget
 {
