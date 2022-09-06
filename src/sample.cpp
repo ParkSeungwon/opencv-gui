@@ -105,6 +105,7 @@ struct Win : z::AsciiWindow
 		tie(*C[0], *C[1], *C[2]);//radio button
 		wrap("RGB", 20, 10, *C[0], *L[2]);//frame
 		*this + bt;
+		scroll_to({50, 50, 300,350});
 		*this + h;
 		bt.zIndex(1);
 		start();

@@ -22,23 +22,22 @@ void z::ScrolledWindow::show()
 }
 
 void z::ScrolledWindow::set_ul(cv::Point2i p) {
-	scroll_to({p.x, p.y, width, height});
+	scroll_to({p, scrolled_rect_.br()});
 }
 
 void z::ScrolledWindow::set_br(cv::Point2i p) {
-	scroll_to({{x, y}, p});
+	scroll_to({scrolled_rect_.tl(), p});
 }
 
 z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 	zIndex(100);
-	mat_ = cv::Vec3b{255,0,0}; //click_color_;
+	mat_ = click_color_;
 	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { mouse_down_ = true; };
-	gui_callback_[EVENT_ENTER] = [this](int, int) { shade_rect({0, 0, width, height}, 3, highlight_color_); };
+	gui_callback_[EVENT_ENTER] = [this](int, int) { shade_rect({0, 0, width, height}, 3, background_color_); };
 	gui_callback_[EVENT_LEAVE] = [this](int, int) { shade_rect({0, 0, width, height}, 3, click_color_); };
-	gui_callback_[cv::EVENT_MOUSEMOVE] = [this](int xpos, int ypos) { 
+	gui_callback_[cv::EVENT_MOUSEMOVE] = [this](int xpos, int ypos) { // scrolled_rect_.x y 가 더해진 값
 		if(mouse_down_) {
-			scwin_->move_widget(*this, {xpos - scwin_->scrolled_rect_.x - widget_size_ / 2, 
-					ypos - scwin_->scrolled_rect_.y - widget_size_ / 2});
+			scwin_->move_widget(*this, {xpos - widget_size_ / 2, ypos - widget_size_ / 2});
 			scwin_->set_br({xpos + widget_size_ / 2, ypos + widget_size_ / 2});
 			cout << "xy pos "  << xpos << ' ' << ypos << endl;
 			cout << scwin_->scrolled_rect_.width << ' ' << scwin_->scrolled_rect_.height << endl;
