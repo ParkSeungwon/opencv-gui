@@ -3,8 +3,8 @@
 #include"zgui.h"
 using namespace std;
 
-struct Win2 : z::PopupInterface, z::AsciiWindow
-{ Win2() : z::PopupInterface{this}, z::AsciiWindow{R"(
+struct Win2 : z::AsciiWindow
+{ Win2() : z::AsciiWindow{R"(
 	Wt---------------------------
 	|
 	|      B0------
@@ -15,8 +15,8 @@ struct Win2 : z::PopupInterface, z::AsciiWindow
 	}
 } ;
 
-struct Win : z::AsciiWindow, z::PopupInterface
-{ Win() : z::PopupInterface{this}, z::AsciiWindow{R"(
+struct Win : z::AsciiWindow
+{ Win() : z::AsciiWindow{R"(
 		WHello------------------------------------------------
 		|
 		|    B0-------------

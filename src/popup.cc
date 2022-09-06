@@ -28,9 +28,3 @@ void z::PopupInterface::quit(int r)
 	window_ptr_->close();
 }
 
-z::Popup::Popup(string title, cv::Rect2i r) : z::Window{title, r}, PopupInterface{this}
-{ }
-
-z::AsciiPopup::AsciiPopup(const char *p, int unit_width, int unit_height, int margin)
-	: z::AsciiWindow(p, unit_width, unit_height, margin), PopupInterface{this}
-{ }

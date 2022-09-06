@@ -6,12 +6,13 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 {//get mouse event
 	z::Window *p = (z::Window*)ptr;
 	z::Widget *pw = nullptr;
-	for(auto w : *p) {
+	for(auto w : *p) { // assumption : zIndex increase
 		if(w->contains({x, y})) pw = w;//set 
 		else if(w->focus()) {//leave event
 			if(w->gui_callback_.find(EVENT_LEAVE) != w->gui_callback_.end()) {
 				w->gui_callback_[EVENT_LEAVE](x, y);
 				*p << *w;
+				p->show();
 			}
 			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end())
 				w->user_callback_[EVENT_LEAVE](x, y);
@@ -27,6 +28,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 			if(pw->gui_callback_.find(EVENT_ENTER) != pw->gui_callback_.end()) {
 				pw->gui_callback_[EVENT_ENTER](x, y);
 				*p << *pw;
+				p->show();
 			} 
 			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end())
 				pw->user_callback_[EVENT_ENTER](x, y);
@@ -34,6 +36,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 			if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 				pw->gui_callback_[event](x, y);
 				*p << *pw;
+				p->show();
 			}
 			if(pw->user_callback_.find(event) != pw->user_callback_.end())
 				pw->user_callback_[event](x, y);
@@ -42,6 +45,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 			pw->gui_callback_[event](x, y);
 			*p << *pw;
+			p->show();
 		}
 		if(pw->user_callback_.find(event) != pw->user_callback_.end())
 			pw->user_callback_[event](x, y);
@@ -64,9 +68,15 @@ z::Window& z::Window::operator+(z::Widget &w)
 {
 	//lock_guard<mutex> lck{mtx_};
 	widgets_.push_back(&w);
-	w.mat_.copyTo(mat_(w));
 	w.parent_ = this;
+	w.on_register(this);
 	return *this;
+}
+
+void z::Window::organize_accordingto_zindex()
+{ //for mouse event 
+	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
+	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {a->mat_.copyTo(mat_(*a));});
 }
 
 z::Window& z::Window::operator-(z::Widget &w)
@@ -74,6 +84,9 @@ z::Window& z::Window::operator-(z::Widget &w)
 	widgets_.erase(std::remove(widgets_.begin(), widgets_.end(), &w));
 	mat_(w) = background_color_;
 	w.parent_ = nullptr;
+	std::for_each(widgets_.begin(), widgets_.end(), [&w, this](auto *a) {
+		if((w & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() < w.zIndex()) *this << *a;
+	});
 	return *this;
 }
 
@@ -97,7 +110,9 @@ z::Window& z::Window::operator<<(z::Widget &r)
 {
 	//lock_guard<mutex> lck{mtx_};
 	r.mat_.copyTo(mat_(r));
-	show();
+	std::for_each(widgets_.begin(), widgets_.end(), [this, &r](auto *a) {
+		if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex()) *this << *a;
+	});
 	return *this;
 }
 
@@ -125,6 +140,7 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 		a->y += y;
 		w + *a;
 	}
+	w.organize_accordingto_zindex();
 	w.show();
 	popup_exit_func_ = f;
 }
@@ -139,6 +155,7 @@ void z::Window::popdown(int value)
 	popup_on_->mat_ = background_color_;
 	popup_on_->widgets_.clear();
 	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
+	popup_on_->organize_accordingto_zindex();
 	for(const auto &a : popup_on_->wrapped_) popup_on_->draw_wrapped(a);
 	popup_on_->show();
 	popup_on_ = nullptr;
@@ -158,6 +175,7 @@ void z::Window::draw_wrapped(const Wrapped &wr)
 
 void z::Window::start(int flag)
 {
+	organize_accordingto_zindex();
 	cv::namedWindow(title_, flag);
 	cv::setMouseCallback(title_, mouse_callback, this);
 	show();
@@ -179,4 +197,24 @@ void z::Window::keyboard_callback(int key)
 		if(p->user_callback_.find(EVENT_KEYBOARD) != p->user_callback_.end())
 			p->user_callback_[EVENT_KEYBOARD](key, 0);
 	}
+}
+
+int z::Window::open(int flag, int x, int y)
+{
+	start(flag);
+	if(x >= 0 && y >= 0) cv::moveWindow(title(), x, y);
+	while(!closed_) {//popup quit by quit(int) function
+		try { cv::getWindowProperty(title(), 0); }//for x button close
+		catch(...) { break; }
+		if(int key = cv::waitKey(10); key != -1) keyboard_callback(key);
+	}
+	closed_ = false;
+	return result_;
+}
+
+void z::Window::quit(int r)
+{
+	result_ = r;
+	closed_ = true;
+	close();
 }

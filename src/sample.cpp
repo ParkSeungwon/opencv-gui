@@ -3,9 +3,9 @@
 #include"zgui.h"
 using namespace std;
 
-struct Pop : z::AsciiWindow, z::PopupInterface
+struct Pop : z::AsciiWindow
 {
-	Pop() : z::PopupInterface{this}, z::AsciiWindow{R"(
+	Pop() : z::AsciiWindow{R"(
 		WMessage---------------------------
 		|
 		|    L0--------------------------
@@ -19,6 +19,7 @@ struct Pop : z::AsciiWindow, z::PopupInterface
 	{
 		B[0]->click([this]() { quit(1); });
 		B[1]->click([this]() { quit(0); });
+		organize_accordingto_zindex();
 	}
 
 	void set(string s1, string s2) {
@@ -48,6 +49,7 @@ struct Win : z::AsciiWindow
 	Pop pop;
 	Pop2 pop2;
 	cv::Mat m;
+	z::Handle h;
 	int x, y;
 	cv::Scalar color;
 	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
@@ -93,7 +95,7 @@ struct Win : z::AsciiWindow
 		|
 		|
 		|
-		|)"}
+		|)", 20, 30, 2}
 	{
 		static vector<string> v;
 		for(const filesystem::path &p : filesystem::directory_iterator("./"))
@@ -103,6 +105,9 @@ struct Win : z::AsciiWindow
 		tie(*C[0], *C[1], *C[2]);//radio button
 		wrap("RGB", 20, 10, *C[0], *L[2]);//frame
 		*this + bt;
+		//scroll_to({0, 0, 800,750});
+		*this + h;
+		bt.zIndex(1);
 		start();
 
 		bt.click([this]() { cout << "hello" << endl; });
@@ -115,8 +120,9 @@ struct Win : z::AsciiWindow
 		B[3]->click
 		( [this] () 
 			{ static int k = 0; k++; 
-				if(k %2) { *this - bt; show(); } 
-				else { *this + bt; show(); }
+				if(k %2) { *this - bt; } 
+				else { *this + bt; *this << bt; }
+				show();
 			}
 		);
 		B[4]->click([this](){pop2.popup(*this, [](int i){ if(i == 1) cv::destroyAllWindows();});});
@@ -137,8 +143,7 @@ struct Win : z::AsciiWindow
 		int x = m.cols * S[0]->value() / 100;
 		int y = m.rows * (100 - S[1]->value()) / 100;
 		cv::circle(I[0]->mat_, {x, y}, 30, color, 2);
-		//*this << *I[0];
-		update(*I[0]);
+		*this << *I[0];
 		show();
 	}
 };
