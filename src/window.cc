@@ -78,7 +78,7 @@ z::Window& z::Window::operator+(z::Widget &w)
 void z::Window::organize_accordingto_zindex()
 { //for mouse event 
 	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
-	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {a->mat_.copyTo(mat_(*a));});
+	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {if(!a->hidden_) a->mat_.copyTo(mat_(*a));});
 }
 
 z::Window& z::Window::operator-(z::Widget &w)
@@ -94,40 +94,55 @@ z::Window& z::Window::operator-(z::Widget &w)
 
 void z::Window::move_widget(z::Widget &w, cv::Point2i p)
 { // move a widget that is already mounted
-	mat_(w) = background_color_;
-	std::for_each(widgets_.begin(), widgets_.end(), [&w, this](auto *a) {
-		if((w & *a) != cv::Rect2i{0,0,0,0}) *this << *a;
-	});
-	if(p.x + w.width > width || p.y + w.height > height) return;
+	if(p.x + w.width > width) p.x = width - w.width;
+	if(p.y + w.height > height) p.y = height - w.height;
+	if(p.x < 0 ) p.x = 0;
+	if(p.y < 0 ) p.y = 0;
 	w.x = p.x;
 	w.y = p.y;
-	*this << w;
 }
 
-void z::Window::resize(cv::Rect2i r)
-{
-	z::Widget::resize(r);
-	for(const auto &a : widgets_) a->mat_.copyTo(mat_(*a));
-}
+//void z::Window::resize(cv::Rect2i r)
+//{
+//	z::Widget::resize(r);
+//	for(const auto &a : widgets_) a->mat_.copyTo(mat_(*a));
+//}
 
 string z::Window::title()
 {
 	return title_;
 }
 
-void z::Window::update(const z::Widget &r) 
-{
-	r.mat_.copyTo(mat_(r));
-}
+//void z::Window::update(const z::Widget &r) 
+//{
+//	r.mat_.copyTo(mat_(r));
+//}
 
 z::Window& z::Window::operator<<(z::Widget &r)
 {
 	//lock_guard<mutex> lck{mtx_};
 	r.mat_.copyTo(mat_(r));
-	std::for_each(widgets_.begin(), widgets_.end(), [this, &r](auto *a) {
-		if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex()) *this << *a;
-	});
+	std::for_each
+	( ++std::find(widgets_.begin(), widgets_.end(), &r)
+	, widgets_.end()
+	, [this, &r] (auto *a) 
+		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex() && !r.hidden_) *this << *a;
+		}
+	);
 	return *this;
+}
+
+z::Window& z::Window::operator>>(z::Widget &r)
+{
+	r.hidden_ = true;
+	cv::rectangle(mat_, r, background_color_, cv::FILLED);
+//	std::for_each
+//	( widgets_.begin()
+//	, widgets_.end()
+//	, [this, &r] (auto *a) 
+//		{ if((*this & *a) != cv::Rect2i{0,0,0,0} && r.hidden_ == false) *parent_ << *a;
+//		}
+//	);
 }
 
 void z::Window::show()

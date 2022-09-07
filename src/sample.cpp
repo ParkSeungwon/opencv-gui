@@ -24,7 +24,7 @@ struct Pop : z::AsciiWindow
 
 	void set(string s1, string s2) {
 		L[0]->text(s1); L[1]->text(s2);
-		update(*L[0]); update(*L[1]);
+		*this << *L[0]; *this << *L[1];
 	}
 };
 
@@ -55,7 +55,7 @@ struct Win : z::AsciiWindow
 	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
 
 	Win() : z::AsciiWindow{R"(
-		WSample------------------------------------
+		WSamplea------------------------------------
 		| 
 		| T0------------------B0- B1------- B2-----
 		| |Open File|         ||  |Open|    |Quit|

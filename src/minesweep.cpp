@@ -26,7 +26,8 @@ public:
 		user_callback_[cv::EVENT_RBUTTONUP] = [this](int, int)
 		{ if(text_ == " ") text("v");
 			else if(text_ == "v") text(" ");
-			update();
+			*parent_ << *this;
+			parent_->show();
 		};
 		gui_callback_[EVENT_LEAVE] = [] (int, int) {};
 		gui_callback_[EVENT_ENTER] = [] (int, int) {};

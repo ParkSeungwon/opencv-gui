@@ -20,6 +20,7 @@ public:
 	//void register_callback(int event, std::function<void(int,int)> f);
 	bool focus();
 	void focus(bool);
+	void show();
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
@@ -29,6 +30,8 @@ public:
 	virtual void on_register() {}
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
+	bool hidden_ = false;
+	void hide();
 
 protected:
 	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
@@ -108,14 +111,15 @@ public:
 	Window &operator+(Widget &w);
 	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
+	Window &operator>>(Widget &r);
 	int loop();
 	std::vector<Widget*>::iterator begin(), end();
 	void close();
 	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO);
 	void keyboard_callback(int key);
-	void update(const Widget &r);
+	//void update(const Widget &r);
 	std::string title();
-	void resize(cv::Rect2i r);
+	//void resize(cv::Rect2i r);
 	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
 	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
 	void organize_accordingto_zindex();
@@ -148,9 +152,9 @@ public:
 		draw_wrapped(wrapped_.back());
 	}
 	cv::Rect2i scrolled_rect_ = cv::Rect2i{0,0,0,0};
+	std::vector<Widget*> widgets_, backup_;
 protected:
 	std::string title_;
-	std::vector<Widget*> widgets_, backup_;
 	void draw_wrapped(const Wrapped &wr);
 	bool closed_ = false;
 	int result_ = -1;

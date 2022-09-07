@@ -7,16 +7,11 @@ z::ScrolledWindow::ScrolledWindow(string title, cv::Rect2i r) : Window(title, r)
 
 void z::ScrolledWindow::scroll_to(cv::Rect2i r)
 {
-	if((*this & r) == r) {
-		scrolled_rect_ = r;
-		//move_widget(handle_, {r.br().x - handle_.widget_size_, r.br().y - handle_.widget_size_});
-		show();
-	}
+	if((*this & r) == r) scrolled_rect_ = r;
 }
 
 void z::ScrolledWindow::show()
 {
-	cout << "show" << endl;
 	if(scrolled_rect_ != cv::Rect2i{0,0,0,0}) cv::imshow(title_, mat_(scrolled_rect_));
 	else z::Window::show();
 }
@@ -32,19 +27,37 @@ void z::ScrolledWindow::set_br(cv::Point2i p) {
 z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 	zIndex(100);
 	mat_ = click_color_;
-	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { mouse_down_ = true; };
-	gui_callback_[EVENT_ENTER] = [this](int, int) { shade_rect({0, 0, width, height}, 3, background_color_); };
-	gui_callback_[EVENT_LEAVE] = [this](int, int) { shade_rect({0, 0, width, height}, 3, click_color_); };
+	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { 
+		cout << "l down" << endl;
+		mouse_down_ = true; 
+		mat_ = background_color_;
+		hide();
+		//*parent_ >> *this;
+		//cout << this->x << ' ' << this->y << ' ' << this->width << ' ' << this->height << endl;
+		//cv::rectangle(parent_->mat_, {this->x-100, this->y-100, this->width+100, this->height+100}, highlight_color_, cv::FILLED);
+		//cv::imshow("ti", parent_->mat_(parent_->scrolled_rect_));
+		//cv::imshow(parent_->title(), parent_->mat_(parent_->scrolled_rect_));
+		//*parent_ >> *this; 
+		parent_->show();
+	};
+	gui_callback_[EVENT_ENTER] = [this](int, int) {  };
+	gui_callback_[EVENT_LEAVE] = [this](int, int) { 
+		//mat_ = click_color_; 
+		*parent_ << *this; show(); 
+	};
 	gui_callback_[cv::EVENT_MOUSEMOVE] = [this](int xpos, int ypos) { // scrolled_rect_.x y 가 더해진 값
 		if(mouse_down_) {
 			scwin_->move_widget(*this, {xpos - widget_size_ / 2, ypos - widget_size_ / 2});
 			scwin_->set_br({xpos + widget_size_ / 2, ypos + widget_size_ / 2});
-			cout << "xy pos "  << xpos << ' ' << ypos << endl;
-			cout << scwin_->scrolled_rect_.width << ' ' << scwin_->scrolled_rect_.height << endl;
-			scwin_->show();
+			show();
 		}
 	};
-	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) { mouse_down_ = false; };
+	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) { 
+		mouse_down_ = false; 
+		mat_ = click_color_;
+		*scwin_ << *this;
+		show();
+	};
 }
 
 void z::Handle::on_register() {

@@ -24,7 +24,7 @@ void z::Window::tie2(string title, int font, z::TextInput &t, z::Button &b, cons
   //static vector<string> v2 = v;
 	static Tie2 vw{title, font, v};
 	b.text("\u25bc");
-	update(b);
+	*this << b;
 	vw.resize({t.x, t.y+font, vw.width, vw.height});
 	b.click([&](){vw.popup(*this, [this, &t, &v](int i){t.value(v[i]); *this << t; });});
 }
@@ -33,7 +33,7 @@ void z::Window::tie(z::TextInput &t, z::Button &b1, z::Button &b2, double start,
 {//number input
 	b1.text("\u25b5"); b2.text("\u25bf");
 	t.value(to_string(start));
-	update(b1); update(b2); update(t);
+	*this << b1; *this << b2; *this << t;
 	b1.click([&, step](){t.value(to_string(stod(t.value()) + step)); *this << t;});
 	b2.click([&, step](){t.value(to_string(stod(t.value()) - step)); *this << t;});
 }

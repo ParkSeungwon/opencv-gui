@@ -42,3 +42,11 @@ void z::Widget::resize(cv::Rect2i r) {
 void z::Widget::update() {
 	if(parent_ != nullptr) *parent_ << *this;
 }
+
+void z::Widget::show() {
+	if(parent_ != nullptr) parent_->show();
+}
+
+void z::Widget::hide() {
+	hidden_ = true;
+}
