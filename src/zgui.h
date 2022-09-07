@@ -30,10 +30,14 @@ public:
 	virtual void on_register() {}
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
-	bool hidden_ = false;
+	void hidden(bool v) {hidden_ = v;}
+	void activated(bool v) {activated_ = v;}
+	bool hidden() {return hidden_;}
+	bool activated() {return activated_;}
 	void hide();
 
 protected:
+	bool hidden_ = false, activated_ = true;
 	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
 	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,
 			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);

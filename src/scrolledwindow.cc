@@ -28,21 +28,16 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 	zIndex(100);
 	mat_ = click_color_;
 	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { 
-		cout << "l down" << endl;
 		mouse_down_ = true; 
-		mat_ = background_color_;
-		hide();
-		//*parent_ >> *this;
-		//cout << this->x << ' ' << this->y << ' ' << this->width << ' ' << this->height << endl;
-		//cv::rectangle(parent_->mat_, {this->x-100, this->y-100, this->width+100, this->height+100}, highlight_color_, cv::FILLED);
-		//cv::imshow("ti", parent_->mat_(parent_->scrolled_rect_));
-		//cv::imshow(parent_->title(), parent_->mat_(parent_->scrolled_rect_));
-		//*parent_ >> *this; 
-		parent_->show();
+		*parent_ >> *this;
+		hidden(true);
+		show();
 	};
 	gui_callback_[EVENT_ENTER] = [this](int, int) {  };
 	gui_callback_[EVENT_LEAVE] = [this](int, int) { 
 		//mat_ = click_color_; 
+		hidden(false);
+		mouse_down_ = false;
 		*parent_ << *this; show(); 
 	};
 	gui_callback_[cv::EVENT_MOUSEMOVE] = [this](int xpos, int ypos) { // scrolled_rect_.x y 가 더해진 값
@@ -54,7 +49,7 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 	};
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) { 
 		mouse_down_ = false; 
-		mat_ = click_color_;
+		hidden(false);
 		*scwin_ << *this;
 		show();
 	};

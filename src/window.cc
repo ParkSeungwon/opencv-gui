@@ -9,7 +9,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	y += p->scrolled_rect_.y;
 	z::Widget *pw = nullptr;
 	for(auto w : *p) { // assumption : zIndex increase
-		if(w->contains({x, y})) pw = w;//set 
+		if(w->contains({x, y}) && w->activated()) pw = w;//set 
 		else if(w->focus()) {//leave event
 			if(w->gui_callback_.find(EVENT_LEAVE) != w->gui_callback_.end()) {
 				w->gui_callback_[EVENT_LEAVE](x, y);
@@ -78,7 +78,7 @@ z::Window& z::Window::operator+(z::Widget &w)
 void z::Window::organize_accordingto_zindex()
 { //for mouse event 
 	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
-	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {if(!a->hidden_) a->mat_.copyTo(mat_(*a));});
+	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {if(!a->hidden()) a->mat_.copyTo(mat_(*a));});
 }
 
 z::Window& z::Window::operator-(z::Widget &w)
@@ -119,30 +119,29 @@ string z::Window::title()
 //}
 
 z::Window& z::Window::operator<<(z::Widget &r)
-{
-	//lock_guard<mutex> lck{mtx_};
-	r.mat_.copyTo(mat_(r));
+{ // copy to mat_
+	if(!r.hidden()) r.mat_.copyTo(mat_(r));
 	std::for_each
 	( ++std::find(widgets_.begin(), widgets_.end(), &r)
 	, widgets_.end()
 	, [this, &r] (auto *a) 
-		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex() && !r.hidden_) *this << *a;
+		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex() && !r.hidden()) *this << *a;
 		}
 	);
 	return *this;
 }
 
 z::Window& z::Window::operator>>(z::Widget &r)
-{
-	r.hidden_ = true;
+{ // remove from mat_
+	r.hidden(true);
 	cv::rectangle(mat_, r, background_color_, cv::FILLED);
-//	std::for_each
-//	( widgets_.begin()
-//	, widgets_.end()
-//	, [this, &r] (auto *a) 
-//		{ if((*this & *a) != cv::Rect2i{0,0,0,0} && r.hidden_ == false) *parent_ << *a;
-//		}
-//	);
+	std::for_each
+	( widgets_.begin()
+	, widgets_.end()
+	, [this, &r] (auto *a) 
+		{ if((*this & *a) != cv::Rect2i{0,0,0,0} && !r.hidden()) *parent_ << *a;
+		}
+	);
 }
 
 void z::Window::show()
