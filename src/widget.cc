@@ -36,7 +36,7 @@ void z::Widget::focus(bool tf) {
 
 void z::Widget::resize(cv::Rect2i r) {
 	*this = r;
-	//cv::resize(mat_, mat_, {r.width, r.height});
+	cv::resize(mat_, mat_, {r.width, r.height});
 }
 
 void z::Widget::update() {

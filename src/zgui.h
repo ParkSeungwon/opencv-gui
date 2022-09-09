@@ -186,6 +186,7 @@ public:
 private:
 	bool mouse_down_ = false;
 	ScrolledWindow *scwin_;
+	cv::Rect2i scroll_backup_ = {0,0,0,0};
 	void on_register();
 };
 

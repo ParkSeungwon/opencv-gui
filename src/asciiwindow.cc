@@ -45,7 +45,6 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : parsed_) for(auto &b : a) b = ' ';
 	height = art_.size() * unit_height;
 	width *= unit_width;
-	cv::resize(mat_, mat_, {width, height});
 	resize({x, y, width, height});
 
 	parse_art();

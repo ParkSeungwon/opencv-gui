@@ -53,6 +53,18 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 		*scwin_ << *this;
 		show();
 	};
+	gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this] (int, int) {
+		mouse_down_ = false;
+		hidden(false);
+		if(scwin_->scrolled_rect_ == *scwin_) scwin_->scrolled_rect_ = scroll_backup_;
+		else {
+			scroll_backup_ = scwin_->scrolled_rect_;
+			scwin_->scrolled_rect_ = *scwin_;
+		}
+		auto pt = scwin_->scrolled_rect_.br();
+		scwin_->move_widget(*this, {pt.x - widget_size_, pt.y - widget_size_});
+		show();
+	};
 }
 
 void z::Handle::on_register() {

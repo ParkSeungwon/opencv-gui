@@ -1,4 +1,4 @@
-CXX = g++-10
+CXX = g++
 CPPFLAGS = -I../ -pthread
 CXXFLAGS = -g -c -std=c++20 -fmax-errors=1 $(shell pkg-config --cflags opencv4 gstreamermm-1.0 )
 DIR = $(notdir $(shell pwd))
