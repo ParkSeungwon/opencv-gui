@@ -29,8 +29,8 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 	mat_ = click_color_;
 	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { 
 		mouse_down_ = true; 
-		*parent_ >> *this;
-		hidden(true);
+		*parent_ >> *this >> hh_ >> vh_;
+		hidden(true); hh_.hidden(true); vh_.hidden(true);
 		show();
 	};
 	gui_callback_[EVENT_ENTER] = [this](int, int) {  };
@@ -49,8 +49,13 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 	};
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) { 
 		mouse_down_ = false; 
-		hidden(false);
-		*scwin_ << *this;
+		auto r = scwin_->scrolled_rect_;
+		scwin_->move_widget(hh_, {0, r.br().y - hh_.widget_height_});
+		scwin_->move_widget(vh_, {r.br().x - vh_.widget_width_, 0});
+		hh_.draw(); 
+		vh_.draw();
+		hidden(false); hh_.hidden(false); vh_.hidden(false);
+		*scwin_ << *this << hh_ << vh_;
 		show();
 	};
 	gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this] (int, int) {
@@ -110,12 +115,7 @@ void z::VHandle::draw()
 	float occupying_start = float{r.y} / scwin_->height;
 	starty_ = r.y + occupying_start * r.height;
 	endy_ = starty_ + occupying_ratio * r.height;
-	cv::rectangle
-	( mat_
-	, { 0, r.y + occupying_start * r.height, widget_width_, occupying_ratio * r.height}
-	, widget_color_
-	, cv::FILLED
-	);
+	shade_rect({ 0, r.y + occupying_start * r.height, widget_width_, occupying_ratio * r.height});
 }
 
 z::HHandle::HHandle() : z::Widget{{0,0,1,1}}
@@ -146,10 +146,5 @@ void z::HHandle::draw()
 	auto r = scwin_->scrolled_rect_;
 	float occupying_ratio = float{r.width} / scwin_->width;
 	float occupying_start = float{r.x} / scwin_->width;
-	cv::rectangle
-	( mat_
-	, {r.x + occupying_start * r.width, 0, occupying_ratio * r.width, widget_height_}
-	, widget_color_
-	, cv::FILLED
-	);
+	shade_rect({r.x + occupying_start * r.width, 0, occupying_ratio * r.width, widget_height_});
 }

@@ -179,6 +179,8 @@ public:
 	void set_br(cv::Point2i p);
 };
 
+class Handle;
+
 class VHandle : public Widget
 {
 public:
@@ -190,6 +192,7 @@ private:
 	void on_register();
 	void draw();
 	int starty_, endy_;
+	friend class Handle;
 };
 
 class HHandle : public Widget
@@ -203,6 +206,7 @@ private:
 	void on_register();
 	void draw();
 	int startx_, endx_;
+	friend class Handle;
 };
 
 class Handle : public Widget
