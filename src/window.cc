@@ -121,12 +121,13 @@ string z::Window::title()
 
 z::Window& z::Window::operator<<(z::Widget &r)
 { // copy to mat_
-	if(!r.hidden()) r.mat_.copyTo(mat_(r));
+	if(r.hidden()) return *this;
+	r.mat_.copyTo(mat_(r));
 	std::for_each
 	( ++std::find(widgets_.begin(), widgets_.end(), &r)
 	, widgets_.end()
 	, [this, &r] (Widget *a) 
-		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex() && !r.hidden()) *this << *a;
+		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() >= r.zIndex() && !r.hidden()) *this << *a;
 		}
 	);
 	return *this;
@@ -136,13 +137,16 @@ z::Window& z::Window::operator>>(z::Widget &r)
 { // remove from mat_
 	r.hidden(true);
 	cv::rectangle(mat_, r, background_color_, cv::FILLED);
-	std::for_each
-	( widgets_.begin()
-	, widgets_.end()
-	, [this, &r] (Widget *a) 
-		{ if((r & *a) != cv::Rect2i{0,0,0,0} && !r.hidden()) *this << *a;
-		}
-	);
+	for(z::Widget *a : widgets_) 
+		if((r & *a) !=  cv::Rect2i{0,0,0,0} && !a->hidden()) *this << *a;
+	//std::for_each
+	//( widgets_.begin()
+	//, widgets_.end()
+	//, [this, &r] (Widget *a) 
+	//	{ if((r & *a) != cv::Rect2i{0,0,0,0} && !r.hidden()) *this << *a;
+	//	}
+	//);
+	return *this;
 }
 
 void z::Window::show()
