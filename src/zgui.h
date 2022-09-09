@@ -184,13 +184,14 @@ class Handle;
 class VHandle : public Widget
 {
 public:
-	VHandle();
+	VHandle(Handle&);
 	const static int widget_width_ = 10;
+	void draw();
 private:
+	Handle &handle_;
 	bool mouse_down_ = false;
 	ScrolledWindow *scwin_;
 	void on_register();
-	void draw();
 	int starty_, endy_;
 	friend class Handle;
 };
@@ -198,13 +199,14 @@ private:
 class HHandle : public Widget
 {
 public:
-	HHandle();
+	HHandle(Handle&);
 	const static int widget_height_ = 10;
+	void draw();
 private:
+	Handle &handle_;
 	bool mouse_down_ = false;
 	ScrolledWindow *scwin_;
 	void on_register();
-	void draw();
 	int startx_, endx_;
 	friend class Handle;
 };
@@ -214,7 +216,6 @@ class Handle : public Widget
 public:
 	Handle();
 	const static int widget_size_ = 30;
-protected:
 	VHandle vh_;
 	HHandle hh_;
 private:

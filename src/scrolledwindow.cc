@@ -24,13 +24,13 @@ void z::ScrolledWindow::set_br(cv::Point2i p) {
 	scroll_to({scrolled_rect_.tl(), p});
 }
 
-z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
+z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*this} 
+{
 	zIndex(100);
 	mat_ = click_color_;
 	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { 
 		mouse_down_ = true; 
 		*parent_ >> *this >> hh_ >> vh_;
-		hidden(true); hh_.hidden(true); vh_.hidden(true);
 		show();
 	};
 	gui_callback_[EVENT_ENTER] = [this](int, int) {  };
@@ -55,19 +55,24 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}} {
 		hh_.draw(); 
 		vh_.draw();
 		hidden(false); hh_.hidden(false); vh_.hidden(false);
-		*scwin_ << *this << hh_ << vh_;
+		*scwin_ << hh_ << vh_ << *this;
 		show();
 	};
 	gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this] (int, int) {
 		mouse_down_ = false;
-		hidden(false);
 		if(scwin_->scrolled_rect_ == *scwin_) scwin_->scrolled_rect_ = scroll_backup_;
 		else {
 			scroll_backup_ = scwin_->scrolled_rect_;
 			scwin_->scrolled_rect_ = *scwin_;
 		}
 		auto pt = scwin_->scrolled_rect_.br();
+		*scwin_ >> *this >> hh_ >> vh_;
+		hidden(false); hh_.hidden(false); vh_.hidden(false);
 		scwin_->move_widget(*this, {pt.x - widget_size_, pt.y - widget_size_});
+		scwin_->move_widget(hh_, {0, pt.y - hh_.widget_height_});
+		scwin_->move_widget(vh_, {pt.x - vh_.widget_width_ ,0});
+		hh_.draw(); vh_.draw();
+		*scwin_ << hh_ << vh_ << *this;
 		show();
 	};
 }
@@ -85,7 +90,7 @@ void z::Handle::on_register() {
 	*parent_ + hh_;
 }
 
-z::VHandle::VHandle() : z::Widget{{0,0,1,1}}
+z::VHandle::VHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 {
 	zIndex(99);
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this] (int, int ypos) {
@@ -95,7 +100,12 @@ z::VHandle::VHandle() : z::Widget{{0,0,1,1}}
 		r.y = std::max(0, scwin_->height * (ypos - r.y) / r.height - half) ;
 		r.y = std::min(scwin_->height - r.height, r.y);
 		draw();
-		*scwin_ << *this;
+		*scwin_ >> handle_ >> handle_.hh_;
+		scwin_->move_widget(handle_, {handle_.x, r.br().y - handle_.widget_size_});
+		scwin_->move_widget(handle_.hh_, {0, r.br().y - handle_.hh_.widget_height_});
+		handle_.hh_.draw(); 
+		handle_.hidden(false); handle_.hh_.hidden(false);
+		*scwin_ << *this << handle_ << handle_.hh_;
 		show();
 	};
 }
@@ -118,7 +128,7 @@ void z::VHandle::draw()
 	shade_rect({ 0, r.y + occupying_start * r.height, widget_width_, occupying_ratio * r.height});
 }
 
-z::HHandle::HHandle() : z::Widget{{0,0,1,1}}
+z::HHandle::HHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 {
 	zIndex(99);
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this] (int xpos, int) {
@@ -128,7 +138,13 @@ z::HHandle::HHandle() : z::Widget{{0,0,1,1}}
 		r.x = std::max(0, scwin_->width * (xpos - r.x) / r.width - half) ;
 		r.x = std::min(scwin_->width - r.width, r.x);
 		draw();
-		*scwin_ << *this;
+		*scwin_ >> handle_.vh_ >> handle_;
+		show();
+		scwin_->move_widget(handle_, {r.br().x - handle_.widget_size_, r.br().y - handle_.widget_size_});
+		scwin_->move_widget(handle_.vh_, {r.br().x - handle_.vh_.widget_width_, 0});
+		handle_.vh_.draw();
+		handle_.hidden(false); handle_.vh_.hidden(false);
+		*scwin_ << *this << handle_.vh_ << handle_;
 		show();
 	};
 }

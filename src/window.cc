@@ -125,7 +125,7 @@ z::Window& z::Window::operator<<(z::Widget &r)
 	std::for_each
 	( ++std::find(widgets_.begin(), widgets_.end(), &r)
 	, widgets_.end()
-	, [this, &r] (auto *a) 
+	, [this, &r] (Widget *a) 
 		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex() && !r.hidden()) *this << *a;
 		}
 	);
@@ -139,8 +139,8 @@ z::Window& z::Window::operator>>(z::Widget &r)
 	std::for_each
 	( widgets_.begin()
 	, widgets_.end()
-	, [this, &r] (auto *a) 
-		{ if((*this & *a) != cv::Rect2i{0,0,0,0} && !r.hidden()) *parent_ << *a;
+	, [this, &r] (Widget *a) 
+		{ if((r & *a) != cv::Rect2i{0,0,0,0} && !r.hidden()) *this << *a;
 		}
 	);
 }
@@ -158,9 +158,10 @@ void z::Window::close()
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
 {
 	popup_on_ = &w;
+	auto r = w.scrolled_rect_;
 	if(x == 0 && y == 0) {
-		x = (w.width - width) / 2;
-		y = (w.height - height) / 2;
+		x = r.x + (r.width - width) / 2;
+		y = r.y + (r.height - height) / 2;
 	}
 	w.backup_ = move(w.widgets_); //disable callback
 	w.shade_rect(*this);
