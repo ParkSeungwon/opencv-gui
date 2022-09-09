@@ -50,6 +50,7 @@ struct Win : z::AsciiWindow
 	Pop2 pop2;
 	cv::Mat m;
 	z::Handle h;
+	//z::VHandle vh;
 	int x, y;
 	cv::Scalar color;
 	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
@@ -107,6 +108,7 @@ struct Win : z::AsciiWindow
 		*this + bt;
 		scroll_to({50, 50, 300,350});
 		*this + h;
+		//*this + vh;
 		bt.zIndex(1);
 		start();
 

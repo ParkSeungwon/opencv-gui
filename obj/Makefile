@@ -1,4 +1,4 @@
-CXX = g++-10
+CXX = g++
 OBJ = $(wildcard *.o)
 TOBJ = $(wildcard *.t)
 EXE = $(patsubst %.x, ../%.x, $(wildcard *.x))

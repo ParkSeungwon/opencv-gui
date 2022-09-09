@@ -182,11 +182,32 @@ class Handle : public Widget
 {
 public:
 	Handle();
+protected:
 	const static int widget_size_ = 30;
-private:
 	bool mouse_down_ = false;
 	ScrolledWindow *scwin_;
 	void on_register();
+};
+
+class VHandle : public Widget
+{
+public:
+	VHandle();
+private:
+	const static int widget_width_ = 10;
+	ScrolledWindow *scwin_;
+	void on_register();
+	void draw();
+	int height_ = 0;
+};
+
+class HHandle : public Widget
+{
+public:
+	HHandle();
+	private:
+
+
 };
 
 class Image : public Widget
