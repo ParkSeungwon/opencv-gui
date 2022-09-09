@@ -76,4 +76,80 @@ void z::Handle::on_register() {
 		x = scwin_->scrolled_rect_.br().x - widget_size_;
 		y = scwin_->scrolled_rect_.br().y - widget_size_;
 	}
+	*parent_ + vh_;
+	*parent_ + hh_;
+}
+
+z::VHandle::VHandle() : z::Widget{{0,0,1,1}}
+{
+	zIndex(99);
+	gui_callback_[cv::EVENT_LBUTTONUP] = [this] (int, int ypos) {
+		auto &r = scwin_->scrolled_rect_;
+		float ratio = float{r.height} / scwin_->height;
+		int half = ratio * scwin_->height / 2;
+		r.y = std::max(0, scwin_->height * (ypos - r.y) / r.height - half) ;
+		r.y = std::min(scwin_->height - r.height, r.y);
+		draw();
+		*scwin_ << *this;
+		show();
+	};
+}
+
+void z::VHandle::on_register() 
+{ // resize mat_, rect, equal to fullsize window height -> change x position
+	scwin_ = dynamic_cast<z::ScrolledWindow*>(parent_);
+	resize({scwin_->scrolled_rect_.br().x - widget_width_, 0, widget_width_, scwin_->height - 30});
+	draw();
+}
+
+void z::VHandle::draw()
+{ // draw mat_ according to proportion
+	mat_ = click_color_;
+	auto r = scwin_->scrolled_rect_;
+	float occupying_ratio = float{r.height} / scwin_->height;
+	float occupying_start = float{r.y} / scwin_->height;
+	starty_ = r.y + occupying_start * r.height;
+	endy_ = starty_ + occupying_ratio * r.height;
+	cv::rectangle
+	( mat_
+	, { 0, r.y + occupying_start * r.height, widget_width_, occupying_ratio * r.height}
+	, widget_color_
+	, cv::FILLED
+	);
+}
+
+z::HHandle::HHandle() : z::Widget{{0,0,1,1}}
+{
+	zIndex(99);
+	gui_callback_[cv::EVENT_LBUTTONUP] = [this] (int xpos, int) {
+		auto &r = scwin_->scrolled_rect_;
+		float ratio = float{r.width} / scwin_->width;
+		int half = ratio * scwin_->width / 2;
+		r.x = std::max(0, scwin_->width * (xpos - r.x) / r.width - half) ;
+		r.x = std::min(scwin_->width - r.width, r.x);
+		draw();
+		*scwin_ << *this;
+		show();
+	};
+}
+
+void z::HHandle::on_register()
+{
+	scwin_ = dynamic_cast<z::ScrolledWindow*>(parent_);
+	resize({0, scwin_->scrolled_rect_.br().y - widget_height_, scwin_->width - 30, widget_height_});
+	draw();
+}
+
+void z::HHandle::draw()
+{
+	mat_ = click_color_;
+	auto r = scwin_->scrolled_rect_;
+	float occupying_ratio = float{r.width} / scwin_->width;
+	float occupying_start = float{r.x} / scwin_->width;
+	cv::rectangle
+	( mat_
+	, {r.x + occupying_start * r.width, 0, occupying_ratio * r.width, widget_height_}
+	, widget_color_
+	, cv::FILLED
+	);
 }

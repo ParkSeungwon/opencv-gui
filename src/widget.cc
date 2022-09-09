@@ -27,6 +27,11 @@ z::Widget::Widget(cv::Rect_<int> r)
 	}
 }
 
+z::Widget &z::Widget::operator=(const z::Widget &r) 
+{
+	x = r.x; y = r.y; width = r.width; height = r.height;
+}
+
 bool z::Widget::focus() {
 	return focus_;
 }

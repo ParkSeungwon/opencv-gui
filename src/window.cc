@@ -57,6 +57,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
 {
 	title_ = title;
+	scrolled_rect_ = r;
 }
 
 vector<z::Widget*>::iterator z::Window::begin() {

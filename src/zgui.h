@@ -16,6 +16,7 @@ class Widget : public cv::Rect_<int>
 {//base class for all widgets
 public:
 	Widget(cv::Rect_<int> r);
+	Widget &operator=(const Widget &r);
 	bool is_updated();
 	//void register_callback(int event, std::function<void(int,int)> f);
 	bool focus();
@@ -178,11 +179,40 @@ public:
 	void set_br(cv::Point2i p);
 };
 
+class VHandle : public Widget
+{
+public:
+	VHandle();
+	const static int widget_width_ = 10;
+private:
+	bool mouse_down_ = false;
+	ScrolledWindow *scwin_;
+	void on_register();
+	void draw();
+	int starty_, endy_;
+};
+
+class HHandle : public Widget
+{
+public:
+	HHandle();
+	const static int widget_height_ = 10;
+private:
+	bool mouse_down_ = false;
+	ScrolledWindow *scwin_;
+	void on_register();
+	void draw();
+	int startx_, endx_;
+};
+
 class Handle : public Widget
 {
 public:
 	Handle();
 	const static int widget_size_ = 30;
+protected:
+	VHandle vh_;
+	HHandle hh_;
 private:
 	bool mouse_down_ = false;
 	ScrolledWindow *scwin_;

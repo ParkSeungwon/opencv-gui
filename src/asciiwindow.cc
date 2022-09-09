@@ -46,6 +46,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	height = art_.size() * unit_height;
 	width *= unit_width;
 	resize({x, y, width, height});
+	scrolled_rect_ = *this;
 
 	parse_art();
 	//add to window
