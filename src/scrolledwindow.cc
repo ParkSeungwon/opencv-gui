@@ -31,7 +31,6 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { 
 		mouse_down_ = true; 
 		*parent_ >> *this >> hh_ >> vh_;
-		scwin_->draw_all_wrapped();
 		show();
 	};
 	gui_callback_[EVENT_ENTER] = [this](int, int) {  };

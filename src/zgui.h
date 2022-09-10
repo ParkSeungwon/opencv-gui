@@ -140,6 +140,7 @@ public:
 						if(i != j) v[j]->checked(false);
 						else v[j]->checked(true);
 						*this << *v[j];
+						show();
 					}
 				});
 	}
