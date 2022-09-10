@@ -166,7 +166,7 @@ void z::Window::close()
 }
 
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
-{
+{// popup 시 widget을 빼는 것이 문제
 	popup_on_ = &w;
 	auto r = w.scrolled_rect_;
 	if(x == 0 && y == 0) {
@@ -174,10 +174,14 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 		y = r.y + (r.height - height) / 2;
 	}
 	w.backup_ = move(w.widgets_); //disable callback
+//	std::for_each(w.widgets_.begin(), w.widgets_.end(), [this](z::Widget *a) {
+//		a->activated(false);
+//	});
 	w.shade_rect(*this);
 	for(auto &a : widgets_) {
 		a->x += x;
 		a->y += y;
+//		a->zIndex(a->zIndex() + 301);
 		w + *a;
 	}
 	w.organize_accordingto_zindex();
@@ -191,12 +195,13 @@ void z::Window::popdown(int value)
 	for(auto &a : widgets_) {
 		a->x -= x;
 		a->y -= y;
+		a->zIndex(a->zIndex()- 301);
 	}
 	popup_on_->mat_ = background_color_;
 	popup_on_->widgets_.clear();
 	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
 	popup_on_->organize_accordingto_zindex();
-	for(const auto &a : popup_on_->wrapped_) popup_on_->draw_wrapped(a);
+	popup_on_->draw_all_wrapped();
 	popup_on_->show();
 	popup_on_ = nullptr;
 	popup_exit_func_(value);

@@ -142,7 +142,6 @@ public:
 		if(x<0 || y<0) return;
 		cout << x << ' ' << y << endl;
 		if(mine[x][y] == 'x' || mine[x][y] == 'v') return;
-		if(to_open_ == ++opened) pWin->popup("성공");
 		if(mine[x][y] == ' ') {
 			mine[x][y] = 'v';
 			int bomb_count = count_bomb(x, y);
@@ -161,6 +160,7 @@ public:
 			pWin->clear(x, y, string{""} + mine[x][y]);
 			pWin->popup("실패");
 		}
+		if(to_open_ == ++opened) pWin->popup("성공");
 	}
 
 	int scatter_bomb(int x, int y) {
