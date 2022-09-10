@@ -12,8 +12,8 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		if(w->contains({x, y}) && w->activated()) pw = w;//set 
 		else if(w->focus()) {//leave event
 			if(w->gui_callback_.find(EVENT_LEAVE) != w->gui_callback_.end()) {
-				w->gui_callback_[EVENT_LEAVE](x, y);
 				*p << *w;
+				w->gui_callback_[EVENT_LEAVE](x, y);
 				p->show();
 			}
 			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end())
@@ -28,16 +28,16 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		if(!pw->focus()) {//enter event
 			pw->focus(true);
 			if(pw->gui_callback_.find(EVENT_ENTER) != pw->gui_callback_.end()) {
-				pw->gui_callback_[EVENT_ENTER](x, y);
 				*p << *pw;
+				pw->gui_callback_[EVENT_ENTER](x, y);
 				p->show();
 			} 
 			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end())
 				pw->user_callback_[EVENT_ENTER](x, y);
 		} else {//move event
 			if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-				pw->gui_callback_[event](x, y);
 				*p << *pw;
+				pw->gui_callback_[event](x, y);
 				p->show();
 			}
 			if(pw->user_callback_.find(event) != pw->user_callback_.end())
@@ -45,8 +45,8 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		}
 	} else {//all other event
 		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-			pw->gui_callback_[event](x, y);
 			*p << *pw;
+			pw->gui_callback_[event](x, y);
 			p->show();
 		}
 		if(pw->user_callback_.find(event) != pw->user_callback_.end())
