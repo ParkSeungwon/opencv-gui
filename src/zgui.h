@@ -158,6 +158,7 @@ public:
 	}
 	cv::Rect2i scrolled_rect_ = cv::Rect2i{0,0,0,0};
 	std::vector<Widget*> widgets_, backup_;
+	void draw_all_wrapped();
 protected:
 	std::string title_;
 	void draw_wrapped(const Wrapped &wr);

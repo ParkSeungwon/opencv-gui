@@ -127,7 +127,7 @@ z::Window& z::Window::operator<<(z::Widget &r)
 	( ++std::find(widgets_.begin(), widgets_.end(), &r)
 	, widgets_.end()
 	, [this, &r] (Widget *a) 
-		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() >= r.zIndex() && !r.hidden()) *this << *a;
+		{ if((r & *a) != cv::Rect2i{0,0,0,0} && a->zIndex() > r.zIndex()) *this << *a;
 		}
 	);
 	return *this;
@@ -138,7 +138,8 @@ z::Window& z::Window::operator>>(z::Widget &r)
 	r.hidden(true);
 	cv::rectangle(mat_, r, background_color_, cv::FILLED);
 	for(z::Widget *a : widgets_) 
-		if((r & *a) !=  cv::Rect2i{0,0,0,0} && !a->hidden()) *this << *a;
+		if((r & *a) !=  cv::Rect2i{0,0,0,0}) *this << *a;
+	draw_all_wrapped();
 	//std::for_each
 	//( widgets_.begin()
 	//, widgets_.end()
@@ -147,6 +148,11 @@ z::Window& z::Window::operator>>(z::Widget &r)
 	//	}
 	//);
 	return *this;
+}
+
+void z::Window::draw_all_wrapped()
+{
+	for(auto a : wrapped_) draw_wrapped(a);
 }
 
 void z::Window::show()
