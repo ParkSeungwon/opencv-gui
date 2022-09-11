@@ -27,6 +27,11 @@ z::Widget::Widget(cv::Rect_<int> r)
 	}
 }
 
+z::Widget &z::Widget::operator=(const z::Widget &r) 
+{
+	x = r.x; y = r.y; width = r.width; height = r.height;
+}
+
 bool z::Widget::focus() {
 	return focus_;
 }
@@ -37,4 +42,16 @@ void z::Widget::focus(bool tf) {
 void z::Widget::resize(cv::Rect2i r) {
 	*this = r;
 	cv::resize(mat_, mat_, {r.width, r.height});
+}
+
+void z::Widget::update() {
+	if(parent_ != nullptr) *parent_ << *this;
+}
+
+void z::Widget::show() {
+	if(parent_ != nullptr) parent_->show();
+}
+
+void z::Widget::hide() {
+	hidden_ = true;
 }

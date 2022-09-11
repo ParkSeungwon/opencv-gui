@@ -1,5 +1,9 @@
 # OpenCV GUI
 
+## License
+
+LGPL v2
+
 ## Features
 
 - Solely based on opencv (C++)  
@@ -45,7 +49,6 @@
 ```c++
 #include<filesystem>
 #include"zgui.h"
-#include"cvmatrix.h"
 using namespace std;
 
 struct Pop : z::AsciiWindow, z::PopupInterface
@@ -78,6 +81,7 @@ struct Win : z::AsciiWindow
 	cv::Mat m;
 	int x, y;
 	cv::Scalar color;
+	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
 
 	Win() : z::AsciiWindow{R"(
 		WSample------------------------------------
@@ -110,6 +114,8 @@ struct Win : z::AsciiWindow
 		| |1 100 1|
 		|
 		|
+		|
+		|
 		|  C0 L0-  C1 L1-  C2 L2-   C3- L3----
 		|  |v||R|  || |G|  || |B|   ||  |New|
 		|
@@ -121,7 +127,8 @@ struct Win : z::AsciiWindow
 				v.push_back(p.filename());
 		tie("File open", 30, *T[0], *B[0], v);//combo box
 		tie(*C[0], *C[1], *C[2]);//radio button
-		wrap("RGB", 20, 10, *C[0], *L[2]);
+		wrap("RGB", 20, 10, *C[0], *L[2]);//frame
+		*this + bt;
 		start();
 
 		B[1]->click([this]() {
@@ -403,6 +410,60 @@ template<class... T> void tie(T&... checks);
 
 create a radiobutton group by combining many check boxes.
 
+```c++
+void popup(Window &w, std::function<void(int)> f = [](int){});
+```
+
+show popup window on w.
+
+When x, y of this this->window is 0, it will draw the popup window at the center of w.
+
+functor with value will be call when popdown is called.
+
+```c++
+void popdown(int value);
+```
+
+hide popup window and execute functor registered with  popup function passing integer value.
+
+```c++
+Window &operator+(Widget &w);
+```
+
+register widget w as child widget of this window.
+
+push w into widgets_ vector.
+
+```c++
+Window &operator-(Widget &w);
+```
+
+remove widget from widgets_;
+
+```c++
+Window &operator<<(Widget &w);
+```
+
+copy mat_ of widget into Window mat_, according to x, y position.
+
+```c++
+Window &operator>>(Widget &w);
+```
+
+remove widget from mat_;
+
+also calculates zIndex, alpha and do the appropriate job.
+
+#### ScrolledWindow
+
+scrollable window.
+
+inherits Window, inherited by AsciiWindow.
+
+#### Handle
+
+add handle for scrolling. scrolledwindow + handle
+
 #### Image
 
 ```c++
@@ -483,7 +544,7 @@ unit_height : one character of | is equivalent of this value
 
 margin : default margin for the window
 
-#### PopupInterface
+#### PopupInterface(deprecated)
 
 ```c++
 PopupInterface(Window *p);
@@ -497,7 +558,7 @@ int open(int flag = cv::WINDOW_AUTOSIZE), int x = -1, int y = -1);
 
 open a popup window with flag.
 
-when the pop up window closes with quit(k), this function returns with the k.
+when the pop up window closes with quit(k), this function returns k.
 
 popup appearing position can be set manually with x, y
 

@@ -25,7 +25,7 @@ using namespace std;
 
 
 z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int margin)
-	: z::Window{"", {0,0,1,1}}
+	: z::ScrolledWindow{"", {0, 0, 1, 1}}
 {//Button, Image, Slider, Label, Text, Chckbox, Window, Progress bar
 	uw_ = unit_width; uh_ = unit_height; margin_ = margin;
 	width = 1;
@@ -45,7 +45,8 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : parsed_) for(auto &b : a) b = ' ';
 	height = art_.size() * unit_height;
 	width *= unit_width;
-	cv::resize(mat_, mat_, {width, height});
+	resize({x, y, width, height});
+	scrolled_rect_ = *this;
 
 	parse_art();
 	//add to window
@@ -56,6 +57,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : T) *this + *a.get();
 	for(auto &a : I) *this + *a.get();
 	for(auto &a : P) *this + *a.get();
+	organize_accordingto_zindex();
 }
 
 void z::AsciiWindow::parse_art()

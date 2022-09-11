@@ -10,26 +10,44 @@
 
 namespace z {
 
+class Window;
 
 class Widget : public cv::Rect_<int>
 {//base class for all widgets
 public:
 	Widget(cv::Rect_<int> r);
+	Widget &operator=(const Widget &r);
 	bool is_updated();
 	//void register_callback(int event, std::function<void(int,int)> f);
 	bool focus();
 	void focus(bool);
+	void show();
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
 	cv::Mat3b mat_;//widget shape
-
-protected:
-	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
+	void update();
+	Window *parent_;
+	virtual void on_register() {}
+	int zIndex() {return zIndex_;}
+	void zIndex(int v) {zIndex_ = v; }
+	void hidden(bool v) {hidden_ = v;}
+	void activated(bool v) {activated_ = v;}
+	bool hidden() {return hidden_;}
+	bool activated() {return activated_;}
+	void hide();
+	float alpha() {return alpha_;}
+	void alpha(float f) {alpha_ = f;}
 	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,
 			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);
+
+protected:
+	float alpha_ = 1;
+	bool hidden_ = false, activated_ = true;
+	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
 	bool focus_ = false;
 	static cv::Ptr<cv::freetype::FreeType2> ft2_;
+	int zIndex_ = 0;
 };
 
 class Label : public Widget
@@ -50,9 +68,9 @@ public:
 	void text(std::string s);
 protected:
 	std::string text_;
+	void label();
 private:
 	void repaint(cv::Vec3b color);
-	void label();
 };
 
 class CheckBox : public Widget
@@ -82,23 +100,38 @@ private:
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
 };
 
+struct Wrapped
+{
+	cv::Rect2i rect;
+	int fontsize;
+	std::string title;
+};
+
 class Window : public Widget
 {
 public:
 	Window(std::string title, cv::Rect_<int> r);
-	void show();
+	virtual void show();
+	void popup(Window &w, std::function<void(int)> f = [](int){});
+	void popdown(int value);
+	int open(int flag = cv::WINDOW_AUTOSIZE, int x = -1, int y = -1);
+	void quit(int r);
 	Window &operator+(Widget &w);
+	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
+	Window &operator>>(Widget &r);
 	int loop();
 	std::vector<Widget*>::iterator begin(), end();
 	void close();
-	void start(int flag = cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
+	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO);
 	void keyboard_callback(int key);
-	void update(const Widget &r);
+	//void update(const Widget &r);
 	std::string title();
-	void resize(cv::Rect2i r);
-	void tie(std::string title, int font, TextInput &t, Button &b, std::vector<std::string> v, int x = -1, int y = -1);
+	//void resize(cv::Rect2i r);
+	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
 	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
+	void organize_accordingto_zindex();
+	void move_widget(Widget &w, cv::Point2i p);
 	template<class... T> void tie(T&... checks)
 	{//radio button
 		static std::vector<z::CheckBox*> v;
@@ -110,6 +143,7 @@ public:
 						if(i != j) v[j]->checked(false);
 						else v[j]->checked(true);
 						*this << *v[j];
+						show();
 					}
 				});
 	}
@@ -123,17 +157,77 @@ public:
 		auto p = std::minmax_element(xs.begin(), xs.end());
 		auto q = std::minmax_element(ys.begin(), ys.end());
 		cv::Point2i ul = {*p.first -N, *q.first -N};
-		cv::rectangle(mat_, ul, {*p.second + N, *q.second + N}, {100,100,100}, 1);
-		int base = 0;
-		if(title != "") {
-			auto sz = ft2_->getTextSize(title, font, -1, &base);
-			cv::line(mat_, {ul.x + 20, ul.y}, {ul.x + sz.width + 40, ul.y}, background_color_, 1);
-			ft2_->putText(mat_, title, {ul.x + 30, ul.y - 5 - font / 2}, font, {0,0,0}, -1, 4, false);
-		}
+		wrapped_.push_back({cv::Rect2i{ul, cv::Point{*p.second + N, *q.second + N}}, font, title});
+		draw_wrapped(wrapped_.back());
 	}
+	cv::Rect2i scrolled_rect_ = cv::Rect2i{0,0,0,0};
+	std::vector<Widget*> widgets_, backup_;
+	void draw_all_wrapped();
 protected:
 	std::string title_;
-	std::vector<Widget*> widgets_;
+	void draw_wrapped(const Wrapped &wr);
+	bool closed_ = false;
+	int result_ = -1;
+private:
+	z::Window *popup_on_ = nullptr;
+	std::function<void(int)> popup_exit_func_;
+	std::vector<Wrapped> wrapped_;
+};
+
+class ScrolledWindow : public Window
+{
+public:
+	ScrolledWindow(std::string title, cv::Rect2i r);
+	void scroll_to(cv::Rect2i r);
+	void show();
+	void set_ul(cv::Point2i p);
+	void set_br(cv::Point2i p);
+};
+
+class Handle;
+
+class VHandle : public Widget
+{
+public:
+	VHandle(Handle&);
+	const static int widget_width_ = 10;
+	void draw();
+private:
+	Handle &handle_;
+	bool mouse_down_ = false;
+	ScrolledWindow *scwin_;
+	void on_register();
+	int starty_, endy_;
+	friend class Handle;
+};
+
+class HHandle : public Widget
+{
+public:
+	HHandle(Handle&);
+	const static int widget_height_ = 10;
+	void draw();
+private:
+	Handle &handle_;
+	bool mouse_down_ = false;
+	ScrolledWindow *scwin_;
+	void on_register();
+	int startx_, endx_;
+	friend class Handle;
+};
+
+class Handle : public Widget
+{
+public:
+	Handle();
+	const static int widget_size_ = 30;
+	VHandle vh_;
+	HHandle hh_;
+private:
+	bool mouse_down_ = false;
+	ScrolledWindow *scwin_;
+	cv::Rect2i scroll_backup_ = {0,0,0,0};
+	void on_register();
 };
 
 class Image : public Widget
@@ -174,10 +268,12 @@ protected:
 	int value_ = 0;
 };
 
-class AsciiWindow : public Window
+class AsciiWindow : public ScrolledWindow
 {
 public:
-	AsciiWindow(const char *asciiart, int unit_width = 10, int unit_height = 15, int margin = 1);
+	AsciiWindow(const char *asciiart, int unit_width = 10, int unit_height = 15, 
+			int margin = 1);//, int x = 0, int y = 0);
+	void title(std::string t) { title_ = t; }
 protected:
 	std::vector<std::shared_ptr<Slider>> S;
 	std::vector<std::shared_ptr<Button>> B;
@@ -204,16 +300,6 @@ protected:
 	int result_ = -1;
 private:
 	Window *window_ptr_ = nullptr;
-};
-
-struct Popup : Window, PopupInterface
-{
-	Popup(std::string title, cv::Rect2i r);
-};
-
-struct AsciiPopup : AsciiWindow, PopupInterface
-{
-	AsciiPopup(const char *p, int uw = 10, int uh = 15, int margin = 1);
 };
 
 }

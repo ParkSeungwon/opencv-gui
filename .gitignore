@@ -39,3 +39,4 @@ core
 *.vim
 obj/catch
 catch
+*.avi

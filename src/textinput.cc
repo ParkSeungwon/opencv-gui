@@ -17,6 +17,7 @@ void z::TextInput::key_event(int key, int)
 	else return;
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	ft2_->putText(mat_, value_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	parent_->show();
 }
 
 void z::TextInput::enter(function<void(string)> f)
