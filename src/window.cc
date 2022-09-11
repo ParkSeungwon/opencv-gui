@@ -185,7 +185,7 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 		y = r.y + (r.height - height) / 2;
 	}
 	panel2.resize(*this);
-	panel2.mat_ = widget_color_;
+	panel2.shade_rect({0,0,panel2.width, panel2.height});
 	w + panel + panel2;
 	for(auto &a : widgets_) {
 		a->x += x;
@@ -201,7 +201,6 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 void z::Window::popdown(int value)
 {
 	if(popup_on_ == nullptr) return;
-	cout << "widget count" << popup_on_->widgets_.size() << endl;
 	popup_on_->widgets_.erase
 	( std::remove_if
 		( popup_on_->widgets_.begin()
@@ -210,8 +209,6 @@ void z::Window::popdown(int value)
 		)
 	, popup_on_->widgets_.end()
 	);
-	cout << "widget count" << popup_on_->widgets_.size() << endl;
-	//for(auto *a : *popup_on_) if(a->zIndex() >= 1000) *popup_on_ - *a;
 	for(auto &a : widgets_) {
 		a->x -= x;
 		a->y -= y;

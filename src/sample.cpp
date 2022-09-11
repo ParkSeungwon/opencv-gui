@@ -125,7 +125,10 @@ struct Win : z::AsciiWindow
 				show();
 			}
 		);
-		B[4]->click([this](){pop2.popup(*this, [](int i){ if(i == 1) cv::destroyAllWindows();});});
+		B[4]->click([this](){
+			pop2.x = 0; pop2.y = 0;
+			pop2.popup(*this, [](int i){ if(i == 1) cv::destroyAllWindows();});
+		});
 		S[0]->on_change([this](int val) { draw_circle(); });
 		S[1]->on_change([this](int val) { draw_circle(); });
 		C[3]->on_change([this](bool t) {

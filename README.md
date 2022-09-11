@@ -410,6 +410,60 @@ template<class... T> void tie(T&... checks);
 
 create a radiobutton group by combining many check boxes.
 
+```c++
+void popup(Window &w, std::function<void(int)> f = [](int){});
+```
+
+show popup window on w.
+
+When x, y of this this->window is 0, it will draw the popup window at the center of w.
+
+functor with value will be call when popdown is called.
+
+```c++
+void popdown(int value);
+```
+
+hide popup window and execute functor registered with  popup function passing integer value.
+
+```c++
+Window &operator+(Widget &w);
+```
+
+register widget w as child widget of this window.
+
+push w into widgets_ vector.
+
+```c++
+Window &operator-(Widget &w);
+```
+
+remove widget from widgets_;
+
+```c++
+Window &operator<<(Widget &w);
+```
+
+copy mat_ of widget into Window mat_, according to x, y position.
+
+```c++
+Window &operator>>(Widget &w);
+```
+
+remove widget from mat_;
+
+also calculates zIndex, alpha and do the appropriate job.
+
+#### ScrolledWindow
+
+scrollable window.
+
+inherits Window, inherited by AsciiWindow.
+
+#### Handle
+
+add handle for scrolling. scrolledwindow + handle
+
 #### Image
 
 ```c++
@@ -490,7 +544,7 @@ unit_height : one character of | is equivalent of this value
 
 margin : default margin for the window
 
-#### PopupInterface
+#### PopupInterface(deprecated)
 
 ```c++
 PopupInterface(Window *p);

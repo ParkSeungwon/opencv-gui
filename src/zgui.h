@@ -38,13 +38,13 @@ public:
 	void hide();
 	float alpha() {return alpha_;}
 	void alpha(float f) {alpha_ = f;}
+	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,
+			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);
 
 protected:
 	float alpha_ = 1;
 	bool hidden_ = false, activated_ = true;
 	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
-	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,
-			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);
 	bool focus_ = false;
 	static cv::Ptr<cv::freetype::FreeType2> ft2_;
 	int zIndex_ = 0;
