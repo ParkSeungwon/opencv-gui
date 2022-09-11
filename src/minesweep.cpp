@@ -88,7 +88,7 @@ struct Win : z::Window, Interface
 			append_file(sec.count());
 			best_score();
 		}
-		pop.popup(*this);
+		pop.popup(*this, [](int){cv::destroyAllWindows();});
 	}
 	void clear(int x, int y, string s) {
 		v[x][y]->clear(s);
