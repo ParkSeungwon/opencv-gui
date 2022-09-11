@@ -36,8 +36,11 @@ public:
 	bool hidden() {return hidden_;}
 	bool activated() {return activated_;}
 	void hide();
+	float alpha() {return alpha_;}
+	void alpha(float f) {alpha_ = f;}
 
 protected:
+	float alpha_ = 1;
 	bool hidden_ = false, activated_ = true;
 	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
 	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,

@@ -1,4 +1,5 @@
 #include<opencv2/opencv.hpp>
+#include<ranges>
 #include"zgui.h"
 using namespace std;
 
@@ -12,8 +13,8 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		if(w->contains({x, y}) && w->activated()) pw = w;//set 
 		else if(w->focus()) {//leave event
 			if(w->gui_callback_.find(EVENT_LEAVE) != w->gui_callback_.end()) {
-				*p << *w;
 				w->gui_callback_[EVENT_LEAVE](x, y);
+				*p << *w;
 				p->show();
 			}
 			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end())
@@ -28,16 +29,16 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		if(!pw->focus()) {//enter event
 			pw->focus(true);
 			if(pw->gui_callback_.find(EVENT_ENTER) != pw->gui_callback_.end()) {
-				*p << *pw;
 				pw->gui_callback_[EVENT_ENTER](x, y);
+				*p << *pw;
 				p->show();
 			} 
 			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end())
 				pw->user_callback_[EVENT_ENTER](x, y);
 		} else {//move event
 			if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-				*p << *pw;
 				pw->gui_callback_[event](x, y);
+				*p << *pw;
 				p->show();
 			}
 			if(pw->user_callback_.find(event) != pw->user_callback_.end())
@@ -45,8 +46,8 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		}
 	} else {//all other event
 		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-			*p << *pw;
 			pw->gui_callback_[event](x, y);
+			*p << *pw;
 			p->show();
 		}
 		if(pw->user_callback_.find(event) != pw->user_callback_.end())
@@ -79,7 +80,10 @@ z::Window& z::Window::operator+(z::Widget &w)
 void z::Window::organize_accordingto_zindex()
 { //for mouse event 
 	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
-	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {if(!a->hidden()) a->mat_.copyTo(mat_(*a));});
+	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {if(!a->hidden()) 
+		if(a->alpha() == 1)	a->mat_.copyTo(mat_(*a));
+		else cv::addWeighted(a->mat_, a->alpha(), mat_(*a), 1 - a->alpha(), 0 , mat_(*a));
+	});
 }
 
 z::Window& z::Window::operator-(z::Widget &w)
@@ -122,7 +126,8 @@ string z::Window::title()
 z::Window& z::Window::operator<<(z::Widget &r)
 { // copy to mat_
 	if(r.hidden()) return *this;
-	r.mat_.copyTo(mat_(r));
+	if(r.alpha() == 1) r.mat_.copyTo(mat_(r));
+	else cv::addWeighted(r.mat_, r.alpha(), mat_(r), 1-r.alpha(), 0, mat_(r));
 	std::for_each
 	( ++std::find(widgets_.begin(), widgets_.end(), &r)
 	, widgets_.end()
@@ -167,21 +172,25 @@ void z::Window::close()
 
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
 {// popup 시 widget을 빼는 것이 문제
-	popup_on_ = &w;
 	auto r = w.scrolled_rect_;
+	static z::Widget panel{{0,0,1,1}}, panel2{{0,0,1,1}};
+	panel.resize(r);
+	panel.zIndex(1000);
+	panel.alpha(0.3);
+	panel.mat_ = cv::Vec3b{0,0,0};
+	panel2.zIndex(1001);
+	popup_on_ = &w;
 	if(x == 0 && y == 0) {
 		x = r.x + (r.width - width) / 2;
 		y = r.y + (r.height - height) / 2;
 	}
-	w.backup_ = move(w.widgets_); //disable callback
-//	std::for_each(w.widgets_.begin(), w.widgets_.end(), [this](z::Widget *a) {
-//		a->activated(false);
-//	});
-	w.shade_rect(*this);
+	panel2.resize(*this);
+	panel2.mat_ = widget_color_;
+	w + panel + panel2;
 	for(auto &a : widgets_) {
 		a->x += x;
 		a->y += y;
-//		a->zIndex(a->zIndex() + 301);
+		a->zIndex(a->zIndex() + 10000);
 		w + *a;
 	}
 	w.organize_accordingto_zindex();
@@ -192,14 +201,23 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 void z::Window::popdown(int value)
 {
 	if(popup_on_ == nullptr) return;
+	cout << "widget count" << popup_on_->widgets_.size() << endl;
+	popup_on_->widgets_.erase
+	( std::remove_if
+		( popup_on_->widgets_.begin()
+		, popup_on_->widgets_.end()
+		, [this] (z::Widget *a) { return a->zIndex() >= 1000;}
+		)
+	, popup_on_->widgets_.end()
+	);
+	cout << "widget count" << popup_on_->widgets_.size() << endl;
+	//for(auto *a : *popup_on_) if(a->zIndex() >= 1000) *popup_on_ - *a;
 	for(auto &a : widgets_) {
 		a->x -= x;
 		a->y -= y;
-		a->zIndex(a->zIndex()- 301);
+		a->zIndex(a->zIndex()- 10000);
 	}
 	popup_on_->mat_ = background_color_;
-	popup_on_->widgets_.clear();
-	for(auto *p : popup_on_->backup_) *popup_on_ + *p;
 	popup_on_->organize_accordingto_zindex();
 	popup_on_->draw_all_wrapped();
 	popup_on_->show();
