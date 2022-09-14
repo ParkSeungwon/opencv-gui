@@ -2,25 +2,16 @@
 #include"zgui.h"
 using namespace std;
 
-z::ScrolledWindow::ScrolledWindow(string title, cv::Rect2i r) : Window(title, r)
-{ }
-
-void z::ScrolledWindow::scroll_to(cv::Rect2i r)
+void z::Window::scroll_to(cv::Rect2i r)
 {
 	if((*this & r) == r) scrolled_rect_ = r;
 }
 
-void z::ScrolledWindow::show()
-{
-	if(scrolled_rect_ != cv::Rect2i{0,0,0,0}) cv::imshow(title_, mat_(scrolled_rect_));
-	else z::Window::show();
-}
-
-void z::ScrolledWindow::set_ul(cv::Point2i p) {
+void z::Window::set_ul(cv::Point2i p) {
 	scroll_to({p, scrolled_rect_.br()});
 }
 
-void z::ScrolledWindow::set_br(cv::Point2i p) {
+void z::Window::set_br(cv::Point2i p) {
 	scroll_to({scrolled_rect_.tl(), p});
 }
 
@@ -78,7 +69,7 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 }
 
 void z::Handle::on_register() {
-	scwin_ = dynamic_cast<z::ScrolledWindow*>(parent_);
+	scwin_ = dynamic_cast<z::Window*>(parent_);
 	if(scwin_->scrolled_rect_ == cv::Rect2i{0,0,0,0}) {
 		x = scwin_->br().x - widget_size_;
 		y = scwin_->br().y - widget_size_;
@@ -112,7 +103,7 @@ z::VHandle::VHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 
 void z::VHandle::on_register() 
 { // resize mat_, rect, equal to fullsize window height -> change x position
-	scwin_ = dynamic_cast<z::ScrolledWindow*>(parent_);
+	scwin_ = dynamic_cast<z::Window*>(parent_);
 	resize({scwin_->scrolled_rect_.br().x - widget_width_, 0, widget_width_, scwin_->height - 30});
 	draw();
 }
@@ -151,7 +142,7 @@ z::HHandle::HHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 
 void z::HHandle::on_register()
 {
-	scwin_ = dynamic_cast<z::ScrolledWindow*>(parent_);
+	scwin_ = dynamic_cast<z::Window*>(parent_);
 	resize({0, scwin_->scrolled_rect_.br().y - widget_height_, scwin_->width - 30, widget_height_});
 	draw();
 }

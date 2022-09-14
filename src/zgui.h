@@ -4,6 +4,7 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/freetype.hpp>
 #include<opencv2/imgproc.hpp>
+#include<hangul.h>
 #define EVENT_ENTER 8000
 #define EVENT_LEAVE 8001
 #define EVENT_KEYBOARD 8002
@@ -21,14 +22,15 @@ public:
 	//void register_callback(int event, std::function<void(int,int)> f);
 	bool focus();
 	void focus(bool);
-	void show();
+	virtual void show();
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
 	cv::Mat3b mat_;//widget shape
 	void update();
-	Window *parent_;
+	Window *parent_ = nullptr;
 	virtual void on_register() {}
+	virtual bool is_window() {return false;}
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
 	void hidden(bool v) {hidden_ = v;}
@@ -93,9 +95,13 @@ public:
 	std::string value();
 	void value(std::string s);
 	void enter(std::function<void(std::string)> f);
+	virtual ~TextInput();
 protected:
 	std::string value_;
+	HangulInputContext* hic = hangul_ic_new("2");
+	bool hangul_mode_ = false;
 private:
+	void backspace();
 	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
 };
@@ -111,7 +117,7 @@ class Window : public Widget
 {
 public:
 	Window(std::string title, cv::Rect_<int> r);
-	virtual void show();
+	void show();
 	void popup(Window &w, std::function<void(int)> f = [](int){});
 	void popdown(int value);
 	int open(int flag = cv::WINDOW_AUTOSIZE, int x = -1, int y = -1);
@@ -132,6 +138,7 @@ public:
 	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
 	void organize_accordingto_zindex();
 	void move_widget(Widget &w, cv::Point2i p);
+	bool is_window() {return true;}
 	template<class... T> void tie(T&... checks)
 	{//radio button
 		static std::vector<z::CheckBox*> v;
@@ -163,6 +170,9 @@ public:
 	cv::Rect2i scrolled_rect_ = cv::Rect2i{0,0,0,0};
 	std::vector<Widget*> widgets_, backup_;
 	void draw_all_wrapped();
+	void scroll_to(cv::Rect2i r);
+	void set_ul(cv::Point2i p);
+	void set_br(cv::Point2i p);
 protected:
 	std::string title_;
 	void draw_wrapped(const Wrapped &wr);
@@ -172,16 +182,6 @@ private:
 	z::Window *popup_on_ = nullptr;
 	std::function<void(int)> popup_exit_func_;
 	std::vector<Wrapped> wrapped_;
-};
-
-class ScrolledWindow : public Window
-{
-public:
-	ScrolledWindow(std::string title, cv::Rect2i r);
-	void scroll_to(cv::Rect2i r);
-	void show();
-	void set_ul(cv::Point2i p);
-	void set_br(cv::Point2i p);
 };
 
 class Handle;
@@ -195,7 +195,7 @@ public:
 private:
 	Handle &handle_;
 	bool mouse_down_ = false;
-	ScrolledWindow *scwin_;
+	Window *scwin_;
 	void on_register();
 	int starty_, endy_;
 	friend class Handle;
@@ -210,7 +210,7 @@ public:
 private:
 	Handle &handle_;
 	bool mouse_down_ = false;
-	ScrolledWindow *scwin_;
+	Window *scwin_;
 	void on_register();
 	int startx_, endx_;
 	friend class Handle;
@@ -225,7 +225,7 @@ public:
 	HHandle hh_;
 private:
 	bool mouse_down_ = false;
-	ScrolledWindow *scwin_;
+	Window *scwin_;
 	cv::Rect2i scroll_backup_ = {0,0,0,0};
 	void on_register();
 };
@@ -268,7 +268,7 @@ protected:
 	int value_ = 0;
 };
 
-class AsciiWindow : public ScrolledWindow
+class AsciiWindow : public Window
 {
 public:
 	AsciiWindow(const char *asciiart, int unit_width = 10, int unit_height = 15, 

@@ -25,7 +25,8 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	if(!pw) return;
 
 	//if(event == cv::EVENT_MOUSEWHEEL) cout << cv::getMouseWheelDelta(flags) << endl;
-	if(event == cv::EVENT_MOUSEMOVE) {
+	if(pw->is_window()) mouse_callback(event, x - pw->x, y - pw->y, flags, pw);
+	else if(event == cv::EVENT_MOUSEMOVE) {
 		if(!pw->focus()) {//enter event
 			pw->focus(true);
 			if(pw->gui_callback_.find(EVENT_ENTER) != pw->gui_callback_.end()) {
@@ -162,7 +163,11 @@ void z::Window::draw_all_wrapped()
 
 void z::Window::show()
 {
-	cv::imshow(title_, mat_);
+	if(parent_ == nullptr) cv::imshow(title_, mat_(scrolled_rect_));
+	else {
+		*parent_ << *this;
+		parent_->show();
+	}
 }
 
 void z::Window::close()
@@ -253,6 +258,7 @@ void z::Window::keyboard_callback(int key)
 		if(p->gui_callback_.find(EVENT_KEYBOARD) != p->gui_callback_.end()) {
 			p->gui_callback_[EVENT_KEYBOARD](key, 0);
 			*this << *p;
+			show();
 		}
 		if(p->user_callback_.find(EVENT_KEYBOARD) != p->user_callback_.end())
 			p->user_callback_[EVENT_KEYBOARD](key, 0);

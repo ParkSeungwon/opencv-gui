@@ -1,9 +1,10 @@
 CXX = g++
 OBJ = $(wildcard *.o)
 TOBJ = $(wildcard *.t)
+PKGS = opencv4 zbar libhangul
 EXE = $(patsubst %.x, ../%.x, $(wildcard *.x))
 LDFLAGS = #-Wl,-rpath=.
-LDLIBS = $(shell pkg-config --libs zbar opencv4 gstreamermm-1.0) -pthread
+LDLIBS = $(shell pkg-config --libs $(PKGS)) -pthread
 
 
 all : $(EXE) ../catch

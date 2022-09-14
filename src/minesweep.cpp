@@ -10,6 +10,7 @@ struct Interface {
 	virtual void dig(int x, int y) {}
 	virtual void clear(int x, int y, string s) {}
 	virtual void popup(string s) {}
+	virtual void run_callback(int x, int y) {}
 	static Interface *pMine;
 	static Interface *pWin;
 };
@@ -32,6 +33,18 @@ public:
 		gui_callback_[EVENT_LEAVE] = [] (int, int) {};
 		gui_callback_[EVENT_ENTER] = [] (int, int) {};
 		gui_callback_[cv::EVENT_LBUTTONDOWN] = [this, x, y] (int, int) {};
+		gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this, x, y] (int, int) {
+			if(text_ != "v") {
+				pWin->run_callback(x-1, y-1);
+				pWin->run_callback(x, y-1);
+				pWin->run_callback(x+1, y-1);
+				pWin->run_callback(x-1, y);
+				pWin->run_callback(x+1, y);
+				pWin->run_callback(x-1, y+1);
+				pWin->run_callback(x, y+1);
+				pWin->run_callback(x+1, y+1);
+			}
+		};
 		gui_callback_[cv::EVENT_LBUTTONUP] = [this, x, y](int, int) {
 			if(text_ != "v") {
 				pMine->dig(x, y);
@@ -89,6 +102,10 @@ struct Win : z::Window, Interface
 			best_score();
 		}
 		pop.popup(*this, [](int){cv::destroyAllWindows();});
+	}
+	void run_callback(int x, int y) {
+		if(x >=0 && y >=0 && v[x][y] != nullptr)
+			v[x][y]->gui_callback_[cv::EVENT_LBUTTONUP](x, y);
 	}
 	void clear(int x, int y, string s) {
 		v[x][y]->clear(s);
