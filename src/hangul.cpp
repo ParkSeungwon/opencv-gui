@@ -2,25 +2,22 @@
 #include<opencv2/opencv.hpp>
 using namespace std;
 
-string GetUnicodeChar(unsigned int code);
 int main() {
-	auto mat = cv::imread("len.jpg");
-	cv::imshow("title", mat);
-	//ucschar dest[100];
-	HangulInputContext* hic = hangul_ic_new("2");
-	string s;
-	while(int key = cv::waitKey()) { // 한영전환 234, 한자 228, back 8
-		//cout << key << endl;
-		if(key == -1) break;
-		hangul_ic_process(hic, key);
-		const ucschar *commit = hangul_ic_get_commit_string(hic);
-		const ucschar *preedit = hangul_ic_get_preedit_string(hic);
-		if(*commit != 0) s += GetUnicodeChar(*commit);
-		cout << (s + GetUnicodeChar(*preedit)) << endl;
-		//while(commit[0] != 0) continue;
-		//hangul_jamos_to_syllables(dest, 100, commit, hangul_syllable_len(commit, 100));
-		//cout << "commit: " << GetUnicodeChar(*commit) << endl;
-	}
-	hangul_ic_delete(hic);
+// 지정된 위치의 한자 사전 파일을 로딩한다.
+// 아래 코드에서는 libhangul의 한자 사전 파일을 로딩하기 위해서
+// NULL을 argument로 준다.
+HanjaTable* table = hanja_table_load(NULL);
+// "삼국사기"에 해당하는 한자를 찾는다.
+HanjaList* list = hanja_table_match_exact(table, "삼");
+if (list != NULL) {
+    int i;
+    int n = hanja_list_get_size(list);
+    for (i = 0; i < n; ++i) {
+        const char* hanja = hanja_list_get_nth_value(list, i);
+        printf("한자: %s\n", hanja);
+    }
+    hanja_list_delete(list);
+}
+hanja_table_delete(table);
 }
 

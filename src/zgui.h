@@ -18,8 +18,6 @@ class Widget : public cv::Rect_<int>
 public:
 	Widget(cv::Rect_<int> r);
 	Widget &operator=(const Widget &r);
-	bool is_updated();
-	//void register_callback(int event, std::function<void(int,int)> f);
 	bool focus();
 	void focus(bool);
 	virtual void show();
@@ -95,13 +93,14 @@ public:
 	std::string value();
 	void value(std::string s);
 	void enter(std::function<void(std::string)> f);
-	virtual ~TextInput();
 protected:
 	std::string value_;
-	HangulInputContext* hic = hangul_ic_new("2");
+	static HangulInputContext* hic_;
+	static HanjaTable* table_;
 	bool hangul_mode_ = false;
 private:
 	void backspace();
+	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
 };
@@ -195,7 +194,6 @@ public:
 private:
 	Handle &handle_;
 	bool mouse_down_ = false;
-	Window *scwin_;
 	void on_register();
 	int starty_, endy_;
 	friend class Handle;
