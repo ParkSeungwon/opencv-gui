@@ -82,8 +82,8 @@ string z::TextInput::value()
 void z::TextInput::backspace()
 {
 	if(!value_.empty()) {
-		if(value_.back() & 0x80) value_.pop_back();
 		value_.pop_back();
+		if(value_.back() & 0x80) value_.pop_back();
 	}
 }
 
