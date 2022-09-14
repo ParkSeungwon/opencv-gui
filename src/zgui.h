@@ -181,6 +181,7 @@ private:
 	z::Window *popup_on_ = nullptr;
 	std::function<void(int)> popup_exit_func_;
 	std::vector<Wrapped> wrapped_;
+	void copy_widget_to_mat(Widget &r);
 };
 
 class Handle;

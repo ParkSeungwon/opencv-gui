@@ -78,15 +78,6 @@ z::Window& z::Window::operator+(z::Widget &w)
 	return *this;
 }
 
-void z::Window::organize_accordingto_zindex()
-{ //for mouse event 
-	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
-	std::for_each(widgets_.begin(), widgets_.end(), [this](auto *a) {if(!a->hidden()) 
-		if(a->alpha() == 1)	a->mat_.copyTo(mat_(*a));
-		else cv::addWeighted(a->mat_, a->alpha(), mat_(*a), 1 - a->alpha(), 0 , mat_(*a));
-	});
-}
-
 z::Window& z::Window::operator-(z::Widget &w)
 {
 	widgets_.erase(std::remove(widgets_.begin(), widgets_.end(), &w));
@@ -124,11 +115,25 @@ string z::Window::title()
 //	r.mat_.copyTo(mat_(r));
 //}
 
+void z::Window::copy_widget_to_mat(z::Widget &r)
+{
+	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
+	cv::Rect2i rect{r.tl(), pt};
+	if(r.alpha() == 1) r.mat_({0, 0, rect.width, rect.height}).copyTo(mat_(rect));
+	else cv::addWeighted(r.mat_({0, 0, rect.width, rect.height}), r.alpha(), mat_(rect), 1-r.alpha(), 0, mat_(rect));
+}
+
+void z::Window::organize_accordingto_zindex()
+{ //for mouse event 
+	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
+	std::for_each(widgets_.begin(), widgets_.end(), 
+			[this](auto *a) {if(!a->hidden()) copy_widget_to_mat(*a); });
+}
+
 z::Window& z::Window::operator<<(z::Widget &r)
 { // copy to mat_
 	if(r.hidden()) return *this;
-	if(r.alpha() == 1) r.mat_.copyTo(mat_(r));
-	else cv::addWeighted(r.mat_, r.alpha(), mat_(r), 1-r.alpha(), 0, mat_(r));
+	copy_widget_to_mat(r);
 	std::for_each
 	( ++std::find(widgets_.begin(), widgets_.end(), &r)
 	, widgets_.end()
@@ -178,32 +183,21 @@ void z::Window::close()
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
 {// popup 시 widget을 빼는 것이 문제
 	auto r = w.scrolled_rect_;
-	static z::Widget panel{{0,0,1,1}}, panel2{{0,0,1,1}};
+	static z::Widget panel{{0,0,1,1}};
 	panel.resize(r);
 	panel.zIndex(1000);
 	panel.alpha(0.3);
 	panel.mat_ = cv::Vec3b{0,0,0};
-	panel2.zIndex(1001);
+	zIndex(1002);
 	popup_on_ = &w;
 	if(x == 0 && y == 0) {
 		x = r.x + (r.width - width) / 2;
 		y = r.y + (r.height - height) / 2;
 	}
-	if(w.width < x + width) x = 0;
-	if(w.height < y + height) y = 0;
-	if(w.width < width || w.height < height) {
-		cerr << "popup too big";
-		return;
-	}
-	panel2.resize(*this);
-	panel2.shade_rect({0,0,panel2.width, panel2.height});
-	w + panel + panel2;
-	for(auto &a : widgets_) {
-		a->x += x;
-		a->y += y;
-		a->zIndex(a->zIndex() + 10000);
-		w + *a;
-	}
+	if(w.width < x + width) x = std::max(0, w.width - width);
+	if(w.height < y + height) y = std::max(0, w.height - height);
+	organize_accordingto_zindex();
+	w + panel + *this;
 	w.organize_accordingto_zindex();
 	w.show();
 	popup_exit_func_ = f;
@@ -212,19 +206,7 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 void z::Window::popdown(int value)
 {
 	if(popup_on_ == nullptr) return;
-	popup_on_->widgets_.erase
-	( std::remove_if
-		( popup_on_->widgets_.begin()
-		, popup_on_->widgets_.end()
-		, [this] (z::Widget *a) { return a->zIndex() >= 1000;}
-		)
-	, popup_on_->widgets_.end()
-	);
-	for(auto &a : widgets_) {
-		a->x -= x;
-		a->y -= y;
-		a->zIndex(a->zIndex()- 10000);
-	}
+	popup_on_->widgets_.erase(popup_on_->widgets_.end() - 2, popup_on_->widgets_.end());
 	popup_on_->mat_ = background_color_;
 	popup_on_->organize_accordingto_zindex();
 	popup_on_->draw_all_wrapped();
