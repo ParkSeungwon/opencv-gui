@@ -189,6 +189,12 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 		x = r.x + (r.width - width) / 2;
 		y = r.y + (r.height - height) / 2;
 	}
+	if(w.width < x + width) x = 0;
+	if(w.height < y + height) y = 0;
+	if(w.width < width || w.height < height) {
+		cerr << "popup too big";
+		return;
+	}
 	panel2.resize(*this);
 	panel2.shade_rect({0,0,panel2.width, panel2.height});
 	w + panel + panel2;

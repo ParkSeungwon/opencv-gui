@@ -94,7 +94,7 @@ struct HanjaWin : z::Window
 		bts.clear();
 		widgets_.clear();
 		resize({ 0, 0, std::min(10 * button_sz, (int)v.size() * button_sz)
-			, (v.size() / 10 + 1) * button_sz });
+			, ((v.size() -1) / 10 + 1) * button_sz });
 		for(int i=0; i<v.size(); i++) {
 			std::shared_ptr<z::Button> p = make_shared<z::Button>(v[i], 
 					cv::Rect2i{(i % 10) * button_sz, i / 10 * button_sz, button_sz, button_sz}); 
