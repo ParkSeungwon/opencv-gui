@@ -24,7 +24,11 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 		*parent_ >> *this >> hh_ >> vh_;
 		show();
 	};
-	gui_callback_[EVENT_ENTER] = [this](int, int) {  };
+	gui_callback_[EVENT_ENTER] = [this](int, int) { 
+		hidden(false);
+		mouse_down_ = false;
+		*parent_ << *this; show();
+	};
 	gui_callback_[EVENT_LEAVE] = [this](int, int) { 
 		//mat_ = click_color_; 
 		hidden(false);
@@ -43,6 +47,7 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 		auto r = parent_->scrolled_rect_;
 		parent_->move_widget(hh_, {0, r.br().y - hh_.widget_height_});
 		parent_->move_widget(vh_, {r.br().x - vh_.widget_width_, 0});
+		parent_->move_widget(*this, {r.br().x - widget_size_, r.br().y - widget_size_});
 		hh_.draw(); 
 		vh_.draw();
 		hidden(false); hh_.hidden(false); vh_.hidden(false);

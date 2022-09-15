@@ -44,7 +44,7 @@ void z::TextInput::key_event(int key, int)
 {
 	//if(key == 13) return user_callback_[EVENT_KEYBOARD](0, 0);
 	string editting;
-	if(key == 234) {
+	if(key == 234) { //한영전환
 		hangul_mode_ = !hangul_mode_;
 		return;
 	}
@@ -56,7 +56,6 @@ void z::TextInput::key_event(int key, int)
 			vector<string> v;
 			if(list != nullptr) for(int i=0; i<hanja_list_get_size(list); i++) {
 				const char* hanja = hanja_list_get_nth_value(list, i);
-				cout << hanja << flush;
 				v.push_back(hanja);
 			}
 			hanja_list_delete(list);
@@ -81,7 +80,6 @@ void z::TextInput::key_event(int key, int)
 	}
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	ft2_->putText(mat_, value() + editting, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
-	show();
 }
 
 struct HanjaWin : z::Window
@@ -128,9 +126,10 @@ string z::TextInput::value()
 
 void z::TextInput::backspace()
 {
-	if(!value_.empty()) {
+	while(!value_.empty()) {
+		char c = value_.back();
 		value_.pop_back();
-		if(!value_.empty() && (value_.back() & 0x80)) value_.pop_back();
+		if((c & 0xc0) != 0x80) break;
 	}
 }
 
