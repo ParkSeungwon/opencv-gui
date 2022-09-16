@@ -48,9 +48,7 @@ struct Win : z::AsciiWindow
 {
 	Pop pop;
 	Pop2 pop2;
-	cv::Mat m;
 	z::Handle h;
-	int x, y;
 	cv::Scalar color;
 	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
 
@@ -109,10 +107,15 @@ struct Win : z::AsciiWindow
 		start();
 
 		bt.click([this]() { cout << "hello" << endl; });
+		T[0]->enter([this](string v) { 
+				*I[0] = cv::imread(v);
+				*this << *I[0];
+				show();
+		});
 		B[1]->click([this]() {
 				*I[0] = cv::imread(T[0]->value());
 				*this << *I[0];
-				m = I[0]->mat_.clone();
+				show();
 		});
 		B[2]->click([this]() { pop.set("Really?", ""); if(pop.open()) cv::destroyAllWindows(); });
 		B[3]->click
@@ -130,7 +133,7 @@ struct Win : z::AsciiWindow
 		S[0]->on_change([this](int val) { draw_circle(); });
 		S[1]->on_change([this](int val) { draw_circle(); });
 		C[3]->on_change([this](bool t) {
-				if(t) cv::imshow("new", m);
+				if(t) cv::imshow("new", I[0]->mat_);
 				else cv::destroyWindow("new");
 		});
 	}
@@ -140,9 +143,8 @@ struct Win : z::AsciiWindow
 		if(C[0]->checked()) color = {0,0,255};
 		else if(C[1]->checked()) color = {0,255,0};
 		else color = {255,0,0};
-		I[0]->mat_ = m.clone();
-		int x = m.cols * S[0]->value() / 100;
-		int y = m.rows * (100 - S[1]->value()) / 100;
+		int x = I[0]->mat_.cols * S[0]->value() / 100;
+		int y = I[0]->mat_.rows * (100 - S[1]->value()) / 100;
 		cv::circle(I[0]->mat_, {x, y}, 30, color, 2);
 		*this << *I[0];
 		show();

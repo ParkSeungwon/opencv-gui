@@ -227,6 +227,9 @@ private:
 	Window *scwin_;
 	cv::Rect2i scroll_backup_ = {0,0,0,0};
 	void on_register();
+	void position_widgets();
+	void show_widgets();
+	void routine(int, int);
 };
 
 class Image : public Widget

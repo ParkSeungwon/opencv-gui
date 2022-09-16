@@ -19,21 +19,12 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 {
 	zIndex(100);
 	mat_ = click_color_;
+	gui_callback_[EVENT_ENTER] = gui_callback_[EVENT_LEAVE] = gui_callback_[cv::EVENT_LBUTTONUP] 
+		= std::bind(&z::Handle::routine, this, std::placeholders::_1, std::placeholders::_2);
 	gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int, int) { 
 		mouse_down_ = true; 
 		*parent_ >> *this >> hh_ >> vh_;
 		show();
-	};
-	gui_callback_[EVENT_ENTER] = [this](int, int) { 
-		hidden(false);
-		mouse_down_ = false;
-		*parent_ << *this; show();
-	};
-	gui_callback_[EVENT_LEAVE] = [this](int, int) { 
-		//mat_ = click_color_; 
-		hidden(false);
-		mouse_down_ = false;
-		*parent_ << *this; show(); 
 	};
 	gui_callback_[cv::EVENT_MOUSEMOVE] = [this](int xpos, int ypos) { // scrolled_rect_.x y 가 더해진 값
 		if(mouse_down_) {
@@ -42,35 +33,38 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 			show();
 		}
 	};
-	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) { 
-		mouse_down_ = false; 
-		auto r = parent_->scrolled_rect_;
-		parent_->move_widget(hh_, {0, r.br().y - hh_.widget_height_});
-		parent_->move_widget(vh_, {r.br().x - vh_.widget_width_, 0});
-		parent_->move_widget(*this, {r.br().x - widget_size_, r.br().y - widget_size_});
-		hh_.draw(); 
-		vh_.draw();
-		hidden(false); hh_.hidden(false); vh_.hidden(false);
-		*parent_ << hh_ << vh_ << *this;
-		show();
-	};
 	gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this] (int, int) {
-		mouse_down_ = false;
 		if(parent_->scrolled_rect_ == *parent_) parent_->scrolled_rect_ = scroll_backup_;
 		else {
 			scroll_backup_ = parent_->scrolled_rect_;
 			parent_->scrolled_rect_ = *parent_;
 		}
-		auto pt = parent_->scrolled_rect_.br();
 		*parent_ >> *this >> hh_ >> vh_;
-		hidden(false); hh_.hidden(false); vh_.hidden(false);
-		parent_->move_widget(*this, {pt.x - widget_size_, pt.y - widget_size_});
-		parent_->move_widget(hh_, {0, pt.y - hh_.widget_height_});
-		parent_->move_widget(vh_, {pt.x - vh_.widget_width_ ,0});
-		hh_.draw(); vh_.draw();
-		*parent_ << hh_ << vh_ << *this;
-		show();
+		routine(0 ,0);
 	};
+}
+
+void z::Handle::routine(int, int) {
+	mouse_down_ = false;
+	position_widgets();
+	show_widgets();
+}
+
+void z::Handle::show_widgets()
+{
+	hidden(false); hh_.hidden(false); vh_.hidden(false);
+	*parent_ << hh_ << vh_ << *this;
+	show();
+}
+
+void z::Handle::position_widgets()
+{
+	auto pt = parent_->scrolled_rect_.br();
+	parent_->move_widget(hh_, {0, pt.y - hh_.widget_height_});
+	parent_->move_widget(vh_, {pt.x - vh_.widget_width_, 0});
+	parent_->move_widget(*this, {pt.x - widget_size_, pt.y - widget_size_});
+	hh_.draw(); 
+	vh_.draw();
 }
 
 void z::Handle::on_register() {

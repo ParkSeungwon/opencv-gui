@@ -117,6 +117,7 @@ string z::Window::title()
 
 void z::Window::copy_widget_to_mat(z::Widget &r)
 {
+	//if(!contains(r.tl())) return;
 	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
 	cv::Rect2i rect{r.tl(), pt};
 	if(r.alpha() == 1) r.mat_({0, 0, rect.width, rect.height}).copyTo(mat_(rect));
@@ -147,7 +148,9 @@ z::Window& z::Window::operator<<(z::Widget &r)
 z::Window& z::Window::operator>>(z::Widget &r)
 { // remove from mat_
 	r.hidden(true);
-	cv::rectangle(mat_, r, background_color_, cv::FILLED);
+	if(!contains(r.tl())) return *this;
+	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
+	cv::rectangle(mat_, {r.tl(), pt}, background_color_, cv::FILLED);
 	for(z::Widget *a : widgets_) 
 		if((r & *a) !=  cv::Rect2i{0,0,0,0}) *this << *a;
 	draw_all_wrapped();

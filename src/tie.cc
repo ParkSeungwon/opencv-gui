@@ -27,7 +27,7 @@ void z::Window::tie2(string title, int font, z::TextInput &t, z::Button &b, cons
 	*this << b;
 	vw.x = t.x; vw.y = t.y + font;
 	//vw.resize({t.x, t.y+font, vw.width, vw.height});
-	b.click([&](){vw.popup(*this, [this, &t, &v](int i){t.value(v[i]); *this << t; });});
+	b.click([&](){vw.popup(*this, [this, &t, &v](int i){t.value(v[i]); *this << t; show();});});
 }
 
 void z::Window::tie(z::TextInput &t, z::Button &b1, z::Button &b2, double start, double step)
