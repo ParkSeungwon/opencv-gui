@@ -296,30 +296,49 @@ void CVMat::imwrite(string s) {
 	cv::imwrite(s, *this);
 }
 
-MatND CVMat::histo(string window)
+Mat CVMat::histo(string window) const
 {
-	int histSize[] = {256}; // hue varies from 0 to 179, see cvtColor 
-	float hranges[] = { 0, 255 }; 
+	vector<Mat> bgr_planes;
+	split(*this, bgr_planes);
+	int histSize = 256; // hue varies from 0 to 179, see cvtColor 
+	float hranges[] = { 0, 256 }; // upper boundary is exclusive
 	const float* ranges[] = { hranges }; 
-	MatND hist; // we compute the histogram from the 0-th and 1-st channels 
-	int channels[] = {0}; 
-	calcHist( this, 1, channels, Mat(), // do not use mask 
-			hist, 1, histSize, ranges);//, true, false ); 
-	double maxVal=0, minVal=0; 
-	minMaxLoc(hist, &minVal, &maxVal, 0, 0);
-	Mat histImg{histSize[0], histSize[0], CV_8U, Scalar(255)}; 
-	int hpt = static_cast<int>(0.9 * histSize[0]);
-	for( int h = 0; h < histSize[0]; h++ ) {
-		float binVal = hist.at<float>(h);
-		int intensity = static_cast<int>(binVal*hpt/maxVal);
-	
-		line(histImg, {h, histSize[0]}, {h, histSize[0] - intensity}, Scalar::all(0));
-	} 
-	imshow(window, histImg);
-	return hist;
+	Mat hist1, hist2, hist3; // we compute the histogram from the 0-th and 1-st channels 
+	calcHist(&bgr_planes[0], 1, 0, Mat(), // do not use mask 
+			hist1, 1, &histSize, ranges);//, true, false ); 
+	if(channels() >= 3) {
+		calcHist(&bgr_planes[1], 1, 0, Mat(), hist2, 1, &histSize, ranges);
+		calcHist(&bgr_planes[2], 1, 0, Mat(), hist3, 1, &histSize, ranges);
+	}
+
+	int hist_w = 512, hist_h = 400;
+	int bin_w = cvRound( (double) hist_w/histSize );
+	Mat histImage( hist_h, hist_w, CV_8UC3, Scalar( 255,255,255) );
+	cv::normalize(hist1, hist1, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+	if(channels() >= 3) {
+		cv::normalize(hist2, hist2, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+		cv::normalize(hist3, hist3, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+	}
+
+	for( int i = 1; i < histSize; i++ ) {
+			line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist1.at<float>(i-1)) ),
+						Point( bin_w*(i), hist_h - cvRound(hist1.at<float>(i)) ),
+						Scalar( channels() == 1 ? 0 : 255, 0, 0), 2, 8, 0  );
+	}
+	if(channels() >= 3) for( int i = 1; i < histSize; i++ ) {
+			line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist2.at<float>(i-1)) ),
+						Point( bin_w*(i), hist_h - cvRound(hist2.at<float>(i)) ),
+						Scalar( 0, 255, 0), 2, 8, 0  );
+			line( histImage, Point( bin_w*(i-1), hist_h - cvRound(hist3.at<float>(i-1)) ),
+						Point( bin_w*(i), hist_h - cvRound(hist3.at<float>(i)) ),
+						Scalar( 0, 0, 255), 2, 8, 0  );
+	}
+
+	//imshow(window, histImage);
+	return histImage;
 }
 
-void CVMat::fourier(string window)
+Mat CVMat::fourier(string window)
 {
 	using namespace cv;
     Mat padded;                            //expand input image to optimal size
@@ -366,7 +385,8 @@ void CVMat::fourier(string window)
     tmp.copyTo(q2);
 
 	cv::normalize(magI, magI, 0, 1, NORM_MINMAX);//Transform the matrix with float values into a
-	imshow(window, magI);
+	//imshow(window, magI);
+	return magI;
 }
 
 void CVMat::fourier_add_qr(cv::Mat m)

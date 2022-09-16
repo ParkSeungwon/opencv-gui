@@ -64,11 +64,11 @@ public:
 	void draw_detected_line(cv::Scalar color = {0,0,255});
 	void draw_detected_circle(cv::Scalar color = {0,0,255});
 	void draw_detected_face();
-	void fourier(std::string window = "Fourier");//after gray
+	cv::Mat fourier(std::string window = "Fourier");//after gray
 	void inv_fourier(std::string window = "inverse fourier");//after fourier
 	void fourier_add_qr(cv::Mat m);
 	cv::Mat get_plane0();
-	cv::MatND histo(std::string windwo = "Histogram");//after gray
+	cv::Mat histo(std::string windwo = "Histogram") const;//after gray
 	template<typename T> void feature();
 	void draw_feature();
 	std::vector<cv::DMatch> match(const CVMat& r, double thres = 0.5) const;
