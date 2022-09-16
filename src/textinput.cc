@@ -111,7 +111,7 @@ void z::TextInput::popup(vector<string> v)
 	hanj.set_hanja(v);
 	hanj.x = x + 50;
 	hanj.y = y + 50;
-	hanj.popup(*parent_, [this, v](int i) { value(value() +v[i]); *parent_ << *this; show();});
+	hanj.popup(*parent_, [this, v](int i) { value(value() +v[i]); update();});
 }
 
 void z::TextInput::enter(function<void(string)> f)

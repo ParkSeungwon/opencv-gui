@@ -14,8 +14,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		else if(w->focus()) {//leave event
 			if(w->gui_callback_.find(EVENT_LEAVE) != w->gui_callback_.end()) {
 				w->gui_callback_[EVENT_LEAVE](x, y);
-				*p << *w;
-				p->show();
+				w->update();
 			}
 			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end())
 				w->user_callback_[EVENT_LEAVE](x, y);
@@ -31,16 +30,14 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 			pw->focus(true);
 			if(pw->gui_callback_.find(EVENT_ENTER) != pw->gui_callback_.end()) {
 				pw->gui_callback_[EVENT_ENTER](x, y);
-				*p << *pw;
-				p->show();
+				pw->update();
 			} 
 			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end())
 				pw->user_callback_[EVENT_ENTER](x, y);
 		} else {//move event
 			if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 				pw->gui_callback_[event](x, y);
-				*p << *pw;
-				p->show();
+				pw->update();
 			}
 			if(pw->user_callback_.find(event) != pw->user_callback_.end())
 				pw->user_callback_[event](x, y);
@@ -48,8 +45,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	} else {//all other event
 		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 			pw->gui_callback_[event](x, y);
-			*p << *pw;
-			p->show();
+			pw->update();
 		}
 		if(pw->user_callback_.find(event) != pw->user_callback_.end())
 			pw->user_callback_[event](x, y);
@@ -248,8 +244,7 @@ void z::Window::keyboard_callback(int key)
 	for(z::Widget* p : *this) if(p->focus()) {
 		if(p->gui_callback_.find(EVENT_KEYBOARD) != p->gui_callback_.end()) {
 			p->gui_callback_[EVENT_KEYBOARD](key, 0);
-			*this << *p;
-			show();
+			p->update();
 		}
 		if(p->user_callback_.find(EVENT_KEYBOARD) != p->user_callback_.end())
 			p->user_callback_[EVENT_KEYBOARD](key, 0);
@@ -274,4 +269,13 @@ void z::Window::quit(int r)
 	result_ = r;
 	closed_ = true;
 	close();
+}
+
+void z::Window::on_register()
+{
+	if(title() != "") {
+		Wrapped w{{0, 10, width, height - 10}, 20, title()};
+		wrapped_.push_back(w);
+		draw_wrapped(w);
+	}
 }

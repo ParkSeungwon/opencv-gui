@@ -31,7 +31,7 @@ struct Pop : z::AsciiWindow
 struct Pop2 : z::AsciiWindow
 {
 	Pop2() : z::AsciiWindow{R"(
-	Wt------------------------
+	W------------------------
 	|
 	|  B0-------- B1-------
 	|  | 종료 | | 취소 |
@@ -53,7 +53,7 @@ struct Win : z::AsciiWindow
 	z::Button bt{"added not by ascii", {10, 410, 290, 30}};
 
 	Win() : z::AsciiWindow{R"(
-		WSamplea------------------------------------
+		W샘플 프로------------------------------------
 		| 
 		| T0------------------B0- B1------- B2-----
 		| |Open File|         ||  |Open|    |Quit|
@@ -104,6 +104,8 @@ struct Win : z::AsciiWindow
 		scroll_to({0, 0, width/2, height / 2});
 		*this + h;
 		bt.zIndex(1);
+		B[2]->repaint(click_color_);
+		B[2]->activated(false);
 		start();
 
 		bt.click([this]() { cout << "hello" << endl; });

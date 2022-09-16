@@ -6,7 +6,8 @@ using namespace std;
 struct Win2 : z::AsciiWindow
 {
 	Win2() : z::AsciiWindow{R"(
-		WMessage---------------------------
+		WMesage-----------------------------
+		|
 		|
 		|    L0--------------------------
 		|    ||
@@ -18,8 +19,9 @@ struct Win2 : z::AsciiWindow
 		|)"}
 	{
 		B[0]->click([this]() { cout << '0' << flush; });
-		B[1]->click([this]() { cout << '1' << flush; });
+		B[1]->click([this]() { cout << '1' << flush; cv::destroyAllWindows(); });
 		organize_accordingto_zindex();
+		x = 100; y = 100;
 	}
 
 	void set(string s1, string s2) {
@@ -33,8 +35,7 @@ struct Win : z::Window
 	Win() : z::Window{"win", {0, 0, 500, 500}}
 	{
 		*this + win2;
-		win2.x = 10;
-		win2.y = 100;
+		win2.set("테스트용", "門火在");
 		start();
 	}
 	Win2 win2;
