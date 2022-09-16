@@ -84,7 +84,7 @@ void z::TextInput::key_event(int key, int)
 
 struct HanjaWin : z::Window
 {
-	HanjaWin(int button_size) : z::Window { "hanja", {0,0,1,1} }
+	HanjaWin(int button_size) : z::Window { "", {0,0,1,1} }
 	{ button_sz = button_size; }
 	vector<shared_ptr<z::Button>> bts;
 	int button_sz = 10;

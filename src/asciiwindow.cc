@@ -41,6 +41,32 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 		if(s.size() < width) s.resize(width, ' ');
 		art_.push_back(s);
 	}
+
+	for(auto &a : art_) { // CJK character correction
+		string s;
+		bool prev_cjk_ext = false;
+		int count = 0, to_del = 0, to_attach = 0;
+		for(const auto &b : a) {
+			if(to_del && b == ' ') {
+				to_attach++;
+				to_del--;
+			} else s += b;
+			if((b & 0xc0) == 0x80) {
+				if(!prev_cjk_ext) count++;
+				prev_cjk_ext = true;
+			} else {
+				if(b == '|') {
+					if(count != 0) to_del = count;
+					count = 0;
+				}
+				prev_cjk_ext = false;
+			}
+		}
+		for(int i=0; i<to_attach; i++) s += ' ';
+		a = s;
+		cout << a << endl;
+	}
+
 	parsed_ = art_;//for parse check
 	for(auto &a : parsed_) for(auto &b : a) b = ' ';
 	height = art_.size() * unit_height;
