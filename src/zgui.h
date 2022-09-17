@@ -4,7 +4,6 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/freetype.hpp>
 #include<opencv2/imgproc.hpp>
-#include<spdlog/spdlog.h>
 #include<hangul.h>
 #define EVENT_ENTER 8000
 #define EVENT_LEAVE 8001
@@ -165,7 +164,7 @@ public:
 		static TwoD<z::Window*> v;
 		static TwoD<std::shared_ptr<z::Button>> bts;
 		static std::vector<std::shared_ptr<z::Widget>> panels;
-		const int button_width = 90;
+		const int button_width = 100;
 		panels.push_back(std::make_shared<z::Widget>(cv::Rect2i{0,0,1,1}));
 		static std::vector<int> max_zindex;
 		int k = sizeof...(wins);
@@ -179,7 +178,7 @@ public:
 			if(pw->br().x > max_x) max_x = pw->br().x;
 			if(pw->br().y > max_y) max_y = pw->br().y;
 			auto p = std::make_shared<z::Button>(pw->title(), 
-					cv::Rect2i{pw->x + shift++ * button_width, pw->y - 50, button_width, 30});
+					cv::Rect2i{pw->x + shift++ * button_width, pw->y - 40, button_width, 30});
 			*this + *p; *this << *p;
 			bts.push_back(p);
 			p->click([this, sz, pw]() {
@@ -193,10 +192,8 @@ public:
 		}
 		bts.done();
 		max_zindex.push_back(zi);
-		*panels.back() = cv::Rect2i{{min_x, min_y}, cv::Point2i{max_x, max_y}};
-		spdlog::info("{} {} {} {}", panels.back()->tl().x, panels.back()->tl().y, panels.back()->br().x, panels.back()->br().y);
-		spdlog::info("{} {} {} {}", x, y, width, height);
-		//*this + *panels.back(); *this << *panels.back();
+		panels.back()->resize(cv::Rect2i{{min_x, min_y}, cv::Point2i{max_x, max_y}});
+		*this + *panels.back(); *this << *panels.back();
 	}
 
 	void organize_accordingto_zindex();

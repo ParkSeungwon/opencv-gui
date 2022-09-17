@@ -284,7 +284,7 @@ void z::Window::quit(int r)
 void z::Window::on_register()
 {
 	if(title() != "") {
-		Wrapped w{{0, 10, width, height - 10}, 20, title()};
+		Wrapped w{{0, 15, width, height - 15}, 20, title()};
 		wrapped_.push_back(w);
 		draw_wrapped(w);
 	}
