@@ -197,8 +197,9 @@ struct Win : z::AsciiWindow
 		wrap("체크포인트3", 20, 10, *I[2], *B[11]);
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
-		*this + filter_win;
-		*this + face;
+		*this + face + filter_win;
+		*this << face << filter_win;
+		tabs(filter_win, face);
 		start();
 		connect_events();
 	}

@@ -14,7 +14,7 @@ void z::Progress::value(int val)
 	shade_rect({0, height / 3, val * width /100, height / 3}, 2);
 }
 
-int z::Progress::value()
+int z::Progress::value() const
 {
 	return value_;
 }

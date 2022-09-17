@@ -7,7 +7,7 @@ z::Label::Label(string s, cv::Rect2i r) : z::Widget{r}
 	text(s);
 }
 
-string z::Label::text()
+string z::Label::text() const
 {
 	return text_;
 }

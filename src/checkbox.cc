@@ -20,7 +20,7 @@ void z::CheckBox::click(int, int)
 	checked(checked_);
 }
 
-bool z::CheckBox::checked()
+bool z::CheckBox::checked() const
 {
 	return checked_;
 }
