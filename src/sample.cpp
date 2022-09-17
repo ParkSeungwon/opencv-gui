@@ -97,7 +97,7 @@ struct Win : z::AsciiWindow
 		for(const filesystem::path &p : filesystem::directory_iterator("./"))
 			if(is_regular_file(p) && p.extension() == ".png" || p.extension() == ".jpg")
 				v.push_back(p.filename());
-		tie2("File open", 30, *T[0], *B[0], v);//combo box
+		tie2("", 30, *T[0], *B[0], v);//combo box
 		tie(*C[0], *C[1], *C[2]);//radio button
 		wrap("RGB", 20, 10, *C[0], *L[2]);//frame
 		*this + bt;
