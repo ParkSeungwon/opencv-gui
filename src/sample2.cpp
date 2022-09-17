@@ -105,17 +105,17 @@ struct Win : z::AsciiWindow
 			|)"}
 		{
 			x = 10; y = 700; zIndex(2);
-			tie(*T[0], *B[0], *B[1], 0, 1);
-			tie(*T[1], *B[2], *B[3], 0, 1);
-			tie(*T[2], *B[4], *B[5], 0, 1);
-			tie(*T[3], *B[6], *B[7], 0, 1);
+			auto f1 = tie(*T[0], *B[0], *B[1], 0, 1);
+			auto f2 = tie(*T[1], *B[2], *B[3], 0, 1);
+			auto f3 = tie(*T[2], *B[4], *B[5], 0, 1);
+			auto f4 = tie(*T[3], *B[6], *B[7], 0, 1);
 			spdlog::info("Welcome");
 			spdlog::error("error {}", 1);
 			organize_accordingto_zindex();
-			B[8]->click([this]() {
+			B[8]->click([this, f1, f2, f3, f4]() {
 				win.m.save();
 				win.m.gray();
-				win.m.detect_face({stoi(T[0]->value()), stoi(T[1]->value())}, {stoi(T[2]->value()), stoi(T[3]->value())});
+				win.m.detect_face({f1(), f2()}, {f3(), f4()});
 				win.m.restore();
 				win.m.draw_detected_face();
 				win.m.show();
@@ -123,6 +123,98 @@ struct Win : z::AsciiWindow
 		}
 		Win &win;
 	} face{*this};
+
+	struct Contour : z::AsciiWindow
+	{
+		Contour(Win& w) : win{w}, z::AsciiWindow{R"(
+			WContour---------------------------------------------
+			|
+			|
+			|
+			|   C0- L0---------  C1- L1-------  C2- L2-------
+			|   ||  |EXTERNAL|   ||  |LIST|     ||  |CCOMP|  
+			|
+			|   C3- L3--------  C4- L4-----------  
+			|   ||  |TREE|      ||  |FLOODFILL|
+			|
+			|
+			|   C5- L5---------   C6- L6---------  
+			|   ||  |NONE|        ||  |SIMPLE|       
+			|                                         B0------
+			|   C7- L7---------   C8- L8---------     |Detect|
+			|   ||  |TC89_L1|     ||  |TC89_KCOS|
+			|
+			|
+			|   L9-------- T0----B1   L:---------- T1----B3
+			|   |min area| |0|   B2   |max point|  |10|  B4
+			|   
+			|   L;--------- T2----B5
+			|   |max level| |100| B6
+			|)"}
+		{
+			x = 10; y = 700;
+			auto f1 = tie(*C[0], *C[1], *C[2], *C[3], *C[4]);
+			auto f2 = tie(*C[5], *C[6], *C[7], *C[8]);
+			auto f3 = tie(*T[0], *B[1], *B[2], 0, 1);
+			auto f4 = tie(*T[1], *B[3], *B[4], 0, 1);
+			auto f5 = tie(*T[2], *B[5], *B[6], 0, 1);
+			wrap("Retrieval Mode", 20, 10, *C[0], *L[2], *L[4]);
+			wrap("Approximation Mode", 20, 10, *C[5], *L[8]);
+			wrap("조건", 20, 10, *L[9], *B[4], *B[6]);
+			B[0]->click([this, f1, f2, f3, f4, f5](){
+				win.m.save();
+				win.m.gray();
+				win.m.edge();
+				win.m.detect_contours(mode[f1()], method[f2()]);
+				win.m.restore();
+				win.m.draw_detected_contours(f3(), f4(), 1, 8, f5());
+				win.m.show();
+				win.show_info();
+			});
+			organize_accordingto_zindex();
+		}
+		Win &win;
+		int mode[5] = {cv::RETR_EXTERNAL, cv::RETR_LIST, cv::RETR_CCOMP, cv::RETR_TREE, cv::RETR_FLOODFILL};
+		int method[4] = {cv::CHAIN_APPROX_NONE, cv::CHAIN_APPROX_SIMPLE, 
+			cv::CHAIN_APPROX_TC89_L1, cv::CHAIN_APPROX_TC89_KCOS};
+	} contour{*this};
+
+	struct Line : z::AsciiWindow
+	{
+		Line(Win &w) : win{w}, z::AsciiWindow{R"(
+			WLine------------------------------------------------
+			|
+			|
+			|  L0----------- T0----B1  L1-------------- T1----B3
+			|  |Threshold|   |180| B2  |Continuous|     |50|  B4
+			|
+			|  L2----------- T2----B5
+			|  |Hop|         |10|  B6
+			|
+			|
+			|                B0--------------
+			|                |Detect Line|
+			|
+			|
+			|)"}
+		{
+			x = 10, y = 700;
+			auto f1 = tie(*T[0], *B[1], *B[2], 0, 1);
+			auto f2 = tie(*T[1], *B[3], *B[4], 0, 1);
+			auto f3 = tie(*T[2], *B[5], *B[6], 0, 1);
+			B[0]->click([this, f1, f2, f3]() {
+				win.m.save();
+				win.m.gray();
+				win.m.edge();
+				win.m.detect_line(f1(), f2(), f3());
+				win.m.restore();
+				win.m.draw_detected_line();
+				win.m.show();
+				win.show_info();
+			});
+		}
+		Win &win;
+	} line{*this};
 
 	Win() : z::AsciiWindow{R"(
 		WOpenCV Tuning Shop----------------------------------------
@@ -209,9 +301,9 @@ struct Win : z::AsciiWindow
 		wrap("체크포인트3", 20, 10, *I[2], *B[11]);
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
-		*this + face + filter_win;
-		*this << face << filter_win;
-		tabs(filter_win, face);
+		*this + face + filter_win + contour + line;
+		*this << face << filter_win << contour << line;
+		tabs(filter_win, face, contour, line);
 		start();
 		connect_events();
 	}

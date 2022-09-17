@@ -82,7 +82,8 @@ void CVMat::draw_detected_contours(int min_area, int max_point, int thickness, i
 {
 	static uniform_int_distribution<> di{0, 255};
 	static random_device rd;
-	for(int i=0; i<contours_.size(); i++) {
+	for(int i=0; i>=0; i=hierachy_[i][0]) {
+	//for(int i=0; i<contours_.size(); i++) {
 		approxPolyDP(contours_[i], contours_[i], 3, true);
 		if(contourArea(contours_[i]) >= min_area && contours_[i].size() <= max_point) {
 			cout << "contour size: " << contours_[i].size() << endl;

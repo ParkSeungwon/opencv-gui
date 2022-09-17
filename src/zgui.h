@@ -153,12 +153,13 @@ public:
 	std::string title() const;
 	//void resize(cv::Rect2i r);
 	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
-	template<class T> void tie(TextInput &t, Button &b1, Button &b2, T start = 0, T step = 1) {
+	template<class T> auto tie(TextInput &t, Button &b1, Button &b2, T start = 0, T step = 1) {
 		b1.text("\u25b2"); b2.text("\u25bc");
 		if(t.value() == "") t.value(std::to_string(start));
 		*this << b1; *this << b2; *this << t;
 		b1.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) + step)); *this << t; show();});
 		b2.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) - step)); *this << t; show();});
+		return [&t]() { return to_number<T>(t.value()); };
 	}
 	template<class... T> void tabs(T&... wins) {
 		static TwoD<z::Window*> v;
@@ -200,7 +201,7 @@ public:
 	void move_widget(Widget &w, cv::Point2i p);
 	void on_register();
 	bool is_window() const {return true;}
-	template<class... T> void tie(T&... checks)
+	template<class... T> auto tie(T&... checks)
 	{//radio button
 		static std::vector<z::CheckBox*> v;
 		int k = sizeof...(checks);
@@ -214,6 +215,9 @@ public:
 						show();
 					}
 				});
+		return [sz, k, &v]() {
+			for(int i=sz; i<sz+k; i++) if(v[i]->checked()) return i - sz;
+		};
 	}
 	template<class... T> void wrap(const char* title, int font, int N, const T&... widgets)
 	{//N : margin, font : font height
