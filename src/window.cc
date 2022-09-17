@@ -101,7 +101,7 @@ void z::Window::move_widget(z::Widget &w, cv::Point2i p)
 //	for(const auto &a : widgets_) a->mat_.copyTo(mat_(*a));
 //}
 
-string z::Window::title()
+string z::Window::title() const
 {
 	return title_;
 }

@@ -29,7 +29,7 @@ public:
 	void update();
 	Window *parent_ = nullptr;
 	virtual void on_register() {}
-	virtual bool is_window() const{return false;}
+	virtual bool is_window() const {return false;}
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
 	void hidden(bool v) {hidden_ = v;}
@@ -151,11 +151,10 @@ public:
 	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO);
 	void keyboard_callback(int key);
 	//void update(const Widget &r);
-	std::string title();
+	std::string title() const;
 	//void resize(cv::Rect2i r);
 	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
-	template<class T>
-	void tie(TextInput &t, Button &b1, Button &b2, T start = 0, T step = 1) {
+	template<class T> void tie(TextInput &t, Button &b1, Button &b2, T start = 0, T step = 1) {
 		b1.text("\u25b2"); b2.text("\u25bc");
 		if(t.value() == "") t.value(std::to_string(start));
 		*this << b1; *this << b2; *this << t;
@@ -199,10 +198,11 @@ public:
 		spdlog::info("{} {} {} {}", x, y, width, height);
 		//*this + *panels.back(); *this << *panels.back();
 	}
+
 	void organize_accordingto_zindex();
 	void move_widget(Widget &w, cv::Point2i p);
 	void on_register();
-	bool is_window() {return true;}
+	bool is_window() const {return true;}
 	template<class... T> void tie(T&... checks)
 	{//radio button
 		static std::vector<z::CheckBox*> v;

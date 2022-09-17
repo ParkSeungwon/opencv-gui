@@ -93,11 +93,11 @@ struct Win : z::AsciiWindow
 			W안면 인식-----------------------------------------
 			|
 			|
-			|   L0-----------  T0------B0- L1- T1------B2-
-			|   |Min Size|     |30|    B1- |X| |30|    B3-
+			|   L0-----------  T0------B0- L1-- T1------B2-
+			|   |Min Size|     |30|    B1- |X|  |30|    B3-
 			|
-			|   L2-----------  T2------B4- L3- T3------B6-
-			|   |Max Size|     ||      B5- |X| ||      B7-
+			|   L2-----------  T2------B4- L3-- T3------B6-
+			|   |Max Size|     ||      B5- |X|  ||      B7-
 			|
 			|          B8--------------
 			|          |안면 인식|
@@ -201,8 +201,8 @@ struct Win : z::AsciiWindow
 		wrap("체크포인트3", 20, 10, *I[2], *B[11]);
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
-		*this + filter_win;
-		*this + face;
+		*this + face + filter_win;
+		*this << face << filter_win;
 		tabs(filter_win, face);
 		start();
 		connect_events();
