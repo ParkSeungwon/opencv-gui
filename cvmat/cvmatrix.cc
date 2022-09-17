@@ -259,12 +259,12 @@ CVMat CVMat::background()
 //	return r;
 //}
 
-void CVMat::detect_face()
+void CVMat::detect_face(cv::Size min, cv::Size max)
 {
 	equalizeHist(*this, *this);
 	cv::CascadeClassifier cas;
 	cas.load(haar_dir + haar_cascade[16]);//alt2
-	cas.detectMultiScale(*this, faces_, 1.1, 3, cv::CASCADE_SCALE_IMAGE, {30,30});
+	cas.detectMultiScale(*this, faces_, 1.1, 3, cv::CASCADE_SCALE_IMAGE, min, max);
 	cout << faces_.size() << " faces detected" << endl;
 }
 

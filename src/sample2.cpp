@@ -1,5 +1,7 @@
 #include<iostream>
 #include<filesystem>
+#include<spdlog/spdlog.h>
+#include<source_location>
 #include"cvmat/cvmatrix.h"
 #include"zgui.h"
 using namespace std;
@@ -58,30 +60,69 @@ struct Win : z::AsciiWindow
 	struct Filter : z::AsciiWindow
 	{
 		Filter(Win &w) : win{w}, z::AsciiWindow{R"(
-			WFilter----------------------------------------------
+			WFilter--------------------------------------------------
 			|
-			| C0- L0-------- C1- L1--------   C2- L2----------
-			| ||  |BLUR|     ||  |GAUSSIAN|   ||  |SHARPEN|
 			|
-			| C3- L3-------- C4- L4--------   C5- L5----------
-			| ||  |SOBELX|   ||  |SOBELY|     ||  |DIM1|
+			|   C0- L0-------- C1- L1---------   C2- L2----------
+			|   ||  |BLUR|     ||  |GAUSSIAN|    ||  |SHARPEN|
 			|
-			|                B0----------------
-			|                |적용|
+			|   C3- L3-------- C4- L4---------   C5- L5----------
+			|   ||  |SOBELX|   ||  |SOBELY|      ||  |DIM1|
+			|
+			|                  B0----------------
+			|                  |적용|
 			|)"}
 		{
 			tie(*C[0], *C[1], *C[2], *C[3], *C[4], *C[5]); 
 			zIndex(1);
 			x = 10; y = 700;
-			static cv::Mat *p[6] = {&BLUR, &GAUSSIAN, &SHARPEN, &SOBELX, &SOBELY, &DIM1};
-			B[0]->click([this, p]() {
+			organize_accordingto_zindex();
+			B[0]->click([this]() {
 				for(int i=0; i<6; i++) if(C[i]->checked()) win.m.filter(*p[i]);
 				win.m.show();
 				win.show_info();
 			});
 		}
 		Win &win;
+		cv::Mat *p[6] = {&BLUR, &GAUSSIAN, &SHARPEN, &SOBELX, &SOBELY, &DIM1};
 	} filter_win{*this};
+
+	struct Face : z::AsciiWindow
+	{
+		Face(Win &w) : win{w}, z::AsciiWindow{R"(
+			W안면 인식-----------------------------------------
+			|
+			|
+			|   L0-----------  T0------B0- L1-- T1------B2-
+			|   |Min Size|     |30|    B1- |X|  |30|    B3-
+			|
+			|   L2-----------  T2------B4- L3-- T3------B6-
+			|   |Max Size|     ||      B5- |X|  ||      B7-
+			|
+			|          B8--------------
+			|          |안면 인식|
+			|
+			|)"}
+		{
+			x = 10; y = 700; zIndex(2);
+			tie(*T[0], *B[0], *B[1], 0, 1);
+			tie(*T[1], *B[2], *B[3], 0, 1);
+			tie(*T[2], *B[4], *B[5], 0, 1);
+			tie(*T[3], *B[6], *B[7], 0, 1);
+			spdlog::info("Welcome");
+			spdlog::error("error {}", 1);
+			organize_accordingto_zindex();
+			B[8]->click([this]() {
+				win.m.save();
+				win.m.gray();
+				win.m.detect_face({stoi(T[0]->value()), stoi(T[1]->value())}, {stoi(T[2]->value()), stoi(T[3]->value())});
+				win.m.restore();
+				win.m.draw_detected_face();
+				win.m.show();
+			});
+		}
+		Win &win;
+	} face{*this};
 
 	Win() : z::AsciiWindow{R"(
 		WOpenCV Tuning Shop----------------------------------------
@@ -128,10 +169,10 @@ struct Win : z::AsciiWindow
 		| |저장|   |로드|    |저장|   |로드|    |저장|   |로드|
 		|
 		|
-		| B5------
-		| |Gray|
-		| B<--------     B=---------
-		| |안면인식|     |Filter|
+		| B5---   B<--------
+		| |필터|  |안면인식|
+		| 
+		| 
 		|
 		|
 		|
@@ -157,7 +198,12 @@ struct Win : z::AsciiWindow
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
 		*this + filter_win;
+		*this + face;
 		start();
+		connect_events();
+	}
+
+	void connect_events() {
 		B[0]->click([this](){
 			try {
 				m.imread(T[0]->value()); 
@@ -220,20 +266,21 @@ struct Win : z::AsciiWindow
 			show_info();
 			m.show();
 		});
-		B[12]->click([this]() {
-			m.save();
-			m.gray();
-			m.detect_face();
-			m.restore();
-			m.draw_detected_face();
-			m.show();
+		B[5]->click([this]() {
+			filter_win.zIndex(100);
+			face.zIndex(2);
+			organize_accordingto_zindex();
+			show();
 		});
-		B[13]->click([this]() {
-			m.filter(BLUR);
-			show_info();
-			m.show();
+		B[12]->click([this]() {
+			face.zIndex(100);
+			filter_win.zIndex(2);
+			organize_accordingto_zindex();
+			show();
 		});
 	}
+
+
 	YesNo yesno;
 	Info info;
 	CVMat m;

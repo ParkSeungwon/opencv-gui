@@ -1,4 +1,5 @@
 #include<opencv2/opencv.hpp>
+#include<spdlog/spdlog.h>
 #include"zgui.h"
 using namespace std;
 //asc2 art example below, never use tab.
@@ -27,6 +28,7 @@ using namespace std;
 z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int margin)
 	: z::Window{"", {0, 0, 1, 1}}
 {//Button, Image, Slider, Label, Text, Chckbox, Window, Progress bar
+	spdlog::info("parsing started {}", p);
 	uw_ = unit_width; uh_ = unit_height; margin_ = margin;
 	width = 1;
 	while(*p != 'W') p++;
@@ -75,6 +77,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	scrolled_rect_ = *this;
 
 	parse_art();
+	spdlog::info("parsing end");
 	//add to window
 	for(auto &a : B) *this + *a.get();
 	for(auto &a : L) *this + *a.get();

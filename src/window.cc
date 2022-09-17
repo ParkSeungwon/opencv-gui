@@ -241,7 +241,9 @@ int z::Window::loop()
 
 void z::Window::keyboard_callback(int key)
 {
-	for(z::Widget* p : *this) if(p->focus()) {
+	for(z::Widget* p : *this) if(p->is_window()) 
+		dynamic_cast<z::Window*>(p)->keyboard_callback(key);
+	else if(p->focus()) {
 		if(p->gui_callback_.find(EVENT_KEYBOARD) != p->gui_callback_.end()) {
 			p->gui_callback_[EVENT_KEYBOARD](key, 0);
 			p->update();

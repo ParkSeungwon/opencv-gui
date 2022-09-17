@@ -58,7 +58,7 @@ public:
 	std::optional<std::vector<cv::Point>> get_rect();
 	void detect_circle(int canny_threshold=200, int center_threshold=100,//gray->circ 
 			int min_radius=0, int max_radius=0);//gradient를 보므로 edge로 하면 안됨.
-	void detect_face();//gray->face
+	void detect_face(cv::Size min={30, 30}, cv::Size max=cv::Size());//gray->face
 	void detect_contours(int mode = cv::RETR_EXTERNAL, int method= cv::CHAIN_APPROX_SIMPLE);
 	void draw_detected_contours(int min_area=0, int max_point = 10, int thickness=1,int linetype=8, int maxlevel=INT_MAX);
 	void draw_detected_line(cv::Scalar color = {0,0,255});
