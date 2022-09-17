@@ -111,7 +111,7 @@ string z::Window::title()
 //	r.mat_.copyTo(mat_(r));
 //}
 
-void z::Window::copy_widget_to_mat(z::Widget &r)
+void z::Window::copy_widget_to_mat(const z::Widget &r)
 {
 	//if(!contains(r.tl())) return;
 	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
@@ -181,24 +181,32 @@ void z::Window::close()
 
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
 {// popup 시 widget을 빼는 것이 문제
-	auto r = w.scrolled_rect_;
+	z::Window *p = &w;
+	while(p->parent_ != nullptr) {
+		if(x != 0 || y != 0) {
+			x += p->x;
+			y += p->y;
+		}
+		p = p->parent_;
+	}
+	auto r = p->scrolled_rect_;
 	static z::Widget panel{{0,0,1,1}};
 	panel.resize(r);
 	panel.zIndex(1000);
 	panel.alpha(0.3);
 	panel.mat_ = cv::Vec3b{0,0,0};
 	zIndex(1002);
-	popup_on_ = &w;
+	popup_on_ = p;
 	if(x == 0 && y == 0) {
 		x = r.x + (r.width - width) / 2;
 		y = r.y + (r.height - height) / 2;
 	}
-	if(w.width < x + width) x = std::max(0, w.width - width);
-	if(w.height < y + height) y = std::max(0, w.height - height);
+	if(p->width < x + width) x = std::max(0, p->width - width);
+	if(p->height < y + height) y = std::max(0, p->height - height);
 	organize_accordingto_zindex();
-	w + panel + *this;
-	w.organize_accordingto_zindex();
-	w.show();
+	*p + panel + *this;
+	p->organize_accordingto_zindex();
+	p->show();
 	popup_exit_func_ = f;
 }
 

@@ -4,6 +4,7 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/freetype.hpp>
 #include<opencv2/imgproc.hpp>
+#include<spdlog/spdlog.h>
 #include<hangul.h>
 #define EVENT_ENTER 8000
 #define EVENT_LEAVE 8001
@@ -18,7 +19,7 @@ class Widget : public cv::Rect_<int>
 public:
 	Widget(cv::Rect_<int> r);
 	Widget &operator=(const Widget &r);
-	bool focus();
+	bool focus() const;
 	void focus(bool);
 	virtual void show();
 	void resize(cv::Rect2i r);
@@ -28,15 +29,15 @@ public:
 	void update();
 	Window *parent_ = nullptr;
 	virtual void on_register() {}
-	virtual bool is_window() {return false;}
+	virtual bool is_window() const{return false;}
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
 	void hidden(bool v) {hidden_ = v;}
 	void activated(bool v) {activated_ = v;}
-	bool hidden() {return hidden_;}
-	bool activated() {return activated_;}
+	bool hidden() const {return hidden_;}
+	bool activated() const {return activated_;}
 	void hide();
-	float alpha() {return alpha_;}
+	float alpha() const {return alpha_;}
 	void alpha(float f) {alpha_ = f;}
 	void shade_rect(cv::Rect2i r, int shade = 3, cv::Vec3b color = widget_color_,
 			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);
@@ -55,7 +56,7 @@ class Label : public Widget
 public:
 	Label(std::string text, cv::Rect2i r);
 	void text(std::string s);
-	std::string text();
+	std::string text() const;
 protected:
 	std::string text_;
 };
@@ -77,7 +78,7 @@ class CheckBox : public Widget
 {
 public:
 	CheckBox(cv::Rect2i r);
-	bool checked();
+	bool checked() const;
 	void checked(bool);
 	void on_change(std::function<void(bool)> f);
 protected:
@@ -90,7 +91,7 @@ class TextInput : public Widget
 {
 public:
 	TextInput(cv::Rect2i r);
-	std::string value();
+	std::string value() const;
 	void value(std::string s);
 	void enter(std::function<void(std::string)> f);
 protected:
@@ -111,6 +112,25 @@ struct Wrapped
 	int fontsize;
 	std::string title;
 };
+
+template<class T> class TwoD : public std::vector<std::vector<T>>
+{
+public:
+	void push_back(T a) {
+		tmp_.push_back(a);
+	}
+	void done() {
+		std::vector<std::vector<T>>::push_back(std::move(tmp_));
+	}
+protected:
+	std::vector<T> tmp_;
+};
+
+template<class T> auto to_number(std::string n) {
+	if constexpr(std::is_same_v<int, T>) return stoi(n);
+	else if constexpr(std::is_same_v<float, T>) return stof(n);
+	else if constexpr(std::is_same_v<double, T>) return stod(n);
+}
 
 class Window : public Widget
 {
@@ -134,7 +154,51 @@ public:
 	std::string title();
 	//void resize(cv::Rect2i r);
 	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
-	void tie(TextInput &t, Button &b1, Button &b2, double start = 0, double step = 1);
+	template<class T>
+	void tie(TextInput &t, Button &b1, Button &b2, T start = 0, T step = 1) {
+		b1.text("\u25b2"); b2.text("\u25bc");
+		if(t.value() == "") t.value(std::to_string(start));
+		*this << b1; *this << b2; *this << t;
+		b1.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) + step)); *this << t; show();});
+		b2.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) - step)); *this << t; show();});
+	}
+	template<class... T> void tabs(T&... wins) {
+		static TwoD<z::Window*> v;
+		static TwoD<std::shared_ptr<z::Button>> bts;
+		static std::vector<std::shared_ptr<z::Widget>> panels;
+		const int button_width = 90;
+		panels.push_back(std::make_shared<z::Widget>(cv::Rect2i{0,0,1,1}));
+		static std::vector<int> max_zindex;
+		int k = sizeof...(wins);
+		(v.push_back(&wins), ...);
+		v.done();
+		int sz = v.size(), shift = 0, zi = 0, max_x = 0, max_y = 0, min_x = 10000, min_y = 10000;
+		for(auto *pw : v.back()) {
+			if(pw->zIndex() > zi) zi = pw->zIndex();
+			if(pw->x < min_x) min_x = pw->x;
+			if(pw->y < min_y) min_y = pw->y;
+			if(pw->br().x > max_x) max_x = pw->br().x;
+			if(pw->br().y > max_y) max_y = pw->br().y;
+			auto p = std::make_shared<z::Button>(pw->title(), 
+					cv::Rect2i{pw->x + shift++ * button_width, pw->y - 50, button_width, 30});
+			*this + *p; *this << *p;
+			bts.push_back(p);
+			p->click([this, sz, pw]() {
+				int z = max_zindex[sz-1];
+				panels[sz-1]->zIndex(z+1);
+				pw->zIndex(z+2); 
+				max_zindex[sz - 1] = z + 2;
+				organize_accordingto_zindex(); 
+				show();
+			});
+		}
+		bts.done();
+		max_zindex.push_back(zi);
+		*panels.back() = cv::Rect2i{{min_x, min_y}, cv::Point2i{max_x, max_y}};
+		spdlog::info("{} {} {} {}", panels.back()->tl().x, panels.back()->tl().y, panels.back()->br().x, panels.back()->br().y);
+		spdlog::info("{} {} {} {}", x, y, width, height);
+		//*this + *panels.back(); *this << *panels.back();
+	}
 	void organize_accordingto_zindex();
 	void move_widget(Widget &w, cv::Point2i p);
 	void on_register();
@@ -182,7 +246,7 @@ private:
 	z::Window *popup_on_ = nullptr;
 	std::function<void(int)> popup_exit_func_;
 	std::vector<Wrapped> wrapped_;
-	void copy_widget_to_mat(Widget &r);
+	void copy_widget_to_mat(const Widget &r);
 };
 
 class Handle;
@@ -266,7 +330,7 @@ class Progress : public Widget
 public:
 	Progress(cv::Rect2i r);
 	void value(int val);
-	int value();
+	int value() const;
 protected:
 	int value_ = 0;
 };

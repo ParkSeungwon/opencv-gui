@@ -119,7 +119,7 @@ void z::TextInput::enter(function<void(string)> f)
 	user_callback_[EVENT_KEYBOARD] = [this, f](int val, int){ if(val == 13) f(value());};
 }
 
-string z::TextInput::value()
+string z::TextInput::value() const
 {
 	return value_;
 }

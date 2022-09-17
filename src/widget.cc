@@ -33,7 +33,7 @@ z::Widget &z::Widget::operator=(const z::Widget &r)
 	x = r.x; y = r.y; width = r.width; height = r.height;
 }
 
-bool z::Widget::focus() {
+bool z::Widget::focus() const {
 	return focus_;
 }
 void z::Widget::focus(bool tf) {

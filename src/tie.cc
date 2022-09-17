@@ -30,12 +30,12 @@ void z::Window::tie2(string title, int font, z::TextInput &t, z::Button &b, cons
 	b.click([&](){vw.popup(*this, [this, &t, &v](int i){t.value(v[i]); t.update();});});
 }
 
-void z::Window::tie(z::TextInput &t, z::Button &b1, z::Button &b2, double start, double step)
-{//number input
-	b1.text("\u25b2"); b2.text("\u25bc");
-	if(t.value() == "") t.value(to_string(start));
-	*this << b1; *this << b2; *this << t;
-	b1.click([&, step](){t.value(to_string(stod(t.value()) + step)); *this << t; show();});
-	b2.click([&, step](){t.value(to_string(stod(t.value()) - step)); *this << t; show();});
-}
+//void z::Window::tie(z::TextInput &t, z::Button &b1, z::Button &b2, double start, double step)
+//{//number input
+//	b1.text("\u25b2"); b2.text("\u25bc");
+//	if(t.value() == "") t.value(to_string(start));
+//	*this << b1; *this << b2; *this << t;
+//	b1.click([&, step](){t.value(to_string(stod(t.value()) + step)); *this << t; show();});
+//	b2.click([&, step](){t.value(to_string(stod(t.value()) - step)); *this << t; show();});
+//}
 
