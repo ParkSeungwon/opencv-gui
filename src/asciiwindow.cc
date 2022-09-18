@@ -86,7 +86,6 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : T) *this + *a.get();
 	for(auto &a : I) *this + *a.get();
 	for(auto &a : P) *this + *a.get();
-	organize_accordingto_zindex();
 }
 
 void z::AsciiWindow::parse_art()

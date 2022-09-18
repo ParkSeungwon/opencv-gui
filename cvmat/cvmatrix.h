@@ -54,12 +54,12 @@ public:
 	void edge(int lowthreshold=30, int thresXratio=100);//Canny
 	void corner(float k = 0.04, int block = 3, int aperture = 3);//harris gray->
 	void draw_detected_corner(float thres = 0.01);
-	void detect_line(int threshold=180, int continuous=50, int hop=10);//edge->Hough
+	int detect_line(int threshold=180, int continuous=50, int hop=10);//edge->Hough
 	std::optional<std::vector<cv::Point>> get_rect();
-	void detect_circle(int canny_threshold=200, int center_threshold=100,//gray->circ 
+	int detect_circle(int canny_threshold=200, int center_threshold=100,//gray->circ 
 			int min_radius=0, int max_radius=0);//gradient를 보므로 edge로 하면 안됨.
-	void detect_face(cv::Size min={30, 30}, cv::Size max=cv::Size());//gray->face
-	void detect_contours(int mode = cv::RETR_EXTERNAL, int method= cv::CHAIN_APPROX_SIMPLE);
+	int detect_face(cv::Size min={30, 30}, cv::Size max=cv::Size());//gray->face
+	int detect_contours(int mode = cv::RETR_EXTERNAL, int method= cv::CHAIN_APPROX_SIMPLE);
 	void draw_detected_contours(int min_area=0, int max_point = 10, int thickness=1,int linetype=8, int maxlevel=INT_MAX);
 	void draw_detected_line(cv::Scalar color = {0,0,255});
 	void draw_detected_circle(cv::Scalar color = {0,0,255});
@@ -79,6 +79,8 @@ public:
 	std::vector<cv::Point> get_points(int k);// ^ affine and perspective transform
 	void get_businesscard(std::vector<cv::Point> v);
 	std::vector<cv::Vec4i> lines() { return lines_;}
+	void title(std::string s) { title_ = s; }
+	std::string title() const { return title_; }
 	
 protected:
 	cv::Mat save_, harris_, descriptor_, fourier_;
@@ -87,6 +89,7 @@ protected:
 	std::vector<cv::Vec3f> circles_;
 	std::vector<cv::Rect> faces_;
 	std::vector<std::vector<cv::Point>> contours_;
+	std::string title_;
 
 public:
 	std::vector<cv::KeyPoint> keypoints_;

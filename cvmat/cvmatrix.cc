@@ -74,9 +74,11 @@ void CVMat::rotate(double angle, Point center, double scale) {
 void CVMat::transform3(Point2f src[3], Point2f dst[3], Size sz) {
 	warpAffine(*this, *this, getAffineTransform(src, dst), (sz == Size{0,0}) ? size() : sz);
 }
-void CVMat::detect_contours(int mode, int method) 
+int CVMat::detect_contours(int mode, int method) 
 {
+	contours_.clear();
 	findContours(*this, contours_, hierachy_, mode, method);
+	return contours_.size();
 }
 void CVMat::draw_detected_contours(int min_area, int max_point, int thickness, int linetype, int maxlevel) 
 {
@@ -260,18 +262,19 @@ CVMat CVMat::background()
 //	return r;
 //}
 
-void CVMat::detect_face(cv::Size min, cv::Size max)
+int CVMat::detect_face(cv::Size min, cv::Size max)
 {
+	faces_.clear();
 	equalizeHist(*this, *this);
 	cv::CascadeClassifier cas;
 	cas.load(haar_dir + haar_cascade[16]);//alt2
 	cas.detectMultiScale(*this, faces_, 1.1, 3, cv::CASCADE_SCALE_IMAGE, min, max);
-	cout << faces_.size() << " faces detected" << endl;
+	return faces_.size();
 }
 
 void CVMat::draw_detected_face()
 {
-	for(auto& a : faces_) rectangle(*this, a, {0,0,255});
+	for(auto& a : faces_) rectangle(*this, a, {0,0,255}, 2);
 }
 
 void CVMat::contain_resize(int w, int h)
@@ -462,10 +465,11 @@ void CVMat::save()
 	copyTo(save_);
 }
 
-void CVMat::detect_line(int th, int c, int h) 
+int CVMat::detect_line(int th, int c, int h) 
 {
+	lines_.clear();
 	HoughLinesP(*this, lines_, 1, M_PI/180, th, c, h);
-	cout << lines_.size() << " lines detected\n";
+	return lines_.size();
 }
 
 static optional<complex<double>> intersect(complex<double> a, complex<double> b,
@@ -541,10 +545,10 @@ optional<vector<Point>> CVMat::get_rect()
 	return {};
 }
 
-void CVMat::detect_circle(int can, int ct, int min, int max)
+int CVMat::detect_circle(int can, int ct, int min, int max)
 {
 	HoughCircles(*this, circles_, HOUGH_GRADIENT, 1, rows/8, can, ct, min, max);
-	cout << circles_.size() << " circles detected\n";
+	return circles_.size();
 }
 
 void CVMat::draw_detected_circle(cv::Scalar color)
@@ -567,9 +571,9 @@ void CVMat::filter(const Mat& ft)
 	filter2D(*this, *this, depth(), ft);
 }
 
-void CVMat::show(std::string title)
+void CVMat::show(string title)
 {
-	imshow(title, *this);
+	cv::imshow(title, *this);
 }
 
 void CVMat::median(int k) 

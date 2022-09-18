@@ -161,7 +161,7 @@ public:
 		b2.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) - step)); *this << t; show();});
 		return [&t]() { return to_number<T>(t.value()); };
 	}
-	template<class... T> void tabs(T&... wins) {
+	template<class... T> void tabs(int xpos, int ypos, T&... wins) {
 		static TwoD<z::Window*> v;
 		static TwoD<std::shared_ptr<z::Button>> bts;
 		static std::vector<std::shared_ptr<z::Widget>> panels;
@@ -171,30 +171,30 @@ public:
 		int k = sizeof...(wins);
 		(v.push_back(&wins), ...);
 		v.done();
-		int sz = v.size(), shift = 0, zi = 0, max_x = 0, max_y = 0, min_x = 10000, min_y = 10000;
+		v.back().front()->zIndex(2);
+		panels.back()->zIndex(1);
+		max_zindex.push_back(2);
+		int sz = v.size(), shift = 0, max_w = 0, max_h = 0;
 		for(auto *pw : v.back()) {
-			if(pw->zIndex() > zi) zi = pw->zIndex();
-			if(pw->x < min_x) min_x = pw->x;
-			if(pw->y < min_y) min_y = pw->y;
-			if(pw->br().x > max_x) max_x = pw->br().x;
-			if(pw->br().y > max_y) max_y = pw->br().y;
+			pw->x = xpos; pw->y = ypos + 40;
+			if(pw->width > max_w) max_w = pw->width;
+			if(pw->height > max_h) max_h = pw->height;
 			auto p = std::make_shared<z::Button>(pw->title(), 
-					cv::Rect2i{pw->x + shift++ * button_width, pw->y - 40, button_width, 30});
-			*this + *p; *this << *p;
+					cv::Rect2i{xpos + shift++ * button_width, ypos, button_width, 30});
+			*this + *p + *pw; 
 			bts.push_back(p);
 			p->click([this, sz, pw]() {
 				int z = max_zindex[sz-1];
 				panels[sz-1]->zIndex(z+1);
 				pw->zIndex(z+2); 
 				max_zindex[sz - 1] = z + 2;
-				organize_accordingto_zindex(); 
+				organize_accordingto_zindex();
 				show();
 			});
 		}
 		bts.done();
-		max_zindex.push_back(zi);
-		panels.back()->resize(cv::Rect2i{{min_x, min_y}, cv::Point2i{max_x, max_y}});
-		*this + *panels.back(); *this << *panels.back();
+		panels.back()->resize(cv::Rect2i{xpos, ypos + 40, max_w, max_h});
+		*this + *panels.back(); 
 	}
 
 	void organize_accordingto_zindex();
@@ -211,8 +211,7 @@ public:
 					for(int j=sz; j < sz + k; j++) {
 						if(i != j) v[j]->checked(false);
 						else v[j]->checked(true);
-						*this << *v[j];
-						show();
+						v[j]->update();
 					}
 				});
 		return [sz, k, &v]() {
