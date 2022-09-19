@@ -12,7 +12,7 @@ LGPL v2
 
 - Event driven, no polling, less CPU
 
-- ASCII art style GUI compose
+- ASCII art style GUI compose(you can also make GUI by giving coordinations)
 
   ```C++
   struct Info : z::AsciiWindow
@@ -47,12 +47,53 @@ LGPL v2
 
 - combine basic widgets to make complicated widgets
 
-  - ComboBox = TextInput + Button
+  - ComboBox = TextInput + Button + vector<string>
   - Number Spinner = TextInput + Button + Button
   - Tabs = Window + Window + Window + ....
   - RadioButton = CheckBox + CheckBox + CheckBox + ... 
 
-- easily make your own widget
+- Make complicated GUI by nesting Windows inside Window
+
+- easily make your own widget : just draw into cv::Mat
+
+  Let's make a wierd button. if we click left half of the button it will turn red, while right half will make it blue.
+  
+  ```c++
+  struct WButton : Widget {
+  	  WButton(cv::Rect2i r) : z::Widget{r} {
+  		mat_ = widget_color_;
+  		gui_callback_[cv::EVENT_LBUTTONUP] = [this](int xpos, int) {
+  			if(xpos - x < width / 2) mat_ = cv::Vec3b{0,0,255};
+  			else mat_ = cv::Vec3b{255,0,0};
+  			update();
+  		};
+  	}
+  };
+  ```
+  
+  ![](wbutton.gif)
+  
+  We can use 'Z' to draw custom widget into ascii GUI. 
+  
+  ```c++
+  struct Color : z::AsciiWindow{
+  	Color(): z::AsciiWindow{R"(
+  		W----------------------------------------------
+  		|
+  		|       Z0-------
+  		|       ||
+  		|
+  		|)"}
+  	{
+  		wb.resize(*Z[0]); //position will be copied
+  		*this + wb;
+  		organize_accordingto_zindex();
+  	}
+  	WButton wb{{0,0,1,1}}
+  };
+  ```
+  
+  
 
 ## Sample Image
 
@@ -97,7 +138,8 @@ LGPL v2
   - S : Slider
   - I : Image
   - L : Label
-
+  - Z : Custom Widget
+  
 - Capital letter is followed by a number : this should be one digit and it is the index of this widget.
 - Capital letter is followed by '------' : this determines the width of the widget.
 - Capital letter is followed by '|' vertically : this determines the height of the widget
@@ -106,15 +148,6 @@ LGPL v2
   - Exceptionally in slider widget, it is start, end, step separated by space.
   - in Checkbox widget, v should be used to indicate that it is checked.
 - Window size should include all the child widgets.
-
-## Combining Rules
-
-- Popup window is made from Window widget by inheriting popup interface
-- Combo box is made by tying Text input and Button.
-- Numeric spinbutton is made by tying Text input and two buttons.
-- RadioButton is made by tying many checkboxes.
-- Frame is made by wrapping multiple widgets
-- more than 10 widgets can be present in a window 
 
 ## Widget Hierachy
 
