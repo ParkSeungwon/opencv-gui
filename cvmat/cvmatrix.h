@@ -53,7 +53,7 @@ public:
 	void diffy();
 	void edge(int lowthreshold=30, int thresXratio=100);//Canny
 	void corner(float k = 0.04, int block = 3, int aperture = 3);//harris gray->
-	void draw_detected_corner(float thres = 0.01);
+	int draw_detected_corner(float thres = 0.01);
 	int detect_line(int threshold=180, int continuous=50, int hop=10);//edge->Hough
 	std::optional<std::vector<cv::Point>> get_rect();
 	int detect_circle(int canny_threshold=200, int center_threshold=100,//gray->circ 

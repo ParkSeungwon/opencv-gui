@@ -64,7 +64,7 @@ public:
 struct Popup : z::AsciiWindow
 {
 	Popup() : z::AsciiWindow{R"(
-	Wt------------------------
+	W-------------------------
 	|
 	|    B0-------------
 	|    | Failed | 

@@ -180,7 +180,7 @@ int main()
   - L : Label
 
 - Capital letter is followed by a number : this should be one digit and it is the index of this widget.
-- Capital letter is followed by '------' : this determines the length of the widget.
+- Capital letter is followed by '------' : this determines the width of the widget.
 - Capital letter is followed by '|' vertically : this determines the height of the widget
 - the first line below the Capital letter contains some text and close with another ''|''
   - this is the text of the widget 

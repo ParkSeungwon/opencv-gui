@@ -229,7 +229,7 @@ void CVMat::corner(float k, int b, int a)
 	cornerHarris(*this, harris_, b, a, k, BORDER_DEFAULT);
 }
 
-void CVMat::draw_detected_corner(float thresh) {
+int CVMat::draw_detected_corner(float thresh) {
 	int n = 0;
 	for(int j=0; j<harris_.rows ; j++ ) for(int i=0; i<harris_.cols; i++ ) {
 		if(harris_.at<float>(j,i) > thresh) {
@@ -237,7 +237,7 @@ void CVMat::draw_detected_corner(float thresh) {
 			circle(*this, Point( i, j ), 5,  {0,0,255}, 2, 8, 0 );
 		}
 	}
-	cout << n << " corners detected" << endl;
+	return n;
 }
 
 pair<int, int> CVMat::text(string s, Point p, double scale, Scalar color, int thickness, int fontFace, int lintType, bool bottomleftorigin)

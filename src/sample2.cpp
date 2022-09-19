@@ -247,10 +247,7 @@ struct Win : z::AsciiWindow
 	{
 		Circle(Win &w) : win{w}, z::AsciiWindow{R"(
 			WCircle---------------------------------------------
-			|
-			|
-			|   B0----------------   L2--------------------
-			|   |Detect|             ||
+			| 
 			|
 			| L0--------------------  L5--------
 			| |Canny threshold|       ||
@@ -271,6 +268,9 @@ struct Win : z::AsciiWindow
 			| |최대 반경|             ||
 			| S3---------------------------------------------
 			| |0 1000 1|
+			|
+			| B0----------------   L2---------------------
+			| |Detect|             ||
 			|
 			|)"}
 		{
@@ -368,19 +368,97 @@ struct Win : z::AsciiWindow
 		}
 	} color{*this};
 
-	struct Noise : z::AsciiWindow
+	struct Corner : z::AsciiWindow
 	{
-		Noise(Win &w) : win{w}, z::AsciiWindow{R"(
-		  WNoise-----------------------------------------------
+		Corner(Win &w) : win{w}, z::AsciiWindow{R"(
+		  WCorner-----------------------------------------------
 			|
+			|
+			|   L0--T0-----B0    L1------ T1-----B2
+			|   |k| |0.04| B1    |Thresh| |0.01| B3
+			|
+			|   L2-----    S0---------------------------- L5----
+			|   |block|    |1 31 2|                       |3|
+			|
+			|   L3-------- S1---------------------------- L6----
+			|   |aperture| |1 31 2|                       |3|
+			|
+			|   B4--------------------   L4--------------------
+			|   |Harris Corner|          ||
+			| L7-------------------------------------------------
+			| |-------------------------------------------------|
+			|   L8----------- S2--------------------------- L:---
+			|   |threshold|   |1 1000 1|                    |30|
 			|   
+			|   L9----------- S3--------------------------- L;---
+			|   |thresXratio| |1 1000 1|                    |100|
+			|
+			|   B5--------------------   
+			|   |Canny Edge|          
+			|)"}
+		{
+			S[0]->value(3); S[1]->value(3); S[2]->value(30); S[3]->value(100);
+			for(int i=0; i<4; i++) { S[i]->draw(); *this << *S[i]; }
+			auto k = tie(*T[0], *B[0], *B[1], 0., 0.01);
+			auto thresh = tie(*T[1], *B[2], *B[3], 0., 0.01);
+			organize_accordingto_zindex();
+
+			S[0]->on_change([this](int v) { L[5]->text(to_string(v)); L[5]->update(); });
+			S[1]->on_change([this](int v) { L[6]->text(to_string(v)); L[6]->update(); });
+			S[2]->on_change([this](int v) { L[10]->text(to_string(v)); L[10]->update(); });
+			S[3]->on_change([this](int v) { L[11]->text(to_string(v)); L[11]->update(); });
+			B[4]->click([this, k, thresh]() {
+				win.m.save();
+				win.m.gray();
+				win.m.corner(k(), S[0]->value(), S[1]->value());
+				win.m.restore();
+				int detected = win.m.draw_detected_corner(thresh());
+				win.m.show();
+				L[4]->text(to_string(detected) + " detected");
+				L[4]->update();
+			});
+			B[5]->click([this]() {
+				win.m.gray();
+				win.m.edge(S[2]->value(), S[3]->value());
+				win.m.show();
+				win.show_info();
+			});
+		}
+		Win &win;
+	} corner{*this};
+
+	struct Trans : z::AsciiWindow
+	{
+		Trans(Win& w) : win{w}, z::AsciiWindow{R"(
+		  W변형----------------------------------------------
+			|
+			|
+			|  L0------ T0----B0  L1------ T1----B2  B4-------- 
+			|  |ScaleX| ||    B1  |ScaleY| ||    B3  |변환|
+			|
+			|  L2------ T2------B5                   B7--------
+			|  |회전|   ||      B6                   |변환|
 			|
 			|)"}
 		{
+			auto scalex = tie(*T[0], *B[0], *B[1], 1., 0.1);
+			auto scaley = tie(*T[1], *B[2], *B[3], 1., 0.1);
+			auto angle = tie(*T[2], *B[5], *B[6], 0, 5);
+			organize_accordingto_zindex();
 
+			B[4]->click([this, scalex, scaley]() {
+				win.m.scale(scalex(), scaley());
+				win.m.show();
+				win.show_info();
+			});
+			B[7]->click([this, angle]() {
+				win.m.rotate(angle());
+				win.m.show();
+				win.show_info();
+			});
 		}
 		Win &win;
-	} nose{*this};
+	} trans{*this};
 
 	Win() : z::AsciiWindow{R"(
 		WOpenCV Tuning Shop----------------------------------------
@@ -438,8 +516,8 @@ struct Win : z::AsciiWindow
 		wrap("체크포인트3", 20, 10, *I[2], *B[5]);
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
-		tabs(10, 650, face, contour, line, circle);
-		tabs(10, 1100, filter_win, color);
+		tabs(10, 650, face, contour, line, circle, corner);
+		tabs(10, 1100, filter_win, color, trans);
 		scroll_to({0,0,width, height});
 		start();
 		connect_events();

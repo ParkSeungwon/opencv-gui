@@ -49,7 +49,7 @@ void z::Slider::value(int v)
 	if(v < start_) value_ = start_;
 	else if(v > end_) value_ = end_;
 	else value_ = v;
-	//draw();
+	value_ -= (value_ - start_) % step_;
 }
 
 int z::Slider::value()
