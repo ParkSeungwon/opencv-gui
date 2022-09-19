@@ -192,10 +192,10 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 	auto r = p->scrolled_rect_;
 	static z::Widget panel{{0,0,1,1}};
 	panel.resize(r);
-	panel.zIndex(1000);
+	panel.zIndex(10000);
 	panel.alpha(0.3);
 	panel.mat_ = cv::Vec3b{0,0,0};
-	zIndex(1002);
+	zIndex(10002);
 	popup_on_ = p;
 	if(x == 0 && y == 0) {
 		x = r.x + (r.width - width) / 2;

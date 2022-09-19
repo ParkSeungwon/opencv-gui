@@ -86,6 +86,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : T) *this + *a.get();
 	for(auto &a : I) *this + *a.get();
 	for(auto &a : P) *this + *a.get();
+	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
 }
 
 void z::AsciiWindow::parse_art()
@@ -107,6 +108,7 @@ int z::AsciiWindow::get_size(char c)
 		case 'T': return T.size();
 		case 'I': return I.size();
 		case 'P': return P.size();
+		case 'Z': return Z.size();
 		default: throw 0;
 	}
 }
@@ -146,6 +148,7 @@ bool z::AsciiWindow::parse_widget_area(int y, int x)
 							if(text != "") *I.back() = cv::imread(text);
 							break;
 		case 'P': P.emplace_back(make_shared<z::Progress>(r)); break;
+		case 'Z': Z.emplace_back(make_shared<z::Widget>(r)); break;
 	}
 	return true;
 }

@@ -349,6 +349,7 @@ protected:
 	std::vector<std::shared_ptr<Label>> L;
 	std::vector<std::shared_ptr<Image>> I;
 	std::vector<std::shared_ptr<Progress>> P;
+	std::vector<std::shared_ptr<Widget>> Z;
 private:
 	int get_size(char c);
 	bool parse_widget_area(int y, int x);
@@ -367,6 +368,12 @@ protected:
 	int result_ = -1;
 private:
 	Window *window_ptr_ = nullptr;
+};
+
+class WButton : public Widget
+{
+public:
+	WButton(cv::Rect2i r);
 };
 
 }

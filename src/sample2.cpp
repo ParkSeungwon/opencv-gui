@@ -325,11 +325,13 @@ struct Win : z::AsciiWindow
 			|  |색 선택|    |v| |C|  |v| |M|  |v| |Y|  |v| |K|
 			|
 			|
-			|       
-			|      
+			|       Z0-------
+			|       ||
 			|
 			|)"}
 		{
+			wb.resize(*Z[0]);
+			*this + wb;
 			organize_accordingto_zindex();
 			B[0]->click([this]() { 
 				rgb(C[3]->checked(), C[2]->checked(), C[1]->checked()); 
@@ -341,6 +343,7 @@ struct Win : z::AsciiWindow
 			});
 		}
 		Win &win;
+		z::WButton wb{{0,0,1,1}};
 		void rgb(bool b, bool g, bool r) {
 			vector<cv::Mat> v;
 			cv::split(win.m, v);
