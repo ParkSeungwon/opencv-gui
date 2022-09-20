@@ -64,8 +64,10 @@ public:
 	void draw_detected_line(cv::Scalar color = {0,0,255});
 	void draw_detected_circle(cv::Scalar color = {0,0,255});
 	void draw_detected_face();
-	cv::Mat fourier(std::string window = "Fourier");//after gray
-	void inv_fourier(std::string window = "inverse fourier");//after fourier
+	void fourier(std::string window = "Fourier");//after gray
+	cv::Mat show_fourier() const;
+	void fourier_filter(double cutoff, bool lowpass = true);
+	void inv_fourier();//after fourier
 	void fourier_add_qr(cv::Mat m);
 	cv::Mat get_plane0();
 	cv::Mat histo(std::string windwo = "Histogram") const;//after gray
@@ -95,6 +97,7 @@ public:
 	std::vector<cv::KeyPoint> keypoints_;
 
 private:
+	bool fourier_center_low_ = false;
 	void template_init();
 };
 

@@ -342,55 +342,82 @@ Mat CVMat::histo(string window) const
 	return histImage;
 }
 
-Mat CVMat::fourier(string window)
+void CVMat::fourier(string window)
 {
 	using namespace cv;
-    Mat padded;                            //expand input image to optimal size
-		this->convertTo(padded, CV_32FC1, 1.0 / 255.0);
-    //int m = getOptimalDFTSize( rows );
-    //int n = getOptimalDFTSize( cols ); // on the border add zero values
-    //copyMakeBorder(*this, padded, 0,m-rows,0,n-cols, BORDER_CONSTANT, Scalar::all(0));
+	Mat padded;                            //expand input image to optimal size
+	this->convertTo(padded, CV_32FC1, 1.0 / 255.0);
+	//int m = getOptimalDFTSize( rows );
+	//int n = getOptimalDFTSize( cols ); // on the border add zero values
+	//copyMakeBorder(*this, padded, 0,m-rows,0,n-cols, BORDER_CONSTANT, Scalar::all(0));
 
-    Mat planes[] = {padded, Mat::zeros(padded.size(), CV_32F)};
-    Mat complexI;
-    merge(planes, 2, complexI);  // Add to the expanded another plane with zeros
+	Mat planes[] = {padded, Mat::zeros(padded.size(), CV_32F)};
+	Mat complexI;
+	merge(planes, 2, complexI);  // Add to the expanded another plane with zeros
 
-    dft(complexI, complexI, DFT_COMPLEX_OUTPUT);     // this way the result may fit in the source matrix
-		fourier_ = complexI;
+	dft(complexI, complexI, DFT_COMPLEX_OUTPUT);     // this way the result may fit in the source matrix
+	fourier_ = complexI;
+	fourier_center_low_ = false;
+}
 
-    // compute the magnitude and switch to logarithmic scale
-    // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
-    split(complexI, planes);       // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
-    magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude
-    Mat magI = planes[0];
+void reorder_matrix(cv::Mat magI)
+{
+	// rearrange the quadrants of Fourier image  so that the origin is at the image center
+	int cx = magI.cols/2;
+	int cy = magI.rows/2;
 
-    magI += Scalar::all(1);                    // switch to logarithmic scale
-    log(magI, magI);
+	Mat q0(magI, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
+	Mat q1(magI, Rect(cx, 0, cx, cy));  // Top-Right
+	Mat q2(magI, Rect(0, cy, cx, cy));  // Bottom-Left
+	Mat q3(magI, Rect(cx, cy, cx, cy)); // Bottom-Right
 
-    // crop the spectrum, if it has an odd number of rows or columns
-    magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+	Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
+	q0.copyTo(tmp);
+	q3.copyTo(q0);
+	tmp.copyTo(q3);
 
-    // rearrange the quadrants of Fourier image  so that the origin is at the image center
-    int cx = magI.cols/2;
-    int cy = magI.rows/2;
+	q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
+	q2.copyTo(q1);
+	tmp.copyTo(q2);
+}
 
-    Mat q0(magI, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
-    Mat q1(magI, Rect(cx, 0, cx, cy));  // Top-Right
-    Mat q2(magI, Rect(0, cy, cx, cy));  // Bottom-Left
-    Mat q3(magI, Rect(cx, cy, cx, cy)); // Bottom-Right
+cv::Mat CVMat::show_fourier() const {
+	cv::Mat planes[2];
+	// compute the magnitude and switch to logarithmic scale
+	// => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
+	split(fourier_, planes);       // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+	magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude
+	Mat magI = planes[0];
+	magI += Scalar::all(1);                    // switch to logarithmic scale
+	log(magI, magI);
 
-    Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
-    q0.copyTo(tmp);
-    q3.copyTo(q0);
-    tmp.copyTo(q3);
-
-    q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
-    q2.copyTo(q1);
-    tmp.copyTo(q2);
-
+	// crop the spectrum, if it has an odd number of rows or columns
+	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+	if(!fourier_center_low_) reorder_matrix(magI);
 	cv::normalize(magI, magI, 0, 1, NORM_MINMAX);//Transform the matrix with float values into a
-	//imshow(window, magI);
+	magI.convertTo(magI, CV_8U, 255);
 	return magI;
+}
+
+void CVMat::fourier_filter(double cutoff, bool lowpass)
+{
+	if(!fourier_center_low_) {
+		reorder_matrix(fourier_);
+		fourier_center_low_ = true;
+	}
+	double centerx = fourier_.cols / 2;
+	double centery = fourier_.rows / 2;
+	bool H;
+	cv::Vec2f complex_value;
+	for(int y=0; y<fourier_.cols; y++) for(int x=0; x<fourier_.rows; x++) {
+		double D = sqrt((x - centerx) * (x - centerx) + (y - centery) * (y - centery));
+		if(D <= cutoff) H = lowpass;
+		else H = !lowpass;
+		complex_value = fourier_.at<cv::Vec2f>(y, x);
+		complex_value[0] *= H;
+		complex_value[1] *= H;
+		fourier_.at<cv::Vec2f>(y, x) = complex_value;
+	}
 }
 
 void CVMat::fourier_add_qr(cv::Mat m)
@@ -406,12 +433,15 @@ void CVMat::fourier_add_qr(cv::Mat m)
 	merge(planes, 2, fourier_);
 }
 
-void CVMat::inv_fourier(string window)
+void CVMat::inv_fourier()
 {
-	cv::dft(fourier_, fourier_, DFT_INVERSE | DFT_REAL_OUTPUT | DFT_SCALE); 
+	if(fourier_center_low_) {
+		reorder_matrix(fourier_);
+		fourier_center_low_ = false;
+	}
+	cv::dft(fourier_, *this, DFT_INVERSE | DFT_REAL_OUTPUT | DFT_SCALE); 
 	//imshow(window, fourier_);
-	CVMat m = fourier_;//CV_32FC1
-	fourier_.convertTo(*this, CV_8UC1, 255);
+	convertTo(*this, CV_8UC1, 255);
 }
 
 cv::Mat CVMat::get_plane0()

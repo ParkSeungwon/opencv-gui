@@ -106,6 +106,42 @@ struct Win : z::AsciiWindow
 		cv::Mat *p[6] = {&BLUR, &GAUSSIAN, &SHARPEN, &SOBELX, &SOBELY, &DIM1};
 	} filter_win{*this};
 
+	struct Fourier : z::AsciiWindow
+	{
+		Fourier(Win &w) : win{w}, z::AsciiWindow{R"(
+			WFourier-----------------------------------------------
+			|
+			|
+			|  B0---------------  T0------B1   B3----------------
+			|  |Low Pass Filter|  ||      B2   |High pass Filter|
+			|
+			|            B4---------------------      
+			|            |Inverse Fourier|
+			|
+			|)"}
+		{
+			auto cutoff = tie(*T[0], *B[1], *B[2], 30, 1);
+			organize_accordingto_zindex();
+
+			B[0]->click([this, cutoff]() {
+				win.m.fourier_filter(cutoff());
+				*win.I[4] = win.m.show_fourier();
+				win.I[4]->update();
+			});
+			B[3]->click([this, cutoff]() {
+				win.m.fourier_filter(cutoff(), false);
+				*win.I[4] = win.m.show_fourier();
+				win.I[4]->update();
+			});
+			B[4]->click([this]() {
+				win.m.inv_fourier();
+				win.m.show();
+			});
+
+		}
+		Win &win;
+	} fourier{*this};
+
 	struct Face : z::AsciiWindow
 	{
 		Face(Win &w) : win{w}, z::AsciiWindow{R"(
@@ -520,7 +556,7 @@ struct Win : z::AsciiWindow
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
 		tabs(10, 650, face, contour, line, circle, corner);
-		tabs(10, 1100, filter_win, color, trans);
+		tabs(10, 1100, filter_win, color, trans, fourier);
 		scroll_to({0,0,width, height});
 		start();
 		connect_events();
@@ -574,8 +610,8 @@ struct Win : z::AsciiWindow
 		m.save();
 		m.gray();
 		cv::Mat tmp;
-		m.fourier().convertTo(tmp, CV_8UC3, 255, 0);
-		*I[4] = tmp;
+		m.fourier();
+		*I[4] = m.show_fourier();
 		I[4]->update();
 		m.restore();
 	}
