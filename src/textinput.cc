@@ -118,6 +118,7 @@ void z::TextInput::key_event(int key, int)
 	if(hangul_mode_) {
 		if(key == BACKSPACE && hangul_ic_is_empty(hic_)) backspace(); //backspace
 		else { // make character
+			if(hangul_ic_is_empty(hic_)) back_ = editting_ + back_;
 			hangul_ic_process(hic_, key);
 			const ucschar *commit = hangul_ic_get_commit_string(hic_);
 			const ucschar *preedit = hangul_ic_get_preedit_string(hic_);
@@ -147,6 +148,7 @@ void z::TextInput::show_cursor() {
 }
 void z::TextInput::move_cursor(bool right) 
 {
+	hangul_ic_flush(hic_);
 	if(right) {
 		fore_ += editting_;
 		editting_ = pop_front_utf(back_);
