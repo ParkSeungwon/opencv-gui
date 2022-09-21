@@ -205,7 +205,8 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 	if(p->height < y + height) y = std::max(0, p->height - height);
 	organize_accordingto_zindex();
 	*p + panel + *this;
-	p->organize_accordingto_zindex();
+	*p << panel;
+	//p->organize_accordingto_zindex();
 	p->show();
 	popup_exit_func_ = f;
 }

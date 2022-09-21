@@ -138,8 +138,6 @@ void z::TextInput::key_event(int key, int)
 	
 void z::TextInput::show_cursor() {
 	int baseline = 0;
-	std::string s1 = divide_utf_string(value(), cursor_x_).first;
-	std::string s2 = divide_utf_string(value(), cursor_x_ + 1).first;
 	auto sz1 = ft2_->getTextSize(fore_, height * 0.8, -1, &baseline);
 	auto sz2 = ft2_->getTextSize(fore_ + divide_utf_string(editting_ + back_, 1).first,
 			height * 0.8, -1, &baseline); 
@@ -192,6 +190,7 @@ void z::TextInput::popup(vector<string> v)
 	hanj.x = x + 50;
 	hanj.y = y + 50;
 	hanj.popup(*parent_, [this, v](int i) { 
+		cout << "한자 " << v[i] << endl;
 		fore_ += v[i]; 
 		editting_ = pop_front_utf(back_);
 		draw();
@@ -230,6 +229,8 @@ void z::TextInput::del() {
 void z::TextInput::value(string s)
 {
 	fore_ = s;
+	editting_ = "";
+	back_ = "";
 	draw();
 }
 
