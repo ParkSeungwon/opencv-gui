@@ -105,12 +105,23 @@ void z::TextInput::hanja()
 	}
 }
 
+void z::TextInput::hangul()
+{
+	hangul_mode_ = !hangul_mode_;
+	if(!hangul_ic_is_empty(hic_)) {
+		fore_ += editting_;
+		editting_ = pop_front_utf(back_);
+		draw();
+		show_cursor();
+	}
+}
+
 void z::TextInput::key_event(int key, int)
 {
 	switch(key) {
-		case HANGUL: hangul_mode_ = !hangul_mode_; return;
-		case LEFT: move_cursor(false); show_cursor(); return;
-		case RIGHT: move_cursor(true); show_cursor(); return;
+		case HANGUL: hangul(); return;
+		case LEFT: move_cursor(false); return;
+		case RIGHT: move_cursor(true); return;
 		case DEL: del(); return;
 		case HANJA: hanja(); return;
 	}
@@ -124,10 +135,12 @@ void z::TextInput::key_event(int key, int)
 			const ucschar *preedit = hangul_ic_get_preedit_string(hic_);
 			if(*commit != 0) fore_ += GetUnicodeChar(*commit);
 			editting_ = GetUnicodeChar(*preedit);
-			if(!isalpha(key) && isprint(key)) fore_ += key; // for space 1 2 3 etc
+			if(!isalpha(key) && isprint(key)) {
+				fore_ += key; // for space 1 2 3 etc
+				back_ = editting_ + back_;
+			}
 		}
 	} else {
-		fore_ += GetUnicodeChar(*hangul_ic_flush(hic_));
 		if(isprint(key)) fore_ += key;
 		else if(key == BACKSPACE) backspace();
 		else return;
@@ -139,8 +152,7 @@ void z::TextInput::key_event(int key, int)
 void z::TextInput::show_cursor() {
 	int baseline = 0;
 	auto sz1 = ft2_->getTextSize(fore_, height * 0.8, -1, &baseline);
-	auto sz2 = ft2_->getTextSize(fore_ + divide_utf_string(editting_ + back_, 1).first,
-			height * 0.8, -1, &baseline); 
+	auto sz2 = ft2_->getTextSize(fore_ + editting_, height * 0.8, -1, &baseline); 
 	cv::rectangle(mat_, cv::Rect2i{{sz1.width + 10, 0}, 
 			cv::Point2i{std::max(10 + sz2.width, 20 + sz1.width), height}}, {0,0,0}, 1);
 }
@@ -190,7 +202,6 @@ void z::TextInput::popup(vector<string> v)
 	hanj.x = x + 50;
 	hanj.y = y + 50;
 	hanj.popup(*parent_, [this, v](int i) { 
-		cout << "한자 " << v[i] << endl;
 		fore_ += v[i]; 
 		editting_ = pop_front_utf(back_);
 		draw();

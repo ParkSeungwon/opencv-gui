@@ -106,6 +106,7 @@ private:
 	void del();
 	void hanja();
 	void backspace();
+	void hangul();
 	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
