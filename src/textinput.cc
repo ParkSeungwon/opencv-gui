@@ -8,6 +8,10 @@
 #define UP 151//65362
 #define DOWN 153//65264
 #define DEL 255
+#define HOME 149
+#define END 156
+#define PGUP 154
+#define PGDN 155
 using namespace std;
 using namespace placeholders;
 
@@ -58,6 +62,21 @@ int count_utf_string(std::string s)
 	for(char c : s) if(is_character_head(c)) k++;
 	return k;
 }
+std::string pop_back_utf(std::string &s)
+{
+	int l = count_utf_string(s);
+	if(l == 0) return "";
+	auto [f, b] = divide_utf_string(s, l - 1);
+	s = f;
+	return b;
+}
+std::string pop_front_utf(std::string &s)
+{
+	if(s.size() == 0) return "";
+	auto [f, b] = divide_utf_string(s, 1);
+	s = b;
+	return f;
+}
 
 HangulInputContext* z::TextInput::hic_ = hangul_ic_new("2");
 HanjaTable* z::TextInput::table_ = hanja_table_load(NULL);
@@ -66,24 +85,27 @@ z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
 {
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	gui_callback_[EVENT_KEYBOARD] = bind(&z::TextInput::key_event, this, _1, _2);
+	gui_callback_[EVENT_ENTER] = [this](int, int) { show_cursor(); };
+	gui_callback_[EVENT_LEAVE] = [this](int, int) { draw(); };
 }
+
 
 void z::TextInput::key_event(int key, int)
 {
 	//if(key == 13) return user_callback_[EVENT_KEYBOARD](0, 0);
 	cout << key << endl;
-	string editting;
 	switch(key) {
 		case HANGUL: hangul_mode_ = !hangul_mode_; return;
 		case LEFT: move_cursor(false); show_cursor(); return;
 		case RIGHT: move_cursor(true); show_cursor(); return;
+		case DEL: del(); return;
 	}
 
 	if(hangul_mode_) {
 		if(key == BACKSPACE && hangul_ic_is_empty(hic_)) backspace(); //backspace
 		else if(key == HANJA && !hangul_ic_is_empty(hic_)) { // hanja popup
-			editting = GetUnicodeChar(*hangul_ic_get_preedit_string(hic_));
-			HanjaList* list = hanja_table_match_exact(table_, editting.data());
+			editting_ = GetUnicodeChar(*hangul_ic_get_preedit_string(hic_));
+			HanjaList* list = hanja_table_match_exact(table_, editting_.data());
 			vector<string> v;
 			if(list != nullptr) for(int i=0; i<hanja_list_get_size(list); i++) {
 				const char* hanja = hanja_list_get_nth_value(list, i);
@@ -98,42 +120,57 @@ void z::TextInput::key_event(int key, int)
 			hangul_ic_process(hic_, key);
 			const ucschar *commit = hangul_ic_get_commit_string(hic_);
 			const ucschar *preedit = hangul_ic_get_preedit_string(hic_);
-			if(*commit != 0) value_ += GetUnicodeChar(*commit);
-			editting = GetUnicodeChar(*preedit);
+			if(*commit != 0) fore_ += GetUnicodeChar(*commit);
+			editting_ = GetUnicodeChar(*preedit);
 			//if(key == 32) value_ += ' ';
-			if(!isalpha(key) && isprint(key)) value_ += key; // for space 1 2 3 etc
+			if(!isalpha(key) && isprint(key)) fore_ += key; // for space 1 2 3 etc
 		}
 	} else {
-		value_ += GetUnicodeChar(*hangul_ic_flush(hic_));
-		if(isprint(key)) value_ += key;
+		fore_ += GetUnicodeChar(*hangul_ic_flush(hic_));
+		if(isprint(key)) fore_ += key;
 		else if(key == BACKSPACE) backspace();
 		//else if(key == 81) 
 		else return;
 	}
-	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
-	//substr_to_n_from_utf_string(value(), cursor_x_);
-	ft2_->putText(mat_, value() + editting, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
-	int baseline = 0;
-	auto size1 = ft2_->getTextSize(value(), height * 0.8, -1, &baseline);
-	auto size2 = ft2_->getTextSize(editting, height * 0.8, -1, &baseline);
-	cv::rectangle(mat_, cv::Rect2i{{size1.width + 10, 0}, 
-			cv::Point2i{size1.width + (size2.width ? size2.width : 10) + 10, height}}, {0,0,0}, 1);
+	draw();
+	show_cursor();
+//	int baseline = 0;
+//	auto size1 = ft2_->getTextSize(value(), height * 0.8, -1, &baseline);
+//	auto size2 = ft2_->getTextSize(editting, height * 0.8, -1, &baseline);
+//	cv::rectangle(mat_, cv::Rect2i{{size1.width + 10, 0}, 
+//			cv::Point2i{size1.width + (size2.width ? size2.width : 10) + 10, height}}, {0,0,0}, 1);
 }
-
+	
 void z::TextInput::show_cursor() {
 	int baseline = 0;
 	std::string s1 = divide_utf_string(value(), cursor_x_).first;
 	std::string s2 = divide_utf_string(value(), cursor_x_ + 1).first;
-	auto sz1 = ft2_->getTextSize(s1, height * 0.8, -1, &baseline);
-	auto sz2 = ft2_->getTextSize(s2, height * 0.8, -1, &baseline); 
-	value(value_);
+	auto sz1 = ft2_->getTextSize(fore_, height * 0.8, -1, &baseline);
+	auto sz2 = ft2_->getTextSize(fore_ + divide_utf_string(editting_ + back_, 1).first,
+			height * 0.8, -1, &baseline); 
 	cv::rectangle(mat_, cv::Rect2i{{sz1.width + 10, 0}, 
 			cv::Point2i{std::max(10 + sz2.width, 20 + sz1.width), height}}, {0,0,0}, 1);
 }
 void z::TextInput::move_cursor(bool right) 
 {
-	if(!right && cursor_x_ > 0) cursor_x_--;
-	else if(right && cursor_x_ < count_utf_string(value())) cursor_x_++;
+	if(right) {
+		fore_ += editting_;
+		editting_ = pop_front_utf(back_);
+	} else {
+		back_ = editting_ + back_;
+		editting_ = pop_back_utf(fore_);
+	}
+//	if(!right) {
+//		fore_ += editting_;
+//		editting_ = "";
+//		back_ = pop_back_utf(fore_) + back_;
+//	} else {
+//		back_ += editting_;
+//		editting_ = "";
+//		fore_ += pop_front_utf(back_);
+//	}
+	draw();
+	show_cursor();
 }
 
 struct HanjaWin : z::Window
@@ -165,7 +202,7 @@ void z::TextInput::popup(vector<string> v)
 	hanj.set_hanja(v);
 	hanj.x = x + 50;
 	hanj.y = y + 50;
-	hanj.popup(*parent_, [this, v](int i) { value(value() +v[i]); update();});
+	hanj.popup(*parent_, [this, v](int i) { fore_ += v[i]; draw(); show_cursor(); update();});
 }
 
 void z::TextInput::enter(function<void(string)> f)
@@ -175,23 +212,38 @@ void z::TextInput::enter(function<void(string)> f)
 
 string z::TextInput::value() const
 {
-	return value_;
+	return fore_ + editting_ + back_;
 }
 
 void z::TextInput::backspace()
 {
-	while(!value_.empty()) {
-		char c = value_.back();
-		value_.pop_back();
+	while(!fore_.empty()) {
+		char c = fore_.back();
+		fore_.pop_back();
 		if((c & 0xc0) != 0x80) break;
 	}
+	draw();
+	show_cursor();
+}
+
+void z::TextInput::del() {
+	back_ = editting_ + back_;
+	editting_ = "";
+	pop_front_utf(back_);
+	draw();
+	show_cursor();
 }
 
 void z::TextInput::value(string s)
 {
-	value_ = s;
+	fore_ = s;
+	draw();
+}
+
+void z::TextInput::draw()
+{
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
-	ft2_->putText(mat_, value_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	ft2_->putText(mat_, fore_ + editting_ + back_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
 }
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Widget{r}

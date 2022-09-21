@@ -95,13 +95,15 @@ public:
 	void enter(std::function<void(std::string)> f);
 	void move_cursor(bool right);
 protected:
-	std::string value_;
+	std::string fore_, back_, editting_;
 	void show_cursor();
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
 	bool hangul_mode_ = false;
 	int cursor_x_ = 0;
 private:
+	void draw();
+	void del();
 	void backspace();
 	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
