@@ -1,5 +1,13 @@
 #include<opencv2/opencv.hpp>
 #include"zgui.h"
+#define BACKSPACE 8//65288 //8
+#define HANGUL 234//65514 //234
+#define HANJA 228//65508 //228
+#define LEFT 150//65361
+#define RIGHT 152//65263
+#define UP 151//65362
+#define DOWN 153//65264
+#define DEL 255
 using namespace std;
 using namespace placeholders;
 
@@ -30,6 +38,26 @@ string GetUnicodeChar(unsigned int code) {
 		return chars;
 }
 
+bool is_character_head(char c) {
+	return (c & 0xc0) != 0x80;
+}
+std::pair<std::string, std::string> divide_utf_string(std::string s, int pos) {
+	int i = 0; 
+	std::string fore, aft, tmp;
+	for(char c : s) {
+		if(is_character_head(c)) i++;
+		if(i <= pos) fore +=c;
+		else aft += c;
+	}
+	cout << fore << endl << aft << endl;
+	return {fore, aft};
+}
+int count_utf_string(std::string s)
+{
+	int k = 0;
+	for(char c : s) if(is_character_head(c)) k++;
+	return k;
+}
 
 HangulInputContext* z::TextInput::hic_ = hangul_ic_new("2");
 HanjaTable* z::TextInput::table_ = hanja_table_load(NULL);
@@ -43,14 +71,17 @@ z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
 void z::TextInput::key_event(int key, int)
 {
 	//if(key == 13) return user_callback_[EVENT_KEYBOARD](0, 0);
+	cout << key << endl;
 	string editting;
-	if(key == 234) { //한영전환
-		hangul_mode_ = !hangul_mode_;
-		return;
+	switch(key) {
+		case HANGUL: hangul_mode_ = !hangul_mode_; return;
+		case LEFT: move_cursor(false); show_cursor(); return;
+		case RIGHT: move_cursor(true); show_cursor(); return;
 	}
+
 	if(hangul_mode_) {
-		if(key == 8 && hangul_ic_is_empty(hic_)) backspace(); //backspace
-		else if(key == 228 && !hangul_ic_is_empty(hic_)) { // hanja popup
+		if(key == BACKSPACE && hangul_ic_is_empty(hic_)) backspace(); //backspace
+		else if(key == HANJA && !hangul_ic_is_empty(hic_)) { // hanja popup
 			editting = GetUnicodeChar(*hangul_ic_get_preedit_string(hic_));
 			HanjaList* list = hanja_table_match_exact(table_, editting.data());
 			vector<string> v;
@@ -70,16 +101,39 @@ void z::TextInput::key_event(int key, int)
 			if(*commit != 0) value_ += GetUnicodeChar(*commit);
 			editting = GetUnicodeChar(*preedit);
 			//if(key == 32) value_ += ' ';
-			if(!isalpha(key) && isprint(key)) value_ += key;
+			if(!isalpha(key) && isprint(key)) value_ += key; // for space 1 2 3 etc
 		}
 	} else {
 		value_ += GetUnicodeChar(*hangul_ic_flush(hic_));
 		if(isprint(key)) value_ += key;
-		else if(key == 8) backspace();
+		else if(key == BACKSPACE) backspace();
+		//else if(key == 81) 
 		else return;
 	}
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
+	//substr_to_n_from_utf_string(value(), cursor_x_);
 	ft2_->putText(mat_, value() + editting, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	int baseline = 0;
+	auto size1 = ft2_->getTextSize(value(), height * 0.8, -1, &baseline);
+	auto size2 = ft2_->getTextSize(editting, height * 0.8, -1, &baseline);
+	cv::rectangle(mat_, cv::Rect2i{{size1.width + 10, 0}, 
+			cv::Point2i{size1.width + (size2.width ? size2.width : 10) + 10, height}}, {0,0,0}, 1);
+}
+
+void z::TextInput::show_cursor() {
+	int baseline = 0;
+	std::string s1 = divide_utf_string(value(), cursor_x_).first;
+	std::string s2 = divide_utf_string(value(), cursor_x_ + 1).first;
+	auto sz1 = ft2_->getTextSize(s1, height * 0.8, -1, &baseline);
+	auto sz2 = ft2_->getTextSize(s2, height * 0.8, -1, &baseline); 
+	value(value_);
+	cv::rectangle(mat_, cv::Rect2i{{sz1.width + 10, 0}, 
+			cv::Point2i{std::max(10 + sz2.width, 20 + sz1.width), height}}, {0,0,0}, 1);
+}
+void z::TextInput::move_cursor(bool right) 
+{
+	if(!right && cursor_x_ > 0) cursor_x_--;
+	else if(right && cursor_x_ < count_utf_string(value())) cursor_x_++;
 }
 
 struct HanjaWin : z::Window
@@ -138,4 +192,9 @@ void z::TextInput::value(string s)
 	value_ = s;
 	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	ft2_->putText(mat_, value_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+}
+
+z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Widget{r}
+{
+	//inputs_.emplace_back(make_shared<z::TextInput>(
 }

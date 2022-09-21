@@ -411,8 +411,7 @@ void CVMat::fourier_filter(double cutoff, bool lowpass)
 	cv::Vec2f complex_value;
 	for(int y=0; y<fourier_.cols; y++) for(int x=0; x<fourier_.rows; x++) {
 		double D = sqrt((x - centerx) * (x - centerx) + (y - centery) * (y - centery));
-		if(D <= cutoff) H = lowpass;
-		else H = !lowpass;
+		H = D <= cutoff ? lowpass : !lowpass;
 		complex_value = fourier_.at<cv::Vec2f>(y, x);
 		complex_value[0] *= H;
 		complex_value[1] *= H;

@@ -93,16 +93,38 @@ public:
 	std::string value() const;
 	void value(std::string s);
 	void enter(std::function<void(std::string)> f);
+	void move_cursor(bool right);
 protected:
 	std::string value_;
+	void show_cursor();
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
 	bool hangul_mode_ = false;
+	int cursor_x_ = 0;
 private:
 	void backspace();
 	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
+};
+
+class TextInput2 : public TextInput
+{
+public:
+	TextInput2(cv::Rect2i r);
+	
+};
+
+class TextBox : public Widget
+{
+public:
+	TextBox(cv::Rect2i r, int lines);
+	void set_max_character(int max);
+protected:
+	int top_line_index_ = 0;
+	cv::Point2i cursor_;
+	std::vector<std::string> contents_;
+	std::vector<std::shared_ptr<TextInput>> inputs_;
 };
 
 struct Wrapped

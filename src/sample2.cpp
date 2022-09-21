@@ -6,7 +6,6 @@
 #include"zgui.h"
 using namespace std;
 
-
 struct YesNo : z::AsciiWindow
 {
 	YesNo() : z::AsciiWindow{R"(
@@ -136,6 +135,7 @@ struct Win : z::AsciiWindow
 			B[4]->click([this]() {
 				win.m.inv_fourier();
 				win.m.show();
+				win.show_info();
 			});
 
 		}
@@ -567,6 +567,7 @@ struct Win : z::AsciiWindow
 			try {
 				m.imread(T[0]->value()); 
 				m.show();
+//				cv::setMouseCallback(m.title(), mouse_callback2, this);
 				show_info();
 				show();
 			} catch(...){}
@@ -600,6 +601,7 @@ struct Win : z::AsciiWindow
 	YesNo yesno;
 	Info info;
 	CVMat m;
+//	z::Label log{"Event Logging", cv::Rect2i{10, 1470, 300, 20}};
 	cv::Mat checkpoint[3];
 
 	void show_info() {
@@ -621,3 +623,12 @@ int main() {
 	Win win;
 	win.loop();
 }
+
+//void mouse_callback2(int event, int x, int y, int flags, void *ptr) {
+//	Win *p = (Win*)(ptr);
+//	cout << "event window" << endl;
+//	stringstream ss;
+//	ss << "event " << event << " at " << x << ", " << y << '\n';
+//	p->log.text(ss.str());
+//	p->log.update();
+//}
