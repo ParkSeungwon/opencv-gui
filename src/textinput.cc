@@ -53,7 +53,6 @@ std::pair<std::string, std::string> divide_utf_string(std::string s, int pos) {
 		if(i <= pos) fore +=c;
 		else aft += c;
 	}
-	cout << fore << endl << aft << endl;
 	return {fore, aft};
 }
 int count_utf_string(std::string s)
@@ -89,56 +88,51 @@ z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
 	gui_callback_[EVENT_LEAVE] = [this](int, int) { draw(); };
 }
 
+void z::TextInput::hanja()
+{
+	//editting_ = GetUnicodeChar(*hangul_ic_get_preedit_string(hic_));
+	cout << "edittin : " << editting_ << endl;
+	HanjaList* list = hanja_table_match_exact(table_, editting_.data());
+	vector<string> v;
+	if(list != nullptr) for(int i=0; i<hanja_list_get_size(list); i++) {
+		const char* hanja = hanja_list_get_nth_value(list, i);
+		v.push_back(hanja);
+	}
+	hanja_list_delete(list);
+	if(!v.empty()) {
+		hangul_ic_reset(hic_);
+		popup(v);
+	}
+}
 
 void z::TextInput::key_event(int key, int)
 {
-	//if(key == 13) return user_callback_[EVENT_KEYBOARD](0, 0);
-	cout << key << endl;
 	switch(key) {
 		case HANGUL: hangul_mode_ = !hangul_mode_; return;
 		case LEFT: move_cursor(false); show_cursor(); return;
 		case RIGHT: move_cursor(true); show_cursor(); return;
 		case DEL: del(); return;
+		case HANJA: hanja(); return;
 	}
 
 	if(hangul_mode_) {
 		if(key == BACKSPACE && hangul_ic_is_empty(hic_)) backspace(); //backspace
-		else if(key == HANJA && !hangul_ic_is_empty(hic_)) { // hanja popup
-			editting_ = GetUnicodeChar(*hangul_ic_get_preedit_string(hic_));
-			HanjaList* list = hanja_table_match_exact(table_, editting_.data());
-			vector<string> v;
-			if(list != nullptr) for(int i=0; i<hanja_list_get_size(list); i++) {
-				const char* hanja = hanja_list_get_nth_value(list, i);
-				v.push_back(hanja);
-			}
-			hanja_list_delete(list);
-			if(!v.empty()) {
-				hangul_ic_reset(hic_);
-				popup(v);
-			}
-		} else { // make character
+		else { // make character
 			hangul_ic_process(hic_, key);
 			const ucschar *commit = hangul_ic_get_commit_string(hic_);
 			const ucschar *preedit = hangul_ic_get_preedit_string(hic_);
 			if(*commit != 0) fore_ += GetUnicodeChar(*commit);
 			editting_ = GetUnicodeChar(*preedit);
-			//if(key == 32) value_ += ' ';
 			if(!isalpha(key) && isprint(key)) fore_ += key; // for space 1 2 3 etc
 		}
 	} else {
 		fore_ += GetUnicodeChar(*hangul_ic_flush(hic_));
 		if(isprint(key)) fore_ += key;
 		else if(key == BACKSPACE) backspace();
-		//else if(key == 81) 
 		else return;
 	}
 	draw();
 	show_cursor();
-//	int baseline = 0;
-//	auto size1 = ft2_->getTextSize(value(), height * 0.8, -1, &baseline);
-//	auto size2 = ft2_->getTextSize(editting, height * 0.8, -1, &baseline);
-//	cv::rectangle(mat_, cv::Rect2i{{size1.width + 10, 0}, 
-//			cv::Point2i{size1.width + (size2.width ? size2.width : 10) + 10, height}}, {0,0,0}, 1);
 }
 	
 void z::TextInput::show_cursor() {
@@ -157,18 +151,11 @@ void z::TextInput::move_cursor(bool right)
 		fore_ += editting_;
 		editting_ = pop_front_utf(back_);
 	} else {
-		back_ = editting_ + back_;
-		editting_ = pop_back_utf(fore_);
+		if(fore_ != "") {
+			back_ = editting_ + back_;
+			editting_ = pop_back_utf(fore_);
+		}
 	}
-//	if(!right) {
-//		fore_ += editting_;
-//		editting_ = "";
-//		back_ = pop_back_utf(fore_) + back_;
-//	} else {
-//		back_ += editting_;
-//		editting_ = "";
-//		fore_ += pop_front_utf(back_);
-//	}
 	draw();
 	show_cursor();
 }
@@ -202,7 +189,13 @@ void z::TextInput::popup(vector<string> v)
 	hanj.set_hanja(v);
 	hanj.x = x + 50;
 	hanj.y = y + 50;
-	hanj.popup(*parent_, [this, v](int i) { fore_ += v[i]; draw(); show_cursor(); update();});
+	hanj.popup(*parent_, [this, v](int i) { 
+		fore_ += v[i]; 
+		editting_ = pop_front_utf(back_);
+		draw();
+		show_cursor();
+		update();
+	});
 }
 
 void z::TextInput::enter(function<void(string)> f)
@@ -227,9 +220,7 @@ void z::TextInput::backspace()
 }
 
 void z::TextInput::del() {
-	back_ = editting_ + back_;
-	editting_ = "";
-	pop_front_utf(back_);
+	editting_ = pop_front_utf(back_);
 	draw();
 	show_cursor();
 }

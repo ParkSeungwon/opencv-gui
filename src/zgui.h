@@ -104,6 +104,7 @@ protected:
 private:
 	void draw();
 	void del();
+	void hanja();
 	void backspace();
 	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
