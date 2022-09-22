@@ -1,8 +1,8 @@
 #include<opencv2/opencv.hpp>
 #include"zgui.h"
 using namespace std;
-//asc2 art example below, never use tab.
-	/*
+/*
+  asc2 art example below, never use tab.
 	Wtitle-------------------------------------------
 	|     L0-------
 	|			|Test Label|
@@ -21,12 +21,15 @@ using namespace std;
 	|     |
 	|     |
 	|
-	*/
-
+*/
 
 z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int margin)
 	: z::Window{"", {0, 0, 1, 1}}
-{//Button, Image, Slider, Label, Text, Chckbox, Window, Progress bar
+{/// @param p compose GUI with ascii art, never use tab.
+ /// @param unit_width width in pixel that one ascii art character will occupy. 
+ /// 				If you want to make a bigger widget increase this.
+ /// @param unit_height height in pixel that one ascii art character will occupy
+ /// @param margin margin space around window 
 	spdlog::debug("{} parsing started {}", z::source_loc(), p);
 	uw_ = unit_width; uh_ = unit_height; margin_ = margin;
 	width = 1;
@@ -90,7 +93,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 }
 
 void z::AsciiWindow::parse_art()
-{//parse asc2 art and populate member CBLSTI
+{///parse asc2 art and populate member CBLSTI
 	bool retry = false;
 	for(int y=0; y<art_.size(); y++) for(int x=0; x<art_[y].size(); x++) 
 		if(isalpha(art_[y][x]) && parsed_[y][x] != 'v')
@@ -99,7 +102,7 @@ void z::AsciiWindow::parse_art()
 }
 
 int z::AsciiWindow::get_size(char c)
-{//return vector size of designated widget type
+{///return vector size of designated widget type
 	switch(c) {
 		case 'B': return B.size();
 		case 'L': return L.size();
@@ -115,7 +118,7 @@ int z::AsciiWindow::get_size(char c)
 }
 
 array<int, 3> get_slider_param(string s)
-{//start stop step -> int
+{///start stop step -> int
 	array<int, 3> r;
 	stringstream ss;
 	ss << s;
@@ -124,7 +127,7 @@ array<int, 3> get_slider_param(string s)
 }
 
 bool z::AsciiWindow::parse_widget_area(int y, int x)
-{//parse a rect of asc2 art widget inside window
+{///parse a rect of asc2 art widget inside window
 	string text;//get text between | |
 	if(art_[y+1][x] == '|') for(int x2 = x; art_[y+1][++x2] != '|';) {
 		text += art_[y+1][x2];

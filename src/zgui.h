@@ -29,11 +29,11 @@ public:
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
-	cv::Mat3b mat_;//widget shape
+	cv::Mat3b mat_;///< Matrix that contains widget shape.
 	void update();
-	Window *parent_ = nullptr;
-	virtual void on_register() {}
-	virtual bool is_window() const {return false;}
+	Window *parent_ = nullptr;///< pointer to parent window that is containing this widget
+	virtual void on_register() {} ///< will be called when widget is added to a window
+	virtual bool is_window() const {return false;} 
 	int zIndex() {return zIndex_;}
 	void zIndex(int v) {zIndex_ = v; }
 	void hidden(bool v) {hidden_ = v;}
@@ -91,6 +91,7 @@ private:
 	void click(int, int);
 };
 
+/// CJK font, libhangul needed
 class TextInput : public Widget
 {
 public:
@@ -148,11 +149,12 @@ template<class T> auto to_number(std::string n) {
 	else if constexpr(std::is_same_v<double, T>) return stod(n);
 }
 
+/** Window class houses all widgets including other windows */
 class Window : public Widget
 {
 public:
-	Window(std::string title, cv::Rect_<int> r);
-	void show();
+	Window(std::string title, cv::Rect_<int> r);	
+	void show(); ///< draw mat_
 	void popup(Window &w, std::function<void(int)> f = [](int){});
 	void popdown(int value);
 	int open(int flag = cv::WINDOW_AUTOSIZE, int x = -1, int y = -1);

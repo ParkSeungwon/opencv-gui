@@ -3,14 +3,14 @@
 #include"zgui.h"
 using namespace std;
 
+
 void mouse_callback(int event, int x, int y, int flags, void *ptr)
-{//get mouse event
+{///get mouse event
 	z::Window *p = (z::Window*)ptr;
 	x += p->scrolled_rect_.x;
 	y += p->scrolled_rect_.y;
 	z::Widget *pw = nullptr;
-	for(auto w : *p) // assumption : zIndex increase
-		if(w->contains({x, y}) && w->activated()) pw = w;//set 
+	for(auto w : *p) if(w->contains({x, y}) && w->activated()) pw = w;// assumption : zIndex increase/set 
 	for(auto w : *p) if(w != pw && w->focus()) w->focus(false);
 	if(!pw) return;
 	pw->focus(true);
@@ -27,8 +27,12 @@ void z::Window::focus(bool v) {
 	if(!v) for(auto *a : *this) if(a->focus()) a->focus(v);
 }
 
+
 z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
-{
+{/// @param title. if window is the top window, title will be the window title.
+ ///        else if window is embedded inside another window, 
+ ///        window will be framed and title will be the frame title.
+ /// @param r  window will occupy this rectangular space */
 	title_ = title;
 	scrolled_rect_ = r;
 }
@@ -41,8 +45,7 @@ vector<z::Widget*>::iterator z::Window::end() {
 }
 
 z::Window& z::Window::operator+(z::Widget &w)
-{
-	//lock_guard<mutex> lck{mtx_};
+{/// add widget to this window
 	widgets_.push_back(&w);
 	w.parent_ = this;
 	w.on_register();
@@ -50,7 +53,7 @@ z::Window& z::Window::operator+(z::Widget &w)
 }
 
 z::Window& z::Window::operator-(z::Widget &w)
-{
+{/// remove widget from this window
 	widgets_.erase(std::remove(widgets_.begin(), widgets_.end(), &w));
 	mat_(w) = background_color_;
 	w.parent_ = nullptr;
@@ -61,7 +64,7 @@ z::Window& z::Window::operator-(z::Widget &w)
 }
 
 void z::Window::move_widget(z::Widget &w, cv::Point2i p)
-{ // move a widget that is already mounted
+{ /// move a widget that is already mounted
 	if(p.x + w.width > width) p.x = width - w.width;
 	if(p.y + w.height > height) p.y = height - w.height;
 	if(p.x < 0 ) p.x = 0;
@@ -77,7 +80,7 @@ void z::Window::move_widget(z::Widget &w, cv::Point2i p)
 //}
 
 string z::Window::title() const
-{
+{/// get title
 	return title_;
 }
 
@@ -96,14 +99,14 @@ void z::Window::copy_widget_to_mat(const z::Widget &r)
 }
 
 void z::Window::organize_accordingto_zindex()
-{ //for mouse event 
+{ ///for mouse event 
 	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
 	std::for_each(widgets_.begin(), widgets_.end(), 
 			[this](auto *a) {if(!a->hidden()) copy_widget_to_mat(*a); });
 }
 
 z::Window& z::Window::operator<<(z::Widget &r)
-{ // copy to mat_
+{ /// copy to \ref mat_
 	if(r.hidden()) return *this;
 	copy_widget_to_mat(r);
 	std::for_each
@@ -117,7 +120,7 @@ z::Window& z::Window::operator<<(z::Widget &r)
 }
 
 z::Window& z::Window::operator>>(z::Widget &r)
-{ // remove from mat_
+{ /// remove from \ref mat_
 	r.hidden(true);
 	if(!contains(r.tl())) return *this;
 	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
@@ -155,7 +158,8 @@ void z::Window::close()
 }
 
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
-{// popup 시 widget을 빼는 것이 문제
+{/// show popup window on window w, and register result function
+ /// \ref popdown function will hand over int value to f.
 	z::Window *p = &w;
 	while(p->parent_ != nullptr) {
 		if(x != 0 || y != 0) {
@@ -187,7 +191,8 @@ void z::Window::popup(z::Window &w, std::function<void(int)> f)
 }
 
 void z::Window::popdown(int value)
-{
+{/// close popup window. 
+ /// @param value this value will be handed over to function that is registered with popup function call.
 	if(popup_on_ == nullptr) return;
 	popup_on_->widgets_.erase(popup_on_->widgets_.end() - 2, popup_on_->widgets_.end());
 	popup_on_->mat_ = background_color_;
@@ -210,7 +215,7 @@ void z::Window::draw_wrapped(const Wrapped &wr)
 }
 
 void z::Window::start(int flag)
-{
+{/// organize according to zindex -> set mouse callback -> show window
 	organize_accordingto_zindex();
 	cv::namedWindow(title_, flag);
 	cv::setMouseCallback(title_, mouse_callback, this);
@@ -218,7 +223,7 @@ void z::Window::start(int flag)
 }
 
 int z::Window::loop()
-{//get keyboard event
+{/// get keyboard event by calling cv::waitKey
 	for(int key; (key = cv::waitKey()) != -1;) keyboard_callback(key);//destroy window make waitkey return -1
 	return 0;
 }
@@ -241,7 +246,8 @@ void z::Window::keyboard_callback(int key, int level)
 }
 
 int z::Window::open(int flag, int x, int y)
-{
+{/// Open another window. Call \ref quit to close window that is opened.
+ /// @return return int value when \ref quit is called.
 	start(flag);
 	if(x >= 0 && y >= 0) cv::moveWindow(title(), x, y);
 	while(!closed_) {//popup quit by quit(int) function

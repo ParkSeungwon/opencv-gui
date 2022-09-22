@@ -6,11 +6,7 @@ z::Image::Image(cv::Rect2i r) : Widget{r}
 { }
 
 cv::Mat &z::Image::operator=(const cv::Mat &r)
-{
-//	int depth = r.depth();
-//	switch(depth) {
-//		case cv::CV_8U:
-//	}
+{/// copy cv::Mat r to Image widget. Depth, color space and size will be changed to fit in this widget.
 	cv::Mat m;
 	if(r.channels() == 1) cv::cvtColor(r, m, cv::COLOR_GRAY2BGR);
 	else if(r.channels() == 4) cv::cvtColor(r, m, cv::COLOR_BGRA2BGR);

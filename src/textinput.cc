@@ -225,7 +225,7 @@ void z::TextInput::popup(vector<string> v)
 }
 
 void z::TextInput::enter(function<void(string)> f)
-{
+{/// register a function that will be called when user stroke ENTER key.
 	user_callback_[EVENT_KEYBOARD] = [this, f](int val, int){ if(val == 13) f(value());};
 }
 

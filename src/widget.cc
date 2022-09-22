@@ -29,7 +29,7 @@ z::Widget::Widget(cv::Rect_<int> r)
 }
 
 z::Widget &z::Widget::operator=(const z::Widget &r) 
-{
+{/// copy rectangle property of widget r
 	x = r.x; y = r.y; width = r.width; height = r.height;
 }
 
@@ -65,12 +65,14 @@ void z::Widget::event_callback(int event, int x, int y)
 		user_callback_[event](x, y);
 }
 
-void z::Widget::resize(cv::Rect2i r) {
+void z::Widget::resize(cv::Rect2i r) 
+{/// resize \ref mat_ and rectangle of this widget
 	*this = r;
 	cv::resize(mat_, mat_, {r.width, r.height});
 }
 
-void z::Widget::update() {
+void z::Widget::update() 
+{/// copy this widget's current graphical state to parent window and show it.
 	if(parent_ != nullptr) {
 		*parent_ << *this;
 		show();
