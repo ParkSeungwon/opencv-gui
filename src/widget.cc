@@ -55,6 +55,16 @@ void z::Widget::focus(bool tf) {
 	}
 }
 
+void z::Widget::event_callback(int event, int x, int y) 
+{
+	if(gui_callback_.find(event) != gui_callback_.end()) {
+		gui_callback_[event](x, y);
+		update();
+	}
+	if(user_callback_.find(event) != user_callback_.end())
+		user_callback_[event](x, y);
+}
+
 void z::Widget::resize(cv::Rect2i r) {
 	*this = r;
 	cv::resize(mat_, mat_, {r.width, r.height});

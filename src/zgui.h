@@ -24,6 +24,7 @@ public:
 	Widget &operator=(const Widget &r);
 	bool focus() const;
 	virtual void focus(bool);
+	virtual void event_callback(int event, int x, int y);
 	virtual void show();
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y

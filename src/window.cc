@@ -19,21 +19,7 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	if(pw->is_window()) {
 		spdlog::debug("{} entering another level of window {} {}", z::source_loc(), x - pw->x, y - pw->y);
 		mouse_callback(event, x - pw->x, y - pw->y, flags, pw);
-	} else if(event == cv::EVENT_MOUSEMOVE) {
-		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-			pw->gui_callback_[event](x, y);
-			pw->update();
-		}
-		if(pw->user_callback_.find(event) != pw->user_callback_.end())
-			pw->user_callback_[event](x, y);
-	} else {//all other event
-		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-			pw->gui_callback_[event](x, y);
-			pw->update();
-		}
-		if(pw->user_callback_.find(event) != pw->user_callback_.end())
-			pw->user_callback_[event](x, y);
-	}
+	} else pw->event_callback(event, x, y);
 }
 
 void z::Window::focus(bool v) {
