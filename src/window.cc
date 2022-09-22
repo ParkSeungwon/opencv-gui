@@ -9,39 +9,23 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	x += p->scrolled_rect_.x;
 	y += p->scrolled_rect_.y;
 	z::Widget *pw = nullptr;
-	for(auto w : *p) { // assumption : zIndex increase
+	for(auto w : *p) // assumption : zIndex increase
 		if(w->contains({x, y}) && w->activated()) pw = w;//set 
-		else if(w->focus()) {//leave event
-			if(w->gui_callback_.find(EVENT_LEAVE) != w->gui_callback_.end()) {
-				w->gui_callback_[EVENT_LEAVE](x, y);
-				w->update();
-			}
-			if(w->user_callback_.find(EVENT_LEAVE) != w->user_callback_.end())
-				w->user_callback_[EVENT_LEAVE](x, y);
-			w->focus(false);
-		}
-	}
+	for(auto w : *p) if(w != pw && w->focus()) w->focus(false);
 	if(!pw) return;
+	pw->focus(true);
 
 	//if(event == cv::EVENT_MOUSEWHEEL) cout << cv::getMouseWheelDelta(flags) << endl;
-	if(pw->is_window()) mouse_callback(event, x - pw->x, y - pw->y, flags, pw);
-	else if(event == cv::EVENT_MOUSEMOVE) {
-		if(!pw->focus()) {//enter event
-			pw->focus(true);
-			if(pw->gui_callback_.find(EVENT_ENTER) != pw->gui_callback_.end()) {
-				pw->gui_callback_[EVENT_ENTER](x, y);
-				pw->update();
-			} 
-			if(pw->user_callback_.find(EVENT_ENTER) != pw->user_callback_.end())
-				pw->user_callback_[EVENT_ENTER](x, y);
-		} else {//move event
-			if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
-				pw->gui_callback_[event](x, y);
-				pw->update();
-			}
-			if(pw->user_callback_.find(event) != pw->user_callback_.end())
-				pw->user_callback_[event](x, y);
+	if(pw->is_window()) {
+		spdlog::debug("{} entering another level of window {} {}", z::source_loc(), x - pw->x, y - pw->y);
+		mouse_callback(event, x - pw->x, y - pw->y, flags, pw);
+	} else if(event == cv::EVENT_MOUSEMOVE) {
+		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
+			pw->gui_callback_[event](x, y);
+			pw->update();
 		}
+		if(pw->user_callback_.find(event) != pw->user_callback_.end())
+			pw->user_callback_[event](x, y);
 	} else {//all other event
 		if(pw->gui_callback_.find(event) != pw->gui_callback_.end()) {
 			pw->gui_callback_[event](x, y);
@@ -50,6 +34,11 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 		if(pw->user_callback_.find(event) != pw->user_callback_.end())
 			pw->user_callback_[event](x, y);
 	}
+}
+
+void z::Window::focus(bool v) {
+	z::Widget::focus(v);
+	if(!v) for(auto *a : *this) if(a->focus()) a->focus(v);
 }
 
 z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
@@ -248,17 +237,20 @@ int z::Window::loop()
 	return 0;
 }
 
-void z::Window::keyboard_callback(int key)
+void z::Window::keyboard_callback(int key, int level)
 {
-	for(z::Widget* p : *this) if(p->is_window()) 
-		dynamic_cast<z::Window*>(p)->keyboard_callback(key);
-	else if(p->focus()) {
-		if(p->gui_callback_.find(EVENT_KEYBOARD) != p->gui_callback_.end()) {
-			p->gui_callback_[EVENT_KEYBOARD](key, 0);
-			p->update();
+	for(z::Widget* p : *this) {
+		if(p->is_window()) {
+			dynamic_cast<z::Window*>(p)->keyboard_callback(key , level + 1);
+		} else if(p->focus()) {
+			spdlog::warn("{} new key level {} {} ", z::source_loc(), level, key); 
+			if(p->gui_callback_.find(EVENT_KEYBOARD) != p->gui_callback_.end()) {
+				p->gui_callback_[EVENT_KEYBOARD](key, 0);
+				p->update();
+			}
+			if(p->user_callback_.find(EVENT_KEYBOARD) != p->user_callback_.end())
+				p->user_callback_[EVENT_KEYBOARD](key, 0);
 		}
-		if(p->user_callback_.find(EVENT_KEYBOARD) != p->user_callback_.end())
-			p->user_callback_[EVENT_KEYBOARD](key, 0);
 	}
 }
 

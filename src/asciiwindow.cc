@@ -1,5 +1,4 @@
 #include<opencv2/opencv.hpp>
-#include<spdlog/spdlog.h>
 #include"zgui.h"
 using namespace std;
 //asc2 art example below, never use tab.
@@ -28,7 +27,7 @@ using namespace std;
 z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int margin)
 	: z::Window{"", {0, 0, 1, 1}}
 {//Button, Image, Slider, Label, Text, Chckbox, Window, Progress bar
-	spdlog::info("parsing started {}", p);
+	spdlog::debug("{} parsing started {}", z::source_loc(), p);
 	uw_ = unit_width; uh_ = unit_height; margin_ = margin;
 	width = 1;
 	while(*p != 'W') p++;
@@ -77,7 +76,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	scrolled_rect_ = *this;
 
 	parse_art();
-	spdlog::info("parsing end");
+	spdlog::debug("{} parsing end", z::source_loc());
 	//add to window
 	for(auto &a : B) *this + *a.get();
 	for(auto &a : L) *this + *a.get();
@@ -86,6 +85,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : T) *this + *a.get();
 	for(auto &a : I) *this + *a.get();
 	for(auto &a : P) *this + *a.get();
+	for(auto &a : E) *this + *a.get();
 	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
 }
 
@@ -109,6 +109,7 @@ int z::AsciiWindow::get_size(char c)
 		case 'I': return I.size();
 		case 'P': return P.size();
 		case 'Z': return Z.size();
+		case 'E': return E.size();
 		default: throw 0;
 	}
 }
@@ -149,6 +150,7 @@ bool z::AsciiWindow::parse_widget_area(int y, int x)
 							break;
 		case 'P': P.emplace_back(make_shared<z::Progress>(r)); break;
 		case 'Z': Z.emplace_back(make_shared<z::Widget>(r)); break;
+		case 'E': E.emplace_back(make_shared<z::TextBox>(r, h/2)); break;
 	}
 	return true;
 }

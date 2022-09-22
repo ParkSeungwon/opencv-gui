@@ -38,6 +38,21 @@ bool z::Widget::focus() const {
 }
 void z::Widget::focus(bool tf) {
 	focus_ = tf;
+	if(!tf) {
+		if(gui_callback_.find(EVENT_LEAVE) != gui_callback_.end()) {
+			gui_callback_[EVENT_LEAVE](x, y);
+			update();
+		}
+		if(user_callback_.find(EVENT_LEAVE) != user_callback_.end())
+			user_callback_[EVENT_LEAVE](x, y);
+	} else {
+		if(gui_callback_.find(EVENT_ENTER) != gui_callback_.end()) {
+			gui_callback_[EVENT_ENTER](x, y);
+			update();
+		} 
+		if(user_callback_.find(EVENT_ENTER) != user_callback_.end())
+			user_callback_[EVENT_ENTER](x, y);
+	}
 }
 
 void z::Widget::resize(cv::Rect2i r) {
@@ -59,3 +74,10 @@ void z::Widget::show() {
 void z::Widget::hide() {
 	hidden_ = true;
 }
+
+std::string z::source_loc(const std::source_location &loc) {
+	std::stringstream ss;
+	ss << '[' << loc.file_name() << ':' << loc.line() << "] [" << loc.function_name() << "]\n";
+	return ss.str();
+}
+

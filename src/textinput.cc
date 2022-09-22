@@ -12,6 +12,7 @@
 #define END 156
 #define PGUP 154
 #define PGDN 155
+#define CAPS 229
 using namespace std;
 using namespace placeholders;
 
@@ -79,13 +80,30 @@ std::string pop_front_utf(std::string &s)
 
 HangulInputContext* z::TextInput::hic_ = hangul_ic_new("2");
 HanjaTable* z::TextInput::table_ = hanja_table_load(NULL);
+bool z::TextInput::hangul_mode_ = false;
 
 z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
 {
-	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
+	draw();
 	gui_callback_[EVENT_KEYBOARD] = bind(&z::TextInput::key_event, this, _1, _2);
-	gui_callback_[EVENT_ENTER] = [this](int, int) { show_cursor(); };
-	gui_callback_[EVENT_LEAVE] = [this](int, int) { draw(); };
+	gui_callback_[EVENT_ENTER] = [this](int, int) { 
+		spdlog::debug("{} enter event", z::source_loc());
+		show_cursor(); 
+		update();
+	};
+	gui_callback_[EVENT_LEAVE] = [this](int, int) { 
+		flush();
+		draw(); 
+	};
+}
+
+void z::TextInput::flush() {
+	if(!hangul_ic_is_empty(hic_)) {
+		hangul_ic_flush(hic_);
+		fore_ += editting_;
+		editting_ = pop_front_utf(back_);
+		draw();
+	}
 }
 
 void z::TextInput::hanja()
@@ -108,12 +126,8 @@ void z::TextInput::hanja()
 void z::TextInput::hangul()
 {
 	hangul_mode_ = !hangul_mode_;
-	if(!hangul_ic_is_empty(hic_)) {
-		fore_ += editting_;
-		editting_ = pop_front_utf(back_);
-		draw();
-		show_cursor();
-	}
+	flush();
+	show_cursor();
 }
 
 void z::TextInput::key_event(int key, int)
@@ -247,11 +261,25 @@ void z::TextInput::value(string s)
 
 void z::TextInput::draw()
 {
-	shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
+	if(all_white_) mat_ = white;
+	else shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	ft2_->putText(mat_, fore_ + editting_ + back_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
 }
 
-z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Widget{r}
+void z::TextInput::all_white(bool v) {
+	all_white_ = v;
+	draw();
+}
+
+z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 {
-	//inputs_.emplace_back(make_shared<z::TextInput>(
+	spdlog::debug("{} window : {} ", z::source_loc(), is_window());
+	int h = height / lines;
+	spdlog::debug("{} height {}", z::source_loc(), h);
+	for(int i=0; i<lines; i++) inputs_.push_back(make_shared<z::TextInput>(cv::Rect2i{0, i*h, width, h}));
+	for(auto it : inputs_) {
+		it->all_white(true);
+		*this + *it; 
+		*this << *it;
+	}
 }

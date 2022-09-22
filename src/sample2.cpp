@@ -1,7 +1,5 @@
 #include<iostream>
 #include<filesystem>
-#include<spdlog/spdlog.h>
-#include<source_location>
 #include"cvmat/cvmatrix.h"
 #include"zgui.h"
 using namespace std;
@@ -163,8 +161,6 @@ struct Win : z::AsciiWindow
 			auto f2 = tie(*T[1], *B[2], *B[3], 0, 1);
 			auto f3 = tie(*T[2], *B[4], *B[5], 0, 1);
 			auto f4 = tie(*T[3], *B[6], *B[7], 0, 1);
-			spdlog::info("Welcome");
-			spdlog::error("error {}", 1);
 			organize_accordingto_zindex();
 			B[8]->click([this, f1, f2, f3, f4]() {
 				win.m.save();
@@ -469,7 +465,7 @@ struct Win : z::AsciiWindow
 	struct Trans : z::AsciiWindow
 	{
 		Trans(Win& w) : win{w}, z::AsciiWindow{R"(
-		  W변형----------------------------------------------
+		  W변형-----------------------------------------------
 			|
 			|
 			|  L0------ T0----B0  L1------ T1----B2  B4-------- 
@@ -477,6 +473,15 @@ struct Win : z::AsciiWindow
 			|
 			|  L2------ T2------B5                   B7--------
 			|  |회전|   ||      B6                   |변환|
+			|
+			|  E0---------------------------------------------
+			|  ||
+			|  |
+			|  |
+			|  |
+			|  |
+			|  |
+			|  |
 			|
 			|)"}
 		{
@@ -620,6 +625,7 @@ struct Win : z::AsciiWindow
 };
 
 int main() {
+	spdlog::set_level(spdlog::level::debug);
 	Win win;
 	win.loop();
 }

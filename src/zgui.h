@@ -1,6 +1,9 @@
+#pragma once
 #include<map>
 #include<type_traits>
 #include<functional>
+#include<spdlog/spdlog.h>
+#include<source_location>
 #include<opencv2/highgui.hpp>
 #include<opencv2/freetype.hpp>
 #include<opencv2/imgproc.hpp>
@@ -11,6 +14,7 @@
 
 namespace z {
 
+std::string source_loc(const std::source_location &location = std::source_location::current());
 class Window;
 
 class Widget : public cv::Rect_<int>
@@ -19,7 +23,7 @@ public:
 	Widget(cv::Rect_<int> r);
 	Widget &operator=(const Widget &r);
 	bool focus() const;
-	void focus(bool);
+	virtual void focus(bool);
 	virtual void show();
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
@@ -94,19 +98,17 @@ public:
 	void value(std::string s);
 	void enter(std::function<void(std::string)> f);
 	void move_cursor(bool right);
+	void all_white(bool v  = true); 
 protected:
 	std::string fore_, back_, editting_;
 	void show_cursor();
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
-	bool hangul_mode_ = false;
-	int cursor_x_ = 0;
+	static bool hangul_mode_;// = false;
+	bool all_white_ = false;
+
 private:
-	void draw();
-	void del();
-	void hanja();
-	void backspace();
-	void hangul();
+	void flush(), draw(), del(), hanja(), backspace(), hangul();
 	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
@@ -117,18 +119,6 @@ class TextInput2 : public TextInput
 public:
 	TextInput2(cv::Rect2i r);
 	
-};
-
-class TextBox : public Widget
-{
-public:
-	TextBox(cv::Rect2i r, int lines);
-	void set_max_character(int max);
-protected:
-	int top_line_index_ = 0;
-	cv::Point2i cursor_;
-	std::vector<std::string> contents_;
-	std::vector<std::shared_ptr<TextInput>> inputs_;
 };
 
 struct Wrapped
@@ -166,6 +156,7 @@ public:
 	void popdown(int value);
 	int open(int flag = cv::WINDOW_AUTOSIZE, int x = -1, int y = -1);
 	void quit(int r);
+	void focus(bool v);
 	Window &operator+(Widget &w);
 	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
@@ -174,7 +165,7 @@ public:
 	std::vector<Widget*>::iterator begin(), end();
 	void close();
 	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO);
-	void keyboard_callback(int key);
+	void keyboard_callback(int key, int level = 0);
 	//void update(const Widget &r);
 	std::string title() const;
 	//void resize(cv::Rect2i r);
@@ -323,6 +314,17 @@ private:
 	void routine(int, int);
 };
 
+class TextBox : public Window
+{
+public:
+	TextBox(cv::Rect2i r, int lines);
+	void set_max_character(int max);
+protected:
+	int top_line_index_ = 0;
+	std::vector<std::array<std::string, 3>> contents_;
+	std::vector<std::shared_ptr<TextInput>> inputs_;
+};
+
 class Image : public Widget
 {
 public:
@@ -376,6 +378,7 @@ protected:
 	std::vector<std::shared_ptr<Image>> I;
 	std::vector<std::shared_ptr<Progress>> P;
 	std::vector<std::shared_ptr<Widget>> Z;
+	std::vector<std::shared_ptr<TextBox>> E;
 private:
 	int get_size(char c);
 	bool parse_widget_area(int y, int x);
