@@ -91,6 +91,11 @@ struct Win : z::AsciiWindow
 		|  B4----
 		|  |종료|
 		|
+		|  E0------------------------
+		|  ||
+		|  |
+		|  |
+		|  |
 		|)", 20, 30, 2}
 	{
 		static vector<string> v;
@@ -156,6 +161,7 @@ struct Win : z::AsciiWindow
 
 int main()
 {
+	spdlog::set_level(spdlog::level::debug);
 	Win win;
 	win.loop();
 }

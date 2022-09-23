@@ -13,26 +13,27 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	for(auto w : *p) if(w->contains({x, y}) && w->activated()) pw = w;// assumption : zIndex increase/set 
 	for(auto w : *p) if(w != pw && w->focus()) w->focus(false);
 	if(!pw) return;
-	pw->focus(true);
+	if(!pw->focus()) pw->focus(true);
 
 	//if(event == cv::EVENT_MOUSEWHEEL) cout << cv::getMouseWheelDelta(flags) << endl;
-	if(pw->is_window()) {
-		spdlog::debug("{} entering another level of window {} {}", z::source_loc(), x - pw->x, y - pw->y);
-		mouse_callback(event, x - pw->x, y - pw->y, flags, pw);
-	} else pw->event_callback(event, x, y);
+	if(pw->is_window()) mouse_callback(event, x - pw->x, y - pw->y, flags, pw);
+	else pw->event_callback(event, x, y);
 }
 
-void z::Window::focus(bool v) {
+void z::Window::focus(bool v) 
+{/// also unfocus child widgets
 	z::Widget::focus(v);
 	if(!v) for(auto *a : *this) if(a->focus()) a->focus(v);
 }
 
 
 z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
-{/// @param title. if window is the top window, title will be the window title.
+{/// @param title if window is the top window, title will be the window title.
  ///        else if window is embedded inside another window, 
  ///        window will be framed and title will be the frame title.
- /// @param r  window will occupy this rectangular space */
+ //         In case title == "", no frame will show.
+ //         If you manually embed window inside, you should set scrolled_rect_ = {0,0,0,0}
+ /// @param r  window will occupy this rectangular space
 	title_ = title;
 	scrolled_rect_ = r;
 }

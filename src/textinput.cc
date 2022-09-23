@@ -261,25 +261,18 @@ void z::TextInput::value(string s)
 
 void z::TextInput::draw()
 {
-	if(all_white_) mat_ = white;
-	else shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
+	mat_ = white;
+	//else shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	ft2_->putText(mat_, fore_ + editting_ + back_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
-}
-
-void z::TextInput::all_white(bool v) {
-	all_white_ = v;
-	draw();
 }
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 {
+	scrolled_rect_ = {0,0,0,0};
 	spdlog::debug("{} window : {} ", z::source_loc(), is_window());
 	int h = height / lines;
 	spdlog::debug("{} height {}", z::source_loc(), h);
-	for(int i=0; i<lines; i++) inputs_.push_back(make_shared<z::TextInput>(cv::Rect2i{0, i*h, width, h}));
-	for(auto it : inputs_) {
-		it->all_white(true);
-		*this + *it; 
-		*this << *it;
-	}
+	for(int i=0; i<lines; i++) inputs_.emplace_back(make_shared<z::TextInput>(cv::Rect2i{0, i*h, width, h}));
+	for(auto it : inputs_) *this + *it; 
+	organize_accordingto_zindex();
 }

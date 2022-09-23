@@ -26,6 +26,7 @@ public:
 	virtual void focus(bool);
 	virtual void event_callback(int event, int x, int y);
 	virtual void show();
+	virtual std::string type() const { return "Widget"; }
 	void resize(cv::Rect2i r);
 	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
 	std::map<int, std::function<void(int, int)>> user_callback_;
@@ -100,14 +101,13 @@ public:
 	void value(std::string s);
 	void enter(std::function<void(std::string)> f);
 	void move_cursor(bool right);
-	void all_white(bool v  = true); 
+	std::string type() const {return "TextInput";}
 protected:
 	std::string fore_, back_, editting_;
 	void show_cursor();
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
 	static bool hangul_mode_;// = false;
-	bool all_white_ = false;
 
 private:
 	void flush(), draw(), del(), hanja(), backspace(), hangul();
@@ -157,6 +157,7 @@ public:
 	void show(); ///< draw mat_
 	void popup(Window &w, std::function<void(int)> f = [](int){});
 	void popdown(int value);
+	std::string type() const {return "Window"; }
 	int open(int flag = cv::WINDOW_AUTOSIZE, int x = -1, int y = -1);
 	void quit(int r);
 	void focus(bool v);
@@ -196,6 +197,7 @@ public:
 		max_zindex.push_back(2);
 		int sz = v.size(), shift = 0, max_w = 0, max_h = 0;
 		for(auto *pw : v.back()) {
+			pw->scrolled_rect_ = {0,0,0,0};
 			pw->x = xpos; pw->y = ypos + 40;
 			if(pw->width > max_w) max_w = pw->width;
 			if(pw->height > max_h) max_h = pw->height;
@@ -322,6 +324,7 @@ class TextBox : public Window
 public:
 	TextBox(cv::Rect2i r, int lines);
 	void set_max_character(int max);
+	std::string type() const {return "TextBox";}
 protected:
 	int top_line_index_ = 0;
 	std::vector<std::array<std::string, 3>> contents_;
