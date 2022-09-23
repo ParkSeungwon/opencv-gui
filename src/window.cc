@@ -274,4 +274,5 @@ void z::Window::on_register()
 		wrapped_.push_back(w);
 		draw_wrapped(w);
 	}
+	scrolled_rect_ = {0,0,0,0};
 }

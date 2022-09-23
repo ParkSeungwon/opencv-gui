@@ -7,6 +7,7 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/freetype.hpp>
 #include<opencv2/imgproc.hpp>
+#include<list>
 #include<hangul.h>
 #define EVENT_ENTER 8000
 #define EVENT_LEAVE 8001
@@ -104,23 +105,16 @@ public:
 	std::string type() const {return "TextInput";}
 protected:
 	std::string fore_, back_, editting_;
-	void show_cursor();
+	void show_cursor(), draw();
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
 	static bool hangul_mode_;// = false;
 
 private:
-	void flush(), draw(), del(), hanja(), backspace(), hangul();
+	void flush(), del(), hanja(), backspace(), hangul();
 	void popup(std::vector<std::string> v);
 	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
-};
-
-class TextInput2 : public TextInput
-{
-public:
-	TextInput2(cv::Rect2i r);
-	
 };
 
 struct Wrapped
@@ -319,6 +313,31 @@ private:
 	void routine(int, int);
 };
 
+struct Line {
+	std::string fore, editting, back;
+	bool new_line = false;
+};
+
+class TextInput2 : public TextInput
+{
+public:
+	using iter = std::list<Line>::iterator;
+	TextInput2(cv::Rect2i r);
+	void down_stream(iter it);///< call with inserted node iterator
+	void up_stream(iter it);
+	bool empty() const;
+	Line line() const;
+protected:
+	TextInput2 *prev_ = nullptr, *next_ = nullptr;
+	std::list<Line> *contents_ptr_ = nullptr;
+	bool end_new_line_ = false;
+	iter it_;
+	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
+private:
+	void up(), down(), new_line();
+	friend class TextBox;
+};
+
 class TextBox : public Window
 {
 public:
@@ -326,9 +345,14 @@ public:
 	void set_max_character(int max);
 	std::string type() const {return "TextBox";}
 protected:
-	int top_line_index_ = 0;
-	std::vector<std::array<std::string, 3>> contents_;
-	std::vector<std::shared_ptr<TextInput>> inputs_;
+	int top_line_index_ = 0, focus_line_ = 0;
+	std::list<Line> contents_;
+	std::vector<std::shared_ptr<TextInput2>> inputs_;
+	void draw();
+private:
+	void sync();
+	Line line() const;
+	bool empty() const;
 };
 
 class Image : public Widget
