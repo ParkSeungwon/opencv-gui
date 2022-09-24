@@ -294,10 +294,9 @@ void z::TextInput2::keyboard_callback(int key, int)
 	bool run_key_event = true;
 	switch(key) {
 		case DEL: run_key_event = !del(); break;
-		case BACKSPACE: run_key_event = !backspace(); break;
+		case BACKSPACE: run_key_event = !backsp(); break;
 	}
 	if(run_key_event) key_event(key, 0); 
-	else show_cursor();
 	switch(key) {
 		case DOWN: down(); break;
 		case UP: up(); break;
@@ -305,13 +304,15 @@ void z::TextInput2::keyboard_callback(int key, int)
 	}
 }
 
-bool z::TextInput2::backspace()
+bool z::TextInput2::backsp()
 {
 	if(fore_ != "" || it_ == contents_ptr_->begin()) return false;
 	if(prev_ == nullptr) {
 		set_iter(contents_ptr_->erase(it_));
+		it_--;
 		line({it_->value(), editting_, back_, end_new_line_});
-		*it_ = line();
+		draw();
+		show_cursor();
 	} else {
 		focus(false);
 		prev_->line({prev_->value(), editting_, back_, end_new_line_});
@@ -325,8 +326,8 @@ bool z::TextInput2::backspace()
 		draw();
 		auto it = it_;
 		if(next_ != nullptr && it != contents_ptr_->end()) next_->down_stream(++it);
-		return true;
 	}
+	return true;
 }
 
 bool z::TextInput2::del()
