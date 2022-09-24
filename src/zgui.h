@@ -343,7 +343,8 @@ protected:
 	iter it_;
 	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
 private:
-	void up(), down(), new_line(), del();
+	void up(), down(), new_line();
+	bool del();
 	void keyboard_callback(int, int);
 	bool is_end() const { return contents_ptr_->end() == it_;}
 	friend class TextBox;

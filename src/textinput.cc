@@ -291,10 +291,10 @@ z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 
 void z::TextInput2::keyboard_callback(int key, int)
 {
-	switch(key) {
-		case DEL: del(); break;
-	}
-	key_event(key, 0);
+	if(key == DEL) { 
+		if(!del()) key_event(key, 0); 
+		else show_cursor();
+	} else key_event(key, 0);
 	switch(key) {
 		case DOWN: down(); break;
 		case UP: up(); break;
@@ -302,11 +302,11 @@ void z::TextInput2::keyboard_callback(int key, int)
 	}
 }
 
-void z::TextInput2::del()
+bool z::TextInput2::del()
 {
-	if(editting_ + back_ != "") return;
+	if(editting_ + back_ != "") return false;
 	auto it = it_;
-	if(++it == contents_ptr_->end()) return;
+	if(++it == contents_ptr_->end()) return false;
 	set_iter(contents_ptr_->erase(it_));
 	std::string s = it_->fore + it_->editting + it_->back;
 	auto t = pop_front_utf(s);
@@ -315,6 +315,7 @@ void z::TextInput2::del()
 	draw();
 	it = it_;
 	if(next_ != nullptr) next_->down_stream(++it);
+	return true;
 }
 
 void z::TextInput2::new_line() {
@@ -385,12 +386,8 @@ void print(z::Line a) {
 void z::TextInput2::down_stream(iter reset_it, int level)
 { /// next->down_stream(it)
 	set_iter(reset_it);
-	if(!is_end()) {
-		line(*it_);
-		print(*it_);
-	} else {
-		line({"", "", "", false});
-	}
+	if(!is_end()) line(*it_);
+	else line({"", "", "", false});
 	draw();
 	*parent_ << *this;
 	if(next_ != nullptr && reset_it != contents_ptr_->end()) next_->down_stream(++reset_it, level + 1);
