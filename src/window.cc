@@ -231,18 +231,15 @@ int z::Window::loop()
 
 void z::Window::keyboard_callback(int key, int level)
 {
-	for(z::Widget* p : *this) {
-		if(p->is_window()) {
-			dynamic_cast<z::Window*>(p)->keyboard_callback(key , level + 1);
-		} else if(p->focus()) {
-			spdlog::warn("{} new key level {} {} ", z::source_loc(), level, key); 
-			if(p->gui_callback_.find(EVENT_KEYBOARD) != p->gui_callback_.end()) {
-				p->gui_callback_[EVENT_KEYBOARD](key, 0);
-				p->update();
-			}
-			if(p->user_callback_.find(EVENT_KEYBOARD) != p->user_callback_.end())
-				p->user_callback_[EVENT_KEYBOARD](key, 0);
+	auto it = *std::find_if(widgets_.begin(), widgets_.end(), [this](z::Widget * p) { return p->focus(); });
+	if(it->is_window()) dynamic_cast<z::Window*>(it)->keyboard_callback(key , level + 1);
+	else {
+		if(it->gui_callback_.find(EVENT_KEYBOARD) != it->gui_callback_.end()) {
+			it->gui_callback_[EVENT_KEYBOARD](key, 0);
+			it->update();
 		}
+		if(it->user_callback_.find(EVENT_KEYBOARD) != it->user_callback_.end())
+			it->user_callback_[EVENT_KEYBOARD](key, 0);
 	}
 }
 

@@ -482,6 +482,8 @@ struct Win : z::AsciiWindow
 			|  |
 			|  |
 			|  |
+			|  |
+			|  |
 			|
 			|)"}
 		{

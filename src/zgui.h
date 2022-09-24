@@ -29,7 +29,12 @@ public:
 	virtual void show();
 	virtual std::string type() const { return "Widget"; }
 	void resize(cv::Rect2i r);
-	std::map<int, std::function<void(int, int)>> gui_callback_;//int : event, x, y
+	/// map<int : event, function(x, y)>. library will draw change in widget graphics after gui_callback
+	std::map<int, std::function<void(int, int)>> gui_callback_;
+	/// map<int : event, function( x, y)>. library will assume user_callback is not related to graphical change. 
+	/// So it will not draw any change in widget graphics after user_callback is called.
+	/// If you changed widget graphics during user_callback you have to manually change graphics inside the callback.
+	/// call update().
 	std::map<int, std::function<void(int, int)>> user_callback_;
 	cv::Mat3b mat_;///< Matrix that contains widget shape.
 	void update();
@@ -323,11 +328,14 @@ class TextInput2 : public TextInput
 public:
 	using iter = std::list<Line>::iterator;
 	TextInput2(cv::Rect2i r);
-	void down_stream(iter it);///< call with inserted node iterator
+	void down_stream(iter it, int level = 0);///< call with inserted node iterator
 	void up_stream(iter it);
 	bool empty() const;
 	Line line() const;
+	void line(Line l);
 protected:
+	void focus(bool tf);
+	void set_iter(iter it);
 	TextInput2 *prev_ = nullptr, *next_ = nullptr;
 	std::list<Line> *contents_ptr_ = nullptr;
 	bool end_new_line_ = false;
@@ -335,6 +343,7 @@ protected:
 	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
 private:
 	void up(), down(), new_line();
+	bool is_end() const { return contents_ptr_->end() == it_;}
 	friend class TextBox;
 };
 
@@ -350,8 +359,8 @@ protected:
 	std::vector<std::shared_ptr<TextInput2>> inputs_;
 	void draw();
 private:
-	void sync();
 	Line line() const;
+	void line(Line l);
 	bool empty() const;
 };
 

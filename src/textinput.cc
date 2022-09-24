@@ -87,15 +87,8 @@ z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
 {
 	draw();
 	gui_callback_[EVENT_KEYBOARD] = bind(&z::TextInput::key_event, this, _1, _2);
-	gui_callback_[EVENT_ENTER] = [this](int, int) { 
-		spdlog::debug("{} enter event", z::source_loc());
-		show_cursor(); 
-		update();
-	};
-	gui_callback_[EVENT_LEAVE] = [this](int, int) { 
-		flush();
-		draw(); 
-	};
+	gui_callback_[EVENT_ENTER] = [this](int, int) { show_cursor(); };
+	gui_callback_[EVENT_LEAVE] = [this](int, int) { flush(); draw(); };
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int xpos, int) {
 		std::string s = value();
 		int baseline = 0, i = 0, k = count_utf_string(s);
@@ -279,68 +272,110 @@ void z::TextInput::draw()
 
 z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 {/// should update manually because user callback does not asusume graphical change
-	user_callback_[EVENT_KEYBOARD] = [this] (int key, int) {
+	user_callback_[EVENT_KEYBOARD] = [this] (int key, int) { // focus change inside keyboard callback -> bug
 		switch(key) {
 			case ENTER: new_line(); break;
 			case DOWN: down(); break;
 			case UP: up(); break;
 		}
+		update();
 	};
 }
 
 void z::TextInput2::new_line() {
-	Line line = {"", editting_, back_, false};
-	editting_ = "";
-	back_ = "";
-	end_new_line_ = true;
-	*it_ = {fore_, editting_, back_, end_new_line_}; // save current
-	auto it = it_;
-	it = contents_ptr_->insert(++it, line);
-	next_->down_stream(it);
-}
-
-void z::TextInput2::down() {
-	if(contents_ptr_->end() == it_) return;
+	Line next_line = {"", editting_, back_, false};
 	if(next_ != nullptr) {
+		line({fore_, "", "", true});
+		*it_ = line();
+		auto it = it_;
+		it = contents_ptr_->insert(++it, next_line);
+		next_->down_stream(it);
 		next_->focus(true);
 		focus(false);
 	} else {
-		sync();
+		*it_ = {fore_, "", "", true};
 		prev_->up_stream(it_++);
+		set_iter(contents_ptr_->insert(it_, next_line));
+		line(*it_);
+	}
+	draw();
+}
+
+void z::TextInput2::focus(bool v) {
+	z::Widget::focus(v);
+	if(!v) *it_ = line();
+}
+
+void z::TextInput2::set_iter(iter it) {
+	it_ = it;
+	if(is_end()) activated(false);
+	else activated(true);
+}
+
+void z::TextInput2::down() {
+	if(next_ != nullptr) {
+		if(next_->activated()) {
+			next_->focus(true);
+			focus(false);
+		}
+	} else {//scroll
+		auto it = it_;
+		if(++it == contents_ptr_->end()) return;
+		*it_ = line();
+		prev_->up_stream(it_++);
+		line(*it_);
+		draw();
+		focus(true);
 	}
 }
 
 void z::TextInput2::up() {
-	if(contents_ptr_->begin() == it_) return;
 	if(prev_ != nullptr) {
 		prev_->focus(true);
 		focus(false);
-	} else next_->down_stream(it_++);
+	} else {
+		if(contents_ptr_->begin() == it_) return;
+		*it_ = line();
+		next_->down_stream(it_--);
+		line(*it_);
+		draw();
+		focus(true);
+	}
 }
 
-void z::TextInput2::down_stream(iter reset_it)
+void print(z::Line a) {
+	spdlog::debug("Line {} {} {} {}", a.fore, a.editting, a.back, a.new_line);
+}
+
+void z::TextInput2::down_stream(iter reset_it, int level)
 { /// next->down_stream(it)
-	if(it_ != contents_ptr_->end() && !empty()) *it_ = line();
-	draw();
-	show_cursor();
-	if(next_ != nullptr) down_stream(it_);
-	it_ = reset_it;
+	if(next_ != nullptr && reset_it != contents_ptr_->end()) next_->down_stream(it_, level + 1);
+	set_iter(reset_it);
+	if(!is_end()) {
+		line(*it_);
+		print(*it_);
+		draw();
+		*parent_ << *this;
+	}
 }
 
 void z::TextInput2::up_stream(iter reset_it)
-{
-	*it_ = line();
+{ /// recursion to upside
+	if(prev_ != nullptr) prev_->up_stream(it_);
+	set_iter(reset_it);
+	line(*it_);
 	draw();
-	show_cursor();
-	if(prev_ != nullptr) up_stream(it_);
-	it_ = reset_it;
+	*parent_ << *this;
 }
 
 bool z::TextInput2::empty() const
 {
 	return fore_ == "" && editting_ == "" && back_ == "" && !end_new_line_;
 }
-
+void z::TextInput2::line(z::Line l)
+{
+	fore_ = l.fore; editting_ = l.editting; back_ = l.back; end_new_line_ = l.new_line;
+}
 z::Line z::TextInput2::line() const
 {
 	return {fore_, editting_, back_, end_new_line_};
@@ -348,18 +383,17 @@ z::Line z::TextInput2::line() const
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 {
-	spdlog::debug("{} window : {} ", z::source_loc(), is_window());
+	contents_.push_back(Line{});
 	int h = height / lines;
-	spdlog::debug("{} height {}", z::source_loc(), h);
 	for(int i=0; i<lines; i++) 
 		inputs_.emplace_back(make_shared<z::TextInput2>(cv::Rect2i{0, i*h, width, h}));
 	z::TextInput2 *prev_input = nullptr, **next_of_prev_input = nullptr;
 	auto contents_it_ = contents_.begin();
 	for(auto it : inputs_) {
-		*this + *it; 
-		it->it_ = contents_it_;
-		if(contents_it_ != contents_.end()) contents_it_++;
 		it->contents_ptr_ = &contents_;
+		*this + *it; 
+		it->set_iter(contents_it_);
+		if(contents_it_ != contents_.end()) contents_it_++;
 		it->prev_ = prev_input;
 		prev_input = it.get();
 		if(next_of_prev_input) *next_of_prev_input = it.get();
@@ -368,17 +402,17 @@ z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 	organize_accordingto_zindex();
 }
 
-void z::TextBox::sync() {
-	for(auto a : inputs_) {
-		if(a->it_ != contents_.end()) *a->it_ = a->line();
-		else if(!a->empty()) {
-			contents_.push_back(a->line());
-			a->it_ = --contents_.end();
-		}
-	}
-}
-
-void z::TextBox::draw()
-{
-	
-}
+//void z::TextBox::sync() {
+//	for(auto a : inputs_) {
+//		if(a->it_ != contents_.end()) *a->it_ = a->line();
+//		else if(!a->empty()) {
+//			contents_.push_back(a->line());
+//			a->it_ = --contents_.end();
+//		}
+//	}
+//}
+//
+//void z::TextBox::draw()
+//{
+//	
+//}
