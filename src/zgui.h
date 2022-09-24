@@ -344,6 +344,7 @@ protected:
 	iter it_;
 	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
 private:
+	void on_overflow(std::string fore, std::string editting, std::string back);
 	void up(), down(), new_line();
 	bool del(), backsp();
 	void keyboard_callback(int, int);
@@ -357,6 +358,7 @@ public:
 	TextBox(cv::Rect2i r, int lines);
 	void set_max_character(int max);
 	std::string type() const {return "TextBox";}
+	std::string value() const;
 protected:
 	int top_line_index_ = 0, focus_line_ = 0;
 	std::list<Line> contents_;

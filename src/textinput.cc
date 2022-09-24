@@ -281,7 +281,10 @@ void z::TextInput::draw()
 		a = ""; b = "";
 		c = back_.substr(sz - fore_.size() - editting_.size());
 	} else a = fore_.substr(sz), b = editting_, c = back_;
-	on_overflow(a, b, c); 
+	if(sz < s.size()) {
+		spdlog::debug("on_overflow executing sz {}, < {} s {}", sz, s.size(), s);
+		on_overflow(a, b, c); 
+	}
 }
 
 z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
@@ -356,21 +359,25 @@ void z::TextInput2::new_line() {
 		next_->down_stream(it);
 		next_->focus(true);
 		focus(false);
+		draw();
 	} else {
 		*it_ = {fore_, "", "", true};
 		prev_->up_stream(it_++);
 		set_iter(contents_ptr_->insert(it_, next_line));
 		line(*it_);
+		draw();
+		show_cursor();
 	}
-	draw();
 }
 
-void z::TextInput2::focus(bool v) {
-	z::Widget::focus(v);
+void z::TextInput2::focus(bool v) 
+{ /// sync data when lose focus
+	z::Widget::focus(v);// run event enter or leave callbacks(gui, user)
 	if(!v) *it_ = line();
 }
 
-void z::TextInput2::set_iter(iter it) {
+void z::TextInput2::set_iter(iter it) 
+{/// deactivate widget when it has no data == end()
 	it_ = it;
 	if(is_end()) activated(false);
 	else activated(true);
@@ -430,6 +437,34 @@ void z::TextInput2::up_stream(iter reset_it)
 	if(prev_ != nullptr) prev_->up_stream(--reset_it);
 }
 
+void remove_tail(string &from, const string &to_remove) {
+	from = from.substr(from.rfind(to_remove));
+}
+
+void z::TextInput2::on_overflow(string fore, string editting, string back)
+{/// text wrapping
+ 	remove_tail(fore_, fore);
+ 	remove_tail(editting_, editting);
+ 	remove_tail(back_, back);
+	*it_ = line();
+	auto it = it_;
+	if(end_new_line_ || ++it == contents_ptr_->end()) {
+		it = contents_ptr_->insert(it, {fore, editting, back, true});
+		if(next_ != nullptr) next_->down_stream(it);
+		end_new_line_ = false;
+	} else {
+		it++;
+		it->fore = fore + editting + back + it->fore;
+		next_->line(*it);
+		next_->draw();
+		next_->update();
+	}
+	if(z::Widget::focus() && editting != "") {
+		focus(false);
+		next_->focus(true);
+	}
+}
+
 bool z::TextInput2::empty() const
 {
 	return fore_ == "" && editting_ == "" && back_ == "" && !end_new_line_;
@@ -464,17 +499,11 @@ z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 	organize_accordingto_zindex();
 }
 
-//void z::TextBox::sync() {
-//	for(auto a : inputs_) {
-//		if(a->it_ != contents_.end()) *a->it_ = a->line();
-//		else if(!a->empty()) {
-//			contents_.push_back(a->line());
-//			a->it_ = --contents_.end();
-//		}
-//	}
-//}
-//
-//void z::TextBox::draw()
-//{
-//	
-//}
+std::string z::TextBox::value() const
+{
+	string r;
+	for(const Line &a : contents_) 
+		r += a.fore + a.editting + a.back + (a.new_line ? "\n" : "");
+	return r;
+}
+
