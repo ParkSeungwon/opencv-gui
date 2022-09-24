@@ -291,14 +291,41 @@ z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 
 void z::TextInput2::keyboard_callback(int key, int)
 {
-	if(key == DEL) { 
-		if(!del()) key_event(key, 0); 
-		else show_cursor();
-	} else key_event(key, 0);
+	bool run_key_event = true;
+	switch(key) {
+		case DEL: run_key_event = !del(); break;
+		case BACKSPACE: run_key_event = !backspace(); break;
+	}
+	if(run_key_event) key_event(key, 0); 
+	else show_cursor();
 	switch(key) {
 		case DOWN: down(); break;
 		case UP: up(); break;
 		case ENTER: new_line(); break;
+	}
+}
+
+bool z::TextInput2::backspace()
+{
+	if(fore_ != "" || it_ == contents_ptr_->begin()) return false;
+	if(prev_ == nullptr) {
+		set_iter(contents_ptr_->erase(it_));
+		line({it_->value(), editting_, back_, end_new_line_});
+		*it_ = line();
+	} else {
+		focus(false);
+		prev_->line({prev_->value(), editting_, back_, end_new_line_});
+		*prev_->it_ = prev_->line();
+		prev_->draw(); 
+		prev_->focus(true);
+		prev_->update();
+		set_iter(contents_ptr_->erase(it_));
+		if(!is_end()) line(*it_);
+		else line({"", "", "", false});
+		draw();
+		auto it = it_;
+		if(next_ != nullptr && it != contents_ptr_->end()) next_->down_stream(++it);
+		return true;
 	}
 }
 

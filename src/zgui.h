@@ -322,6 +322,7 @@ private:
 struct Line {
 	std::string fore, editting, back;
 	bool new_line = false;
+	std::string value() const { return fore + editting + back; }
 };
 
 class TextInput2 : public TextInput
@@ -344,7 +345,7 @@ protected:
 	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
 private:
 	void up(), down(), new_line();
-	bool del();
+	bool del(), backspace();
 	void keyboard_callback(int, int);
 	bool is_end() const { return contents_ptr_->end() == it_;}
 	friend class TextBox;
