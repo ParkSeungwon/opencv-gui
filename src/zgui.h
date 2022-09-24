@@ -111,14 +111,15 @@ public:
 protected:
 	std::string fore_, back_, editting_;
 	void show_cursor(), draw();
+	void key_event(int key, int);
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
 	static bool hangul_mode_;// = false;
+	virtual void on_overflow(std::string, std::string, std::string) {}
 
 private:
 	void flush(), del(), hanja(), backspace(), hangul();
 	void popup(std::vector<std::string> v);
-	void key_event(int key, int);
 	const cv::Vec3b white = cv::Vec3b{255, 255, 255};
 };
 
@@ -342,7 +343,8 @@ protected:
 	iter it_;
 	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
 private:
-	void up(), down(), new_line();
+	void up(), down(), new_line(), del();
+	void keyboard_callback(int, int);
 	bool is_end() const { return contents_ptr_->end() == it_;}
 	friend class TextBox;
 };

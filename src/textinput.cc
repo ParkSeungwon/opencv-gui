@@ -267,19 +267,54 @@ void z::TextInput::draw()
 {
 	mat_ = white;
 	//else shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
-	ft2_->putText(mat_, fore_ + editting_ + back_, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	int baseline = 0;
+	std::pair<std::string, std::string> div;
+	std::string s = fore_ + editting_ + back_;
+	for(int i=0; i<count_utf_string(s) + 1; i++) {
+		div = divide_utf_string(s, i);
+		if(ft2_->getTextSize(div.first, height * 0.8, -1, &baseline).width > width - 20) break;
+	}
+	ft2_->putText(mat_, div.first, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	int sz = div.first.size();
+	std::string a, b, c;
+	if(sz > fore_.size()) {
+		a = ""; b = "";
+		c = back_.substr(sz - fore_.size() - editting_.size());
+	} else a = fore_.substr(sz), b = editting_, c = back_;
+	on_overflow(a, b, c); 
 }
 
 z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 {/// should update manually because user callback does not asusume graphical change
-	user_callback_[EVENT_KEYBOARD] = [this] (int key, int) { // focus change inside keyboard callback -> bug
-		switch(key) {
-			case ENTER: new_line(); break;
-			case DOWN: down(); break;
-			case UP: up(); break;
-		}
-		update();
-	};
+	gui_callback_[EVENT_KEYBOARD] = bind(&TextInput2::keyboard_callback, this, _1, _2);
+}
+
+void z::TextInput2::keyboard_callback(int key, int)
+{
+	switch(key) {
+		case DEL: del(); break;
+	}
+	key_event(key, 0);
+	switch(key) {
+		case DOWN: down(); break;
+		case UP: up(); break;
+		case ENTER: new_line(); break;
+	}
+}
+
+void z::TextInput2::del()
+{
+	if(editting_ + back_ != "") return;
+	auto it = it_;
+	if(++it == contents_ptr_->end()) return;
+	set_iter(contents_ptr_->erase(it_));
+	std::string s = it_->fore + it_->editting + it_->back;
+	auto t = pop_front_utf(s);
+	line({fore_, t, s, it_->new_line});
+	*it_ = line();
+	draw();
+	it = it_;
+	if(next_ != nullptr) next_->down_stream(++it);
 }
 
 void z::TextInput2::new_line() {
@@ -349,23 +384,25 @@ void print(z::Line a) {
 
 void z::TextInput2::down_stream(iter reset_it, int level)
 { /// next->down_stream(it)
-	if(next_ != nullptr && reset_it != contents_ptr_->end()) next_->down_stream(it_, level + 1);
 	set_iter(reset_it);
 	if(!is_end()) {
 		line(*it_);
 		print(*it_);
-		draw();
-		*parent_ << *this;
+	} else {
+		line({"", "", "", false});
 	}
+	draw();
+	*parent_ << *this;
+	if(next_ != nullptr && reset_it != contents_ptr_->end()) next_->down_stream(++reset_it, level + 1);
 }
 
 void z::TextInput2::up_stream(iter reset_it)
 { /// recursion to upside
-	if(prev_ != nullptr) prev_->up_stream(it_);
 	set_iter(reset_it);
 	line(*it_);
 	draw();
 	*parent_ << *this;
+	if(prev_ != nullptr) prev_->up_stream(--reset_it);
 }
 
 bool z::TextInput2::empty() const
