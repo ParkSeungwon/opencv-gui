@@ -231,7 +231,9 @@ int z::Window::loop()
 
 void z::Window::keyboard_callback(int key, int level)
 {
-	auto it = *std::find_if(widgets_.begin(), widgets_.end(), [this](z::Widget * p) { return p->focus(); });
+	auto iit = std::find_if(widgets_.begin(), widgets_.end(), [this](z::Widget * p) { return p->focus(); });
+	if(iit == widgets_.end()) return;
+	auto it = *iit;
 	if(it->is_window()) dynamic_cast<z::Window*>(it)->keyboard_callback(key , level + 1);
 	else {
 		if(it->gui_callback_.find(EVENT_KEYBOARD) != it->gui_callback_.end()) {

@@ -287,6 +287,10 @@ void z::TextInput::draw()
 	}
 }
 
+
+
+
+
 z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 {/// should update manually because user callback does not asusume graphical change
 	gui_callback_[EVENT_KEYBOARD] = bind(&TextInput2::keyboard_callback, this, _1, _2);
@@ -344,6 +348,7 @@ bool z::TextInput2::del()
 	line({fore_, t, s, it_->new_line});
 	*it_ = line();
 	draw();
+	show_cursor();
 	it = it_;
 	if(next_ != nullptr) next_->down_stream(++it);
 	return true;
@@ -438,7 +443,7 @@ void z::TextInput2::up_stream(iter reset_it)
 }
 
 void remove_tail(string &from, const string &to_remove) {
-	from = from.substr(from.rfind(to_remove));
+	from = from.substr(0, from.rfind(to_remove));
 }
 
 void z::TextInput2::on_overflow(string fore, string editting, string back)
@@ -448,20 +453,30 @@ void z::TextInput2::on_overflow(string fore, string editting, string back)
  	remove_tail(back_, back);
 	*it_ = line();
 	auto it = it_;
-	if(end_new_line_ || ++it == contents_ptr_->end()) {
-		it = contents_ptr_->insert(it, {fore, editting, back, true});
-		if(next_ != nullptr) next_->down_stream(it);
-		end_new_line_ = false;
-	} else {
-		it++;
-		it->fore = fore + editting + back + it->fore;
-		next_->line(*it);
-		next_->draw();
-		next_->update();
+	it++;
+	if(end_new_line_ || it == contents_ptr_->end()) {
+		it = contents_ptr_->insert(it, {fore, editting, back, true});//make new line
+		it_->new_line = end_new_line_ = false;
+	} else {//preppend at nextline
+		it->back = fore + editting + back + it->fore + it->editting + it->back;
+		it->editting = "";
+		it->fore = "";
 	}
-	if(z::Widget::focus() && editting != "") {
-		focus(false);
-		next_->focus(true);
+	if(next_ != nullptr) {//not last line
+		next_->down_stream(it);
+		if(z::Widget::focus() && (fore != "" || editting != "")) {//cursor move down
+			focus(false);
+			next_->focus(true);
+		}
+	} else {
+		set_iter(it);
+		line(*it);
+		draw();
+		prev_->up_stream(--it);
+		if(!(z::Widget::focus() && editting != "")) {//cursor not move down
+			focus(false);
+			prev_->focus(true);
+		}
 	}
 }
 
@@ -477,6 +492,10 @@ z::Line z::TextInput2::line() const
 {
 	return {fore_, editting_, back_, end_new_line_};
 }
+
+
+
+
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 {
