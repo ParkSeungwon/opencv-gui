@@ -266,23 +266,19 @@ void z::TextInput::value(string s)
 void z::TextInput::draw()
 {
 	mat_ = white;
-	//else shade_rect({0, 0, width, height}, 4, highlight_color_, click_color_, highlight_color_);
 	int baseline = 0;
 	std::pair<std::string, std::string> div;
 	std::string s = fore_ + editting_ + back_;
 	for(int i=0; i<count_utf_string(s) + 1; i++) {
 		div = divide_utf_string(s, i);
-		if(ft2_->getTextSize(div.first, height * 0.8, -1, &baseline).width > width - 20) break;
+		if(ft2_->getTextSize(div.first, height * 0.8, -1, &baseline).width > width - 40) break;
 	}
+	if(div.second == editting_ + back_) // 한글 에딧 중간에 다음 라인으로 넘어가는 문제
+		div.first += pop_front_utf(div.second);
 	ft2_->putText(mat_, div.first, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
-	int sz = div.first.size();
-	std::string a, b, c;
-	if(sz > fore_.size()) {
-		a = ""; b = "";
-		c = back_.substr(sz - fore_.size() - editting_.size());
-	} else a = fore_.substr(sz), b = editting_, c = back_;
-	if(sz < s.size()) {
-		spdlog::debug("on_overflow executing sz {}, < {} s {}", sz, s.size(), s);
+	if(div.second != "") { 
+		const auto &[d, c] = divide_utf_string(div.second, count_utf_string(div.second) - count_utf_string(back_));
+		const auto &[a, b] = divide_utf_string(d, count_utf_string(d) - count_utf_string(editting_));
 		on_overflow(a, b, c); 
 	}
 }
@@ -455,12 +451,18 @@ void z::TextInput2::on_overflow(string fore, string editting, string back)
 	auto it = it_;
 	it++;
 	if(end_new_line_ || it == contents_ptr_->end()) {
-		it = contents_ptr_->insert(it, {fore, editting, back, true});//make new line
+		string edit = pop_front_utf(back);
+		it = contents_ptr_->insert(it, {fore + editting, edit, back, true});//make new line
 		it_->new_line = end_new_line_ = false;
 	} else {//preppend at nextline
-		it->back = fore + editting + back + it->fore + it->editting + it->back;
-		it->editting = "";
-		it->fore = "";
+		it->back = back + it->fore + it->editting + it->back;
+		if(editting.size() == 1) {
+			it->editting = editting;
+			it->fore = fore;
+		} else {
+			it->editting = pop_front_utf(it->back);
+			it->fore = fore + editting;
+		}
 	}
 	if(next_ != nullptr) {//not last line
 		next_->down_stream(it);
