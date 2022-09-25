@@ -286,10 +286,47 @@ void z::TextInput::draw()
 
 
 
+struct CopyPaste : z::AsciiWindow
+{
+	CopyPaste() : z::AsciiWindow{R"(
+		W------------------------
+		|B0---- B1----- B2------
+		||Copy| |Paste| |Cancel|
+		|)"}
+	{
+		B[0]->click([this]() { popdown(0); });
+		B[1]->click([this]() { popdown(1); });
+		B[2]->click([this]() { popdown(2); });
+	}
+};
+
+string psstm(string command)
+{//return system call output as string
+	string s;
+	char tmp[100000];
+	FILE* f = popen(command.c_str(), "r");
+	while(fgets(tmp, sizeof(tmp), f)) s += tmp;
+	pclose(f);
+	return s;
+}
 
 z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 {/// should update manually because user callback does not asusume graphical change
+	static CopyPaste cp;
 	gui_callback_[EVENT_KEYBOARD] = bind(&TextInput2::keyboard_callback, this, _1, _2);
+	gui_callback_[cv::EVENT_RBUTTONUP] = [this, &cp] (int x, int) {
+		cp.x = x + 50;
+		cp.y = y + 20;
+		cp.popup(*parent_, [this](int i) {
+			if(i == 0) system(("echo '" + dynamic_cast<TextBox*>(parent_)->value() + 
+						"' | xclip -i -selection clipboard").data());
+			else if(i == 1) {
+				back_ = psstm("xclip -o -selection clipboard") + back_;
+				draw();
+				update();
+			}
+		});
+	};
 }
 
 void z::TextInput2::keyboard_callback(int key, int)
@@ -456,12 +493,12 @@ void z::TextInput2::on_overflow(string fore, string editting, string back)
 		it_->new_line = end_new_line_ = false;
 	} else {//preppend at nextline
 		it->back = back + it->fore + it->editting + it->back;
-		if(editting.size() == 1) {
-			it->editting = editting;
-			it->fore = fore;
-		} else {
+		if(editting.size() > 1) {
 			it->editting = pop_front_utf(it->back);
 			it->fore = fore + editting;
+		} else {
+			it->editting = editting;
+			it->fore = fore;
 		}
 	}
 	if(next_ != nullptr) {//not last line
