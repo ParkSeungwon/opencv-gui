@@ -110,12 +110,13 @@ public:
 	std::string type() const {return "TextInput";}
 protected:
 	std::string fore_, back_, editting_;
-	void show_cursor(), draw();
+	void show_cursor();
+	bool draw();
 	void key_event(int key, int);
 	static HangulInputContext* hic_;
 	static HanjaTable* table_;
 	static bool hangul_mode_;// = false;
-	virtual void on_overflow(std::string, std::string, std::string) {}
+	virtual bool on_overflow(std::string, std::string, std::string) { return true;}
 
 private:
 	void flush(), del(), hanja(), backspace(), hangul();
@@ -330,8 +331,6 @@ class TextInput2 : public TextInput
 public:
 	using iter = std::list<Line>::iterator;
 	TextInput2(cv::Rect2i r);
-	void down_stream(iter it, int level = 0);///< call with inserted node iterator
-	void up_stream(iter it);
 	bool empty() const;
 	Line line() const;
 	void line(Line l);
@@ -344,7 +343,9 @@ protected:
 	iter it_;
 	//std::list<std::array<std::string, 3>> *contents_ = nullptr;
 private:
-	void on_overflow(std::string fore, std::string editting, std::string back);
+	void down_stream(iter it, int level = 0);///< call with inserted node iterator
+	void up_stream(iter it);
+	bool on_overflow(std::string fore, std::string editting, std::string back);
 	void up(), down(), new_line();
 	bool del(), backsp();
 	void keyboard_callback(int, int);

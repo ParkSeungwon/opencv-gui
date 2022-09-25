@@ -14,6 +14,8 @@
 #define PGDN 155
 #define CAPS 229
 #define ENTER 13
+#define LSHIFT 225
+#define RSHIFT 226
 using namespace std;
 using namespace placeholders;
 
@@ -44,10 +46,12 @@ string GetUnicodeChar(unsigned int code) {
 		return chars;
 }
 
-bool is_character_head(char c) {
+bool is_character_head(char c) 
+{ /// unicode character can be multibytes, check if this is the first byte of unicode character
 	return (c & 0xc0) != 0x80;
 }
-std::pair<std::string, std::string> divide_utf_string(std::string s, int pos) {
+std::pair<std::string, std::string> divide_utf_string(std::string s, int pos) 
+{ /// unicode string divide into two, by character position(한글, 한자 한 글자를 기준으로 함)
 	int i = 0; 
 	std::string fore, aft, tmp;
 	for(char c : s) {
@@ -58,13 +62,13 @@ std::pair<std::string, std::string> divide_utf_string(std::string s, int pos) {
 	return {fore, aft};
 }
 int count_utf_string(std::string s)
-{
+{/// count unicode character length, 한글 한자 처리 가능
 	int k = 0;
 	for(char c : s) if(is_character_head(c)) k++;
 	return k;
 }
 std::string pop_back_utf(std::string &s)
-{
+{ 
 	int l = count_utf_string(s);
 	if(l == 0) return "";
 	auto [f, b] = divide_utf_string(s, l - 1);
@@ -111,7 +115,7 @@ void z::TextInput::flush() {
 }
 
 void z::TextInput::hanja()
-{
+{ /// show hanja popup
 	//editting_ = GetUnicodeChar(*hangul_ic_get_preedit_string(hic_));
 	cout << "edittin : " << editting_ << endl;
 	HanjaList* list = hanja_table_match_exact(table_, editting_.data());
@@ -128,20 +132,22 @@ void z::TextInput::hanja()
 }
 
 void z::TextInput::hangul()
-{
+{ /// hangul mode change
 	hangul_mode_ = !hangul_mode_;
 	flush();
 	show_cursor();
 }
 
 void z::TextInput::key_event(int key, int)
-{
+{ /// called by gui_callback[EVENT_KEYBOARD]
 	switch(key) {
 		case HANGUL: hangul(); return;
 		case LEFT: move_cursor(false); return;
 		case RIGHT: move_cursor(true); return;
 		case DEL: del(); return;
 		case HANJA: hanja(); return;
+		case LSHIFT: return;
+		case RSHIFT: return;
 	}
 
 	if(hangul_mode_) {
@@ -163,11 +169,11 @@ void z::TextInput::key_event(int key, int)
 		else if(key == BACKSPACE) backspace();
 		else return;
 	}
-	draw();
-	show_cursor();
+	if(draw()) show_cursor();
 }
 	
-void z::TextInput::show_cursor() {
+void z::TextInput::show_cursor() 
+{ /// show rectangular cursor on editting_
 	int baseline = 0;
 	auto sz1 = ft2_->getTextSize(fore_, height * 0.8, -1, &baseline);
 	auto sz2 = ft2_->getTextSize(fore_ + editting_, height * 0.8, -1, &baseline); 
@@ -175,7 +181,7 @@ void z::TextInput::show_cursor() {
 			cv::Point2i{std::max(10 + sz2.width, 20 + sz1.width), height}}, {0,0,0}, 1);
 }
 void z::TextInput::move_cursor(bool right) 
-{
+{ /// move cursor right left
 	hangul_ic_flush(hic_);
 	if(right) {
 		fore_ += editting_;
@@ -191,7 +197,7 @@ void z::TextInput::move_cursor(bool right)
 }
 
 struct HanjaWin : z::Window
-{
+{ /// hanja popup window
 	HanjaWin(int button_size) : z::Window { "", {0,0,1,1} }
 	{ button_sz = button_size; }
 	vector<shared_ptr<z::Button>> bts;
@@ -234,12 +240,12 @@ void z::TextInput::enter(function<void(string)> f)
 }
 
 string z::TextInput::value() const
-{
+{ /// return text inside
 	return fore_ + editting_ + back_;
 }
 
 void z::TextInput::backspace()
-{
+{ /// called when backspace is pressed
 	while(!fore_.empty()) {
 		char c = fore_.back();
 		fore_.pop_back();
@@ -249,27 +255,28 @@ void z::TextInput::backspace()
 	show_cursor();
 }
 
-void z::TextInput::del() {
+void z::TextInput::del() 
+{/// called when del key is pressed
 	editting_ = pop_front_utf(back_);
 	draw();
 	show_cursor();
 }
 
 void z::TextInput::value(string s)
-{
+{ /// set value of input, cursor at end.
 	fore_ = s;
 	editting_ = "";
 	back_ = "";
 	draw();
 }
 
-void z::TextInput::draw()
-{
+bool z::TextInput::draw()
+{ /// draw mat_ with inner states, if overflow returns false do not show cursor
 	mat_ = white;
 	int baseline = 0;
 	std::pair<std::string, std::string> div;
 	std::string s = fore_ + editting_ + back_;
-	for(int i=0; i<count_utf_string(s) + 1; i++) {
+	for(int i=0; i<count_utf_string(s) + 1; i++) {// 표시될 수 있는 스트링의 지점을 찾는다.
 		div = divide_utf_string(s, i);
 		if(ft2_->getTextSize(div.first, height * 0.8, -1, &baseline).width > width - 40) break;
 	}
@@ -279,15 +286,16 @@ void z::TextInput::draw()
 	if(div.second != "") { 
 		const auto &[d, c] = divide_utf_string(div.second, count_utf_string(div.second) - count_utf_string(back_));
 		const auto &[a, b] = divide_utf_string(d, count_utf_string(d) - count_utf_string(editting_));
-		on_overflow(a, b, c); 
+		return on_overflow(a, b, c); // for subclass textwrapping
 	}
+	return true;
 }
 
 
 
 
 struct CopyPaste : z::AsciiWindow
-{
+{ /// copy paste with clipboard in textbox -> using xclip(or pyperclip in win)
 	CopyPaste() : z::AsciiWindow{R"(
 		W------------------------
 		|B0---- B1----- B2------
@@ -330,7 +338,7 @@ z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 }
 
 void z::TextInput2::keyboard_callback(int key, int)
-{
+{ /// call TextInput key_event function inside, calling order is important
 	bool run_key_event = true;
 	switch(key) {
 		case DEL: run_key_event = !del(); break;
@@ -345,7 +353,7 @@ void z::TextInput2::keyboard_callback(int key, int)
 }
 
 bool z::TextInput2::backsp()
-{
+{ /// return value determines if textinput key_event backspace function will be called
 	if(fore_ != "" || it_ == contents_ptr_->begin()) return false;
 	if(prev_ == nullptr) {
 		set_iter(contents_ptr_->erase(it_));
@@ -371,7 +379,7 @@ bool z::TextInput2::backsp()
 }
 
 bool z::TextInput2::del()
-{
+{ /// return value determines if textinput key_event del function will be called
 	if(editting_ + back_ != "") return false;
 	auto it = it_;
 	if(++it == contents_ptr_->end()) return false;
@@ -387,7 +395,8 @@ bool z::TextInput2::del()
 	return true;
 }
 
-void z::TextInput2::new_line() {
+void z::TextInput2::new_line() 
+{ 
 	Line next_line = {"", editting_, back_, false};
 	if(next_ != nullptr) {
 		line({fore_, "", "", true});
@@ -421,7 +430,8 @@ void z::TextInput2::set_iter(iter it)
 	else activated(true);
 }
 
-void z::TextInput2::down() {
+void z::TextInput2::down() 
+{ /// called when numpad down key is pressed. 
 	if(next_ != nullptr) {
 		if(next_->activated()) {
 			next_->focus(true);
@@ -438,7 +448,8 @@ void z::TextInput2::down() {
 	}
 }
 
-void z::TextInput2::up() {
+void z::TextInput2::up() 
+{ /// called when numpad up key is pressed
 	if(prev_ != nullptr) {
 		prev_->focus(true);
 		focus(false);
@@ -457,7 +468,7 @@ void print(z::Line a) {
 }
 
 void z::TextInput2::down_stream(iter reset_it, int level)
-{ /// next->down_stream(it)
+{ /// next->down_stream(it), reorder textinput2s downward
 	set_iter(reset_it);
 	if(!is_end()) line(*it_);
 	else line({"", "", "", false});
@@ -467,7 +478,7 @@ void z::TextInput2::down_stream(iter reset_it, int level)
 }
 
 void z::TextInput2::up_stream(iter reset_it)
-{ /// recursion to upside
+{ /// recursion to upside, reorder textinput2s upward
 	set_iter(reset_it);
 	line(*it_);
 	draw();
@@ -479,8 +490,8 @@ void remove_tail(string &from, const string &to_remove) {
 	from = from.substr(0, from.rfind(to_remove));
 }
 
-void z::TextInput2::on_overflow(string fore, string editting, string back)
-{/// text wrapping
+bool z::TextInput2::on_overflow(string fore, string editting, string back)
+{/// text wrapping, if return false do not run show_cursor
  	remove_tail(fore_, fore);
  	remove_tail(editting_, editting);
  	remove_tail(back_, back);
@@ -506,6 +517,7 @@ void z::TextInput2::on_overflow(string fore, string editting, string back)
 		if(z::Widget::focus() && (fore != "" || editting != "")) {//cursor move down
 			focus(false);
 			next_->focus(true);
+			return false;
 		}
 	} else {
 		set_iter(it);
@@ -517,6 +529,7 @@ void z::TextInput2::on_overflow(string fore, string editting, string back)
 			prev_->focus(true);
 		}
 	}
+	return true;
 }
 
 bool z::TextInput2::empty() const
@@ -537,7 +550,7 @@ z::Line z::TextInput2::line() const
 
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
-{
+{ 
 	contents_.push_back(Line{});
 	int h = height / lines;
 	for(int i=0; i<lines; i++) 
