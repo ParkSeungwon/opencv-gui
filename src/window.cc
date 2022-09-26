@@ -5,7 +5,12 @@ using namespace std;
 
 
 void mouse_callback(int event, int x, int y, int flags, void *ptr)
-{///get mouse event
+{/// x, y coords are readjusted using scrolled position
+ /// -> absolute x, y inside window without regard to scrolled position
+ /// embedded window: x, y position will be counted from embedded window origin
+ /// -> constant wherever the window is embedded
+ /// consequently you do not need pay attention to 
+ /// where the scrolled position is and where you embedded your window
 	z::Window *p = (z::Window*)ptr;
 	x += p->scrolled_rect_.x;
 	y += p->scrolled_rect_.y;
@@ -31,8 +36,8 @@ z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
 {/// @param title if window is the top window, title will be the window title.
  ///        else if window is embedded inside another window, 
  ///        window will be framed and title will be the frame title.
- //         In case title == "", no frame will show.
- //         If you manually embed window inside, you should set scrolled_rect_ = {0,0,0,0}
+ ///        In case title == "", no frame will show.
+ ///        If you manually embed window inside, you should set scrolled_rect_ = {0,0,0,0}
  /// @param r  window will occupy this rectangular space
 	title_ = title;
 	scrolled_rect_ = r;

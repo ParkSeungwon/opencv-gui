@@ -22,9 +22,11 @@ z::Widget::Widget(cv::Rect_<int> r)
 	mat_ = background_color_;
 	if(!ft2_) {
 		ft2_ = cv::freetype::createFreeType2();
-    //ft2_->loadFontData("/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf", 0);
-		ft2_->loadFontData("/usr/share/fonts/opentype/noto/NotoSansCJK-DemiLight.ttc", 0);
+    //ft2_->loadFontData("/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf", 0); // 한자 불완전
+		ft2_->loadFontData("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0); // difficult 프린트시 bug
+		//ft2_->loadFontData("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", 0); // difficult 프린트시 bug
     //ft2_->loadFontData("/home/zeta/Documents/Un.ttf", 0);
+    //ft2_->loadFontData("/usr/share/fonts/truetype/baekmuk/batang.ttf", 0);
 	}
 }
 

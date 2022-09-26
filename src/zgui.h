@@ -278,13 +278,17 @@ class VHandle : public Widget
 {
 public:
 	VHandle(Handle&);
-	const static int widget_width_ = 10;
+	const static int widget_width_ = 15;
 	void draw();
+	int starty() const;
+	int endy() const;
 private:
 	Handle &handle_;
 	bool mouse_down_ = false;
+	int press_y_ = 0;
 	void on_register();
-	int starty_, endy_;
+	void scroll_window(int ypos);
+	int scroll_delta(int yd);
 	friend class Handle;
 };
 
@@ -292,14 +296,17 @@ class HHandle : public Widget
 {
 public:
 	HHandle(Handle&);
-	const static int widget_height_ = 10;
+	const static int widget_height_ = 15;
 	void draw();
+	int startx() const;
+	int endx() const;
 private:
 	Handle &handle_;
 	bool mouse_down_ = false;
-	Window *scwin_;
+	int press_x_ = 0;
 	void on_register();
-	int startx_, endx_;
+	int scroll_delta(int xd);
+	void scroll_window(int xpos);
 	friend class Handle;
 };
 
@@ -307,16 +314,16 @@ class Handle : public Widget
 {
 public:
 	Handle();
-	const static int widget_size_ = 30;
+	static const int widget_size_ = 30;
 	VHandle vh_;
 	HHandle hh_;
+	void position_widgets();
+	void show_widgets();
 private:
 	bool mouse_down_ = false;
 	Window *scwin_;
 	cv::Rect2i scroll_backup_ = {0,0,0,0};
 	void on_register();
-	void position_widgets();
-	void show_widgets();
 	void routine(int, int);
 };
 
