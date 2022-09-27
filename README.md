@@ -90,10 +90,20 @@ LGPL v2
   		organize_accordingto_zindex();
   	}
   	WButton wb{{0,0,1,1}}
-  };
+  }
   ```
   
-  
+
+## Install
+
+```bash
+> sudo apt install libhangul-dev libopencv-dev xclip
+> git clone --depth=1 https://github.com/ParkSeungwon/opencv-gui
+> cd opencv-gui
+> make
+```
+
+First line of font.dat file should point to CJK font file path.
 
 ## Sample Image
 
@@ -107,8 +117,9 @@ LGPL v2
 - radiobutton
 - frame
 - Text input
+- TextBox
 - combo box
-- scale
+- Number spinner
 - Image
 - Slider
 - Progress bar
@@ -117,7 +128,11 @@ LGPL v2
 - Tabs
 - ScrolledWindow
 
+## Coordination System
 
+<img src="coordination_system.png" />
+
+Top window can scroll to any rectangular position by calling scroll_to() function. Scrolled_rect_ will be shown on the display. All widgets(including Window widget) in herits cv::Rect2i{x, y, width, height}. Basically widget position or mouse event will be calculated by relative position from first parent window. Scrolling will have no effect on these.
 
 ## Useful for 
 
@@ -133,6 +148,7 @@ LGPL v2
   - B : Button
   - C : CheckBox
   - T : Text Input
+  - E : Text Box
   - W : Window
   - P : Progress bar
   - S : Slider
@@ -140,7 +156,7 @@ LGPL v2
   - L : Label
   - Z : Custom Widget
   
-- Capital letter is followed by a number : this should be one digit and it is the index of this widget.
+- Capital letter is followed by a number : this should be one digit and it is the index of this widget. You can also use printable ascii characters after 9.(0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E .... | } ~)
 - Capital letter is followed by '------' : this determines the width of the widget.
 - Capital letter is followed by '|' vertically : this determines the height of the widget
 - the first line below the Capital letter contains some text and close with another ''|''

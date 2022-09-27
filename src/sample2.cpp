@@ -513,8 +513,8 @@ struct Win : z::AsciiWindow
 		| |파일 이름|            ||  |열기|   |저장|   |종료|
 		|
 		|
-		| B4------- L0----------------------       B;----------
-		| |정보|    ||                             |Gray|
+		| B4------- L0---------------------- B<--- B;----------
+		| |정보|    ||                       |New| |Gray|
 		|
 		|                                    
 		| I3-----------------------    I4------------------------
@@ -602,12 +602,21 @@ struct Win : z::AsciiWindow
 		B[9]->click([this](){ checkpoint[1].copyTo(m); show_info(); m.show(); });
 		B[5]->click([this](){ checkpoint[2].copyTo(m); show_info(); m.show(); });
 		B[11]->click([this]() { m.gray(); show_info(); m.show(); });
+		B[12]->click([this]() { 
+			newwin.mat_ = cv::imread(T[0]->value()); 
+			cout << newwin.mat_.cols << ' ' << newwin.mat_.rows << endl;
+			newwin.cv::Rect2i::operator=(cv::Rect2i{0, 0, newwin.mat_.cols, newwin.mat_.rows});
+			newwin.scrolled_rect_ = newwin;
+			newwin.open();
+		});
+		newwin.gui_callback_[cv::EVENT_LBUTTONUP] = [](int x, int y) { cout << x << ' ' << y << endl; };
 	}
 
 
 	YesNo yesno;
 	Info info;
 	CVMat m;
+	z::Window newwin{"New Window with event aceept", {0,0,100,100}};
 //	z::Label log{"Event Logging", cv::Rect2i{10, 1470, 300, 20}};
 	cv::Mat checkpoint[3];
 

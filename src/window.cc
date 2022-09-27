@@ -17,7 +17,10 @@ void mouse_callback(int event, int x, int y, int flags, void *ptr)
 	z::Widget *pw = nullptr;
 	for(auto w : *p) if(w->contains({x, y}) && w->activated()) pw = w;// assumption : zIndex increase/set 
 	for(auto w : *p) if(w != pw && w->focus()) w->focus(false);
-	if(!pw) return;
+	if(!pw) {
+		p->event_callback(event, x, y);
+		return;
+	}
 	if(!pw->focus()) pw->focus(true);
 
 	//if(event == cv::EVENT_MOUSEWHEEL) cout << cv::getMouseWheelDelta(flags) << endl;
@@ -33,12 +36,12 @@ void z::Window::focus(bool v)
 
 
 z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
-{/// @param title if window is the top window, title will be the window title.
+{/// @param title if window is the top window, this will be the window title.
  ///        else if window is embedded inside another window, 
  ///        window will be framed and title will be the frame title.
  ///        In case title == "", no frame will show.
- ///        If you manually embed window inside, you should set scrolled_rect_ = {0,0,0,0}
- /// @param r  window will occupy this rectangular space
+ /// @param r  window will occupy this rectangular space. If this window is not embedded inside
+ ///        other window x, y postions is not relevant.
 	title_ = title;
 	scrolled_rect_ = r;
 }
@@ -70,7 +73,7 @@ z::Window& z::Window::operator-(z::Widget &w)
 }
 
 void z::Window::move_widget(z::Widget &w, cv::Point2i p)
-{ /// move a widget that is already mounted
+{ /// move a widget that is already mounted. Just change the widget's xy position
 	if(p.x + w.width > width) p.x = width - w.width;
 	if(p.y + w.height > height) p.y = height - w.height;
 	if(p.x < 0 ) p.x = 0;
@@ -105,7 +108,8 @@ void z::Window::copy_widget_to_mat(const z::Widget &r)
 }
 
 void z::Window::organize_accordingto_zindex()
-{ ///for mouse event 
+{ /// sort widgets according to \ref zIndex_ and copy all widgets that is not hiddent to window matrix.
+	/// for mouse event 
 	std::sort(widgets_.begin(), widgets_.end(), [](auto a, auto b) { return a->zIndex() < b->zIndex();});
 	std::for_each(widgets_.begin(), widgets_.end(), 
 			[this](auto *a) {if(!a->hidden()) copy_widget_to_mat(*a); });
@@ -145,12 +149,12 @@ z::Window& z::Window::operator>>(z::Widget &r)
 }
 
 void z::Window::draw_all_wrapped()
-{
+{ /// draw all frames
 	for(auto a : wrapped_) draw_wrapped(a);
 }
 
 void z::Window::show()
-{
+{ /// show window and its components
 	if(parent_ == nullptr) cv::imshow(title_, mat_(scrolled_rect_));
 	else {
 		*parent_ << *this;
@@ -159,7 +163,7 @@ void z::Window::show()
 }
 
 void z::Window::close()
-{
+{ /// close all windows
 	cv::destroyWindow(title_);
 }
 

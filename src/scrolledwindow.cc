@@ -3,7 +3,7 @@
 using namespace std;
 
 void z::Window::scroll_to(cv::Rect2i r)
-{
+{ /// use this to scroll or resize window.
 	if((*this & r) == r) scrolled_rect_ = r;
 }
 
@@ -49,7 +49,7 @@ z::Handle::Handle() : Widget{{0,0,widget_size_,widget_size_}}, vh_{*this}, hh_{*
 
 void z::Handle::routine(int, int) {
 	mouse_down_ = false;
-	width = height = 30; // make sure that no drawing is performed during width, height change
+	width = height = widget_size_; // make sure that no drawing is performed during width, height change
 	position_widgets();
 	show_widgets();
 }
@@ -133,7 +133,7 @@ void z::VHandle::scroll_window(int ypos)
 
 void z::VHandle::on_register() 
 { // resize mat_, rect, equal to fullsize window height -> change x position
-	resize({parent_->scrolled_rect_.br().x - widget_width_, 0, widget_width_, parent_->height - 30});
+	resize({parent_->scrolled_rect_.br().x - widget_width_, 0, widget_width_, parent_->height - handle_.widget_size_});
 	draw();
 }
 
@@ -204,7 +204,7 @@ void z::HHandle::scroll_window(int xpos) {
 
 void z::HHandle::on_register()
 {
-	resize({0, parent_->scrolled_rect_.br().y - widget_height_, parent_->width - 30, widget_height_});
+	resize({0, parent_->scrolled_rect_.br().y - widget_height_, parent_->width - handle_.widget_size_, widget_height_});
 	draw();
 }
 

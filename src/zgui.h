@@ -22,7 +22,7 @@ class Widget : public cv::Rect_<int>
 {//base class for all widgets
 public:
 	Widget(cv::Rect_<int> r);
-	Widget &operator=(const Widget &r);
+	Widget& operator=(const Widget &r);
 	bool focus() const;
 	virtual void focus(bool);
 	virtual void event_callback(int event, int x, int y);
@@ -54,12 +54,16 @@ public:
 			cv::Vec3b upper_left = highlight_color_, cv::Vec3b lower_right = click_color_);
 
 protected:
-	float alpha_ = 1;
-	bool hidden_ = false, activated_ = true;
+	float alpha_ = 1;///< alpha value of widget. Widgets can be overlapped. Alpha value will be calculated in such cases.
+	bool hidden_ = false;///< if hidden, a widget will not show on window, but still can react to event.
+	bool activated_ = true;///< deactivated widget cannot get focus so that it cannot react to events.
 	static const cv::Vec3b background_color_, widget_color_, highlight_color_, click_color_;
-	bool focus_ = false;
-	static cv::Ptr<cv::freetype::FreeType2> ft2_;
-	int zIndex_ = 0;
+	bool focus_ = false;///< Only one widget can be focused except window widget. 
+											///< Window widget sholud be first focused to get its child widgets to be focused.
+											///< If there is no focused child widget, window widget's event callback will be called, 
+											///< if it is defined
+	static cv::Ptr<cv::freetype::FreeType2> ft2_;///< freetype2 font. CJK font needed
+	int zIndex_ = 0;///< higher zIndex widget will be in front of lower zIndex widget.
 };
 
 class Label : public Widget
