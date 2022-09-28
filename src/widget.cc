@@ -19,7 +19,7 @@ void z::Widget::shade_rect(cv::Rect2i r, int shade, cv::Vec3b color, cv::Vec3b u
 z::Widget::Widget(cv::Rect_<int> r)
 	: Rect_<int>{r}
 	, mat_(r.height, r.width)
-{
+{/// widget will be visible with the size and position of rectangle r
 	mat_ = background_color_;
 	if(!ft2_) {
 		ft2_ = cv::freetype::createFreeType2();
@@ -41,10 +41,11 @@ z::Widget& z::Widget::operator=(const z::Widget &r)
 	return *this;
 }
 
-bool z::Widget::focus() const {
+bool z::Widget::focus() const 
+{/// check if widget is currently focused or not. Focused widget wil get the keyboard input.
 	return focus_;
 }
-void z::Widget::focus(bool tf) {
+void z::Widget::focus(bool tf) {/// set focus
 	focus_ = tf;
 	if(!tf) {
 		if(gui_callback_.find(EVENT_LEAVE) != gui_callback_.end()) {

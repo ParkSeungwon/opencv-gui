@@ -89,7 +89,7 @@ HanjaTable* z::TextInput::table_ = hanja_table_load(NULL);
 bool z::TextInput::hangul_mode_ = false;
 
 z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
-{
+{/// create a TextInput with a position and size of r
 	draw();
 	gui_callback_[EVENT_KEYBOARD] = bind(&z::TextInput::key_event, this, _1, _2);
 	gui_callback_[EVENT_ENTER] = [this](int, int) { show_cursor(); };
@@ -241,7 +241,7 @@ void z::TextInput::enter(function<void(string)> f)
 }
 
 string z::TextInput::value() const
-{ /// return text inside
+{ /// gets the text inside TextInput
 	return fore_ + editting_ + back_;
 }
 

@@ -109,7 +109,7 @@ struct Win : z::AsciiWindow
 		scroll_to({0, 0, width/2, height / 2});
 		*this + h;
 		bt.zIndex(1);
-		B[2]->repaint(click_color_);
+		B[2]->draw(click_color_);
 		B[2]->activated(false);
 		start();
 

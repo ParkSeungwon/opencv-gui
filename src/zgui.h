@@ -18,8 +18,9 @@ namespace z {
 std::string source_loc(const std::source_location &location = std::source_location::current());
 class Window;
 
+/// base class for all widgets
 class Widget : public cv::Rect_<int>
-{//base class for all widgets
+{
 public:
 	Widget(cv::Rect_<int> r);
 	Widget& operator=(const Widget &r);
@@ -82,11 +83,9 @@ public:
 	Button(std::string text, cv::Rect_<int> r);
 	void click(std::function<void()> f);
 	void text(std::string s);
-	void repaint(cv::Vec3b color);
+	void draw(cv::Vec3b color = widget_color_, bool repaint = true);
 protected:
 	std::string text_;
-	void label();
-private:
 };
 
 class CheckBox : public Widget
@@ -184,7 +183,10 @@ public:
 	std::string title() const;
 	//void resize(cv::Rect2i r);
 	void tie(TextInput &t, Button &b, const std::vector<std::string> &v, int font_size);
-	template<class T> auto tie(TextInput &t, Button &b1, Button &b2, T start, T step) {
+	template<class T> auto tie(TextInput &t, Button &b1, Button &b2, T start, T step) 
+	{/// create a numeric spin button by tying a textinput and two buttons.
+	 /// @param start number to begin with
+	 /// @param step step to increase or decrease when buttons are clicked.
 		b1.text("\u25b2"); b2.text("\u25bc");
 		if(t.value() == "") t.value(std::to_string(start));
 		*this << b1; *this << b2; *this << t;
@@ -192,7 +194,10 @@ public:
 		b2.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) - step)); *this << t; show();});
 		return [&t]() { return to_number<T>(t.value()); };
 	}
-	template<class... T> void tabs(int xpos, int ypos, T&... wins) {
+	template<class... T> void tabs(int xpos, int ypos, T&... wins) 
+	{/// create a tab by combining multiple Womdows and will create tab navigation buttons on top
+	 /// @param xpos x position to create tab. 
+	 /// @param ypos y position to create tab. This is the Upper left postion of navigation button.
 		static TwoD<z::Window*> v;
 		static TwoD<std::shared_ptr<z::Button>> bts;
 		static std::vector<std::shared_ptr<z::Widget>> panels;
@@ -234,7 +239,8 @@ public:
 	void on_register();
 	bool is_window() const {return true;}
 	template<class... T> auto tie(T&... checks)
-	{//radio button
+	{/// create a radio button by combining multiple CheckBoxes. 
+	 /// RadioButton is a widget that allows one CheckBox to be selected at one time.
 		static std::vector<z::CheckBox*> v;
 		int k = sizeof...(checks);
 		int sz = v.size();
@@ -320,6 +326,7 @@ private:
 	friend class Handle;
 };
 
+/// add Handle for Scrolled Window. If you add Handle widget to a window, it will become a scrolled Window.
 class Handle : public Widget
 {
 public:

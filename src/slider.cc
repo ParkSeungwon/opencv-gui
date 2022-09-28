@@ -4,7 +4,10 @@ using namespace std;
 using namespace placeholders;
 
 z::Slider::Slider(cv::Rect2i r, int start, int end, int step) : z::Widget{r}
-{
+{/// create a Slider with size and position of r.
+ /// @param start left most value of slider
+ /// @param end right most value of slider
+ /// @param step to increase when you press a direction key.
 	start_ = start; end_ = end; step_ = step;
 	value((end - start) / 2);
 	logical_length_ = end_ - start_;
@@ -17,7 +20,7 @@ z::Slider::Slider(cv::Rect2i r, int start, int end, int step) : z::Widget{r}
 }
 
 void z::Slider::draw()
-{
+{/// draw the slider
 	mat_ = background_color_;
 	int r = min(width, height) / 3;
 	if(width > height) {
@@ -45,7 +48,7 @@ int z::Slider::to_val(int pos)
 }
 
 void z::Slider::value(int v)
-{
+{/// sets the value
 	if(v < start_) value_ = start_;
 	else if(v > end_) value_ = end_;
 	else value_ = v;
@@ -53,7 +56,7 @@ void z::Slider::value(int v)
 }
 
 int z::Slider::value()
-{
+{/// get current value
 	return value_;
 }
 

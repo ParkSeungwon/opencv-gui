@@ -53,9 +53,9 @@ public:
 		};
 	}
 	void clear(string s) {
-		mat_ = background_color_; 
+		mat_ = background_color_;
 		text_ = s;
-		label();
+		draw(background_color_, false);
 		update();
 	}
 };

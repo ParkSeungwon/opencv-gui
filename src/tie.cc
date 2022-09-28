@@ -20,8 +20,8 @@ struct Tie : z::Window {
 };
 
 void z::Window::tie(z::TextInput &t, z::Button &b, const vector<string> &v, int font)
-{//combobox
-  //static vector<string> v2 = v;
+{/// create a combobox by tying textinput and button b.
+ /// a popup window will appear with buttons of all the string in vector v.
 	static Tie vw{font, v};
 	b.text("\u25bc");
 	*this << b;

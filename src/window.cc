@@ -36,7 +36,8 @@ void z::Window::focus(bool v)
 
 
 z::Window::Window(string title, cv::Rect2i r) : z::Widget{r}
-{/// @param title if window is the top window, this will be the window title.
+{/// create a window with title and position and size of r.
+ /// @param title if window is the top window, this will be the window title.
  ///        else if window is embedded inside another window, 
  ///        window will be framed and title will be the frame title.
  ///        In case title == "", no frame will show.

@@ -40,3 +40,4 @@ core
 obj/catch
 catch
 *.avi
+doxygen/
