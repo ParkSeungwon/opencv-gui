@@ -46,7 +46,32 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 		art_.push_back(s);
 	}
 
-	for(auto &a : art_) { // CJK character correction
+	cjk_correction();
+
+	parsed_ = art_;//for parse check
+	for(auto &a : parsed_) for(auto &b : a) b = ' ';
+	height = art_.size() * unit_height;
+	width *= unit_width;
+	resize({x, y, width, height});
+	scrolled_rect_ = *this;
+
+	parse_art();
+	spdlog::debug("{} parsing end", z::source_loc());
+	//add to window
+	for(auto &a : B) *this + *a.get();
+	for(auto &a : L) *this + *a.get();
+	for(auto &a : S) *this + *a.get();
+	for(auto &a : C) *this + *a.get();
+	for(auto &a : T) *this + *a.get();
+	for(auto &a : I) *this + *a.get();
+	for(auto &a : P) *this + *a.get();
+	for(auto &a : E) *this + *a.get();
+	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
+}
+
+vois z::AsciiWindow::cjk_correction()
+{/// CJK character correction
+	for(auto &a : art_) { 
 		string s;
 		bool prev_cjk_ext = false;
 		int count = 0, to_del = 0, to_attach = 0;
@@ -70,26 +95,6 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 		a = s;
 		cout << a << endl;
 	}
-
-	parsed_ = art_;//for parse check
-	for(auto &a : parsed_) for(auto &b : a) b = ' ';
-	height = art_.size() * unit_height;
-	width *= unit_width;
-	resize({x, y, width, height});
-	scrolled_rect_ = *this;
-
-	parse_art();
-	spdlog::debug("{} parsing end", z::source_loc());
-	//add to window
-	for(auto &a : B) *this + *a.get();
-	for(auto &a : L) *this + *a.get();
-	for(auto &a : S) *this + *a.get();
-	for(auto &a : C) *this + *a.get();
-	for(auto &a : T) *this + *a.get();
-	for(auto &a : I) *this + *a.get();
-	for(auto &a : P) *this + *a.get();
-	for(auto &a : E) *this + *a.get();
-	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
 }
 
 void z::AsciiWindow::parse_art()

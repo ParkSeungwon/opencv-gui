@@ -454,6 +454,7 @@ private:
 	int get_size(char c);
 	bool parse_widget_area(int y, int x);
 	void parse_art();
+	void cjk_correction();
 	int uw_, uh_, margin_;
 	std::vector<std::string> art_, parsed_;
 };

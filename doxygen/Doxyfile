@@ -997,7 +997,12 @@ EXCLUDE_SYMBOLS        = YesNo \
                          TwoD \
                          Line \
                          PopupInterface \
-                         WButton
+                         WButton \
+                         Tie \
+                         VHandle \
+                         HHandle \
+                         TextInput2 \
+                         Wrapped
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include
