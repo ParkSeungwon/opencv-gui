@@ -556,7 +556,7 @@ struct Win : z::AsciiWindow
 			if(is_regular_file(p) && p.extension() == ".png" || p.extension() == ".jpg")
 				v.push_back(p.filename());
 		resize({0,0,width, 1500});
-		tie2("", 30, *T[0], *B[2], v);//combo box
+		tie(*T[0], *B[2], v, 30);//combo box
 		wrap("체크포인트1", 20, 10, *I[0], *B[7]);
 		wrap("체크포인트2", 20, 10, *I[1], *B[9]);
 		wrap("체크포인트3", 20, 10, *I[2], *B[5]);

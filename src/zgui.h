@@ -149,9 +149,14 @@ protected:
 };
 
 template<class T> auto to_number(std::string n) {
-	if constexpr(std::is_same_v<int, T>) return stoi(n);
-	else if constexpr(std::is_same_v<float, T>) return stof(n);
-	else if constexpr(std::is_same_v<double, T>) return stod(n);
+	try {
+		if constexpr(std::is_same_v<int, T>) return stoi(n);
+		else if constexpr(std::is_same_v<float, T>) return stof(n);
+		else if constexpr(std::is_same_v<double, T>) return stod(n);
+	} catch(...) {
+		T n = 0;
+		return n;
+	}
 }
 
 /** Window class houses all widgets including other windows */
@@ -178,8 +183,8 @@ public:
 	//void update(const Widget &r);
 	std::string title() const;
 	//void resize(cv::Rect2i r);
-	void tie2(std::string title, int font, TextInput &t, Button &b, const std::vector<std::string> &v);
-	template<class T> auto tie(TextInput &t, Button &b1, Button &b2, T start = 0, T step = 1) {
+	void tie(TextInput &t, Button &b, const std::vector<std::string> &v, int font_size);
+	template<class T> auto tie(TextInput &t, Button &b1, Button &b2, T start, T step) {
 		b1.text("\u25b2"); b2.text("\u25bc");
 		if(t.value() == "") t.value(std::to_string(start));
 		*this << b1; *this << b2; *this << t;
@@ -246,7 +251,8 @@ public:
 		};
 	}
 	template<class... T> void wrap(const char* title, int font, int N, const T&... widgets)
-	{//N : margin, font : font height
+	{/// @parma N margin. 
+	 /// @param font font height
 		std::vector<int> xs, ys;
 		(xs.push_back(widgets.x), ...);
 		(xs.push_back(widgets.br().x), ...);
@@ -371,6 +377,7 @@ public:
 	void set_max_character(int max);
 	std::string type() const {return "TextBox";}
 	std::string value() const;
+	void value(std::string s);
 protected:
 	int top_line_index_ = 0, focus_line_ = 0;
 	std::list<Line> contents_;

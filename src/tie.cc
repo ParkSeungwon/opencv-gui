@@ -1,8 +1,8 @@
 #include"zgui.h"
 using namespace std;
 
-struct Tie2 : z::Window {
-	Tie2(string title, int font, vector<string> v) : z::Window{title, {0,0,1,1}} {
+struct Tie : z::Window {
+	Tie(int font, vector<string> v) : z::Window{"", {0,0,1,1}} {
 		int length = 0;
 		for(int i=0, base=0; i<v.size(); i++) {
 			int k = ft2_->getTextSize(v[i], font, -1, &base).width;
@@ -19,10 +19,10 @@ struct Tie2 : z::Window {
 	vector<shared_ptr<z::Button>> bts;
 };
 
-void z::Window::tie2(string title, int font, z::TextInput &t, z::Button &b, const vector<string> &v)
+void z::Window::tie(z::TextInput &t, z::Button &b, const vector<string> &v, int font)
 {//combobox
   //static vector<string> v2 = v;
-	static Tie2 vw{title, font, v};
+	static Tie vw{font, v};
 	b.text("\u25bc");
 	*this << b;
 	vw.x = t.x; vw.y = t.y + font;

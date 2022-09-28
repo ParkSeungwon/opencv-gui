@@ -151,9 +151,13 @@ bool z::AsciiWindow::parse_widget_area(int y, int x)
 		case 'I': I.emplace_back(make_shared<z::Image>(r));
 							if(text != "") *I.back() = cv::imread(text);
 							break;
-		case 'P': P.emplace_back(make_shared<z::Progress>(r)); break;
+		case 'P': P.emplace_back(make_shared<z::Progress>(r)); 
+							if(text != "") P.back()->value(stoi(text));
+							break;
 		case 'Z': Z.emplace_back(make_shared<z::Widget>(r)); break;
-		case 'E': E.emplace_back(make_shared<z::TextBox>(r, h/2)); break;
+		case 'E': E.emplace_back(make_shared<z::TextBox>(r, h/2)); 
+							E.back()->value(text);
+							break;
 	}
 	return true;
 }

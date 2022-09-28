@@ -130,7 +130,7 @@ z::Window& z::Window::operator<<(z::Widget &r)
 }
 
 z::Window& z::Window::operator>>(z::Widget &r)
-{ /// remove from \ref mat_
+{ /// remove from \ref mat_. sets \ref hidden_ value to true.
 	r.hidden(true);
 	if(!contains(r.tl())) return *this;
 	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
@@ -168,7 +168,7 @@ void z::Window::close()
 }
 
 void z::Window::popup(z::Window &w, std::function<void(int)> f) 
-{/// show popup window on window w, and register result function
+{/// show popup window on window w, and register result function.
  /// \ref popdown function will hand over int value to f.
 	z::Window *p = &w;
 	while(p->parent_ != nullptr) {

@@ -1,3 +1,4 @@
+#include<ranges>
 #include<opencv2/opencv.hpp>
 #include"zgui.h"
 #define BACKSPACE 8//65288 //8
@@ -551,6 +552,10 @@ z::Line z::TextInput2::line() const
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
 { 
+	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) {
+		auto it = std::find_if(inputs_.rbegin(), inputs_.rend(), [](auto a) { return a->activated(); });
+		(*it)->focus(true);
+	};
 	contents_.push_back(Line{});
 	int h = height / lines;
 	for(int i=0; i<lines; i++) 
@@ -578,3 +583,22 @@ std::string z::TextBox::value() const
 	return r;
 }
 
+std::vector <std::string> split(std::string_view str, std::string_view delim) {
+	auto view{ str
+	| std::ranges::views::split(delim)
+	| std::ranges::views::transform([](auto&& elem) {
+			return std::string_view(&*elem.begin(), std::ranges::distance(elem));
+	}) };
+
+	std::vector<std::string> strings{ view.begin(), view.end() };
+	return strings;
+}
+
+void z::TextBox::value(string s) 
+{
+	auto v = split(s, "\n");
+	for(auto a : v) contents_.push_back({a, "", "", true});
+	if(contents_.size() > 1) contents_.pop_front();
+	inputs_[0]->down_stream(contents_.begin());
+	update();
+}

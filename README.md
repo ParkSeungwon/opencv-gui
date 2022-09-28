@@ -1,4 +1,4 @@
-# OpenCV GUI
+# OpenCV zGUI
 
 ## License
 
