@@ -10,6 +10,8 @@ LGPL v2
 
 - Cross platform : can be compiled on every platform that supports opencv
 
+- Easy to use
+
 - Event driven, no polling, less CPU
 
 - ASCII art style GUI compose(you can also make GUI by giving coordinations)
@@ -128,7 +130,7 @@ First line of font.dat file should point to CJK font file path.
 - Tabs
 - ScrolledWindow
 
-## Coordination System
+## Coordinate System
 
 <img src="coordination_system.png" />
 
@@ -168,6 +170,162 @@ Top window can scroll to any rectangular position by calling scroll_to() functio
 ## Widget Hierachy
 
 ![](dot/graph.png)
+
+## Tutorial
+
+#### 1. Hello World
+
+```c++
+#include<iostream>
+#include"src/zgui.h"
+using namespace std;
+
+struct Win : z::AsciiWindow 
+{
+	Win() : z::AsciiWindow{R"(
+	  WHello World----------------
+	  | T0-------------------
+	  | |Enter your name|
+	  | B0-------------
+	  | |Hello|
+	  |)"}
+	{
+		start();
+		B[0]->click([this]() { cout << "Hello " << T[0]->value() << endl; });
+	}
+};
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/1.png)
+
+#### 2. Basic Widget Gallery
+
+```c++
+#include"src/zgui.h"
+using namespace std;
+
+struct Win : z::AsciiWindow 
+{
+	Win() : z::AsciiWindow{R"(
+		WBasic Widget Gallery------------------
+		|  L0-----B0-------C0- T0--------------
+		|  |Label||Button| |v| |TextInput| 
+		|  S0---------------  P0-------------
+		|  |1 100 1|          |333|
+		|  E0---------------------------------
+		|  |Text Box|
+		|  |
+		|  |
+		|)"}
+	{
+		start();
+	}
+};
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/2.png)
+
+#### 3. Combined Widgets
+
+```c++
+#include<iostream>
+#include"src/zgui.h"
+using namespace std;
+
+struct Win : z::AsciiWindow 
+{
+	Win() : z::AsciiWindow{R"(
+		WCombined Widgets----------------
+		|  T0-------------B0  T1------B1
+		|  ||             ||  ||      B2
+		|
+		|
+		|    C0-   C1-   C2-    B3------
+		|    ||    ||    |v|    |values|
+		|)"}
+	{
+		static vector<string> v{"abc", "def", "ghi"};
+		tie(*T[0], *B[0], v, 30);
+		auto f1 = tie(*T[1], *B[1], *B[2], 0, 1);
+		auto f2 = tie(*C[0], *C[1], *C[2]);
+		wrap("Radio Button", 20, 10, *C[0], *C[1], *C[2]);
+		start();
+		B[3]->click([this, f1, f2]() {
+			cout << "combo box value : " << T[0]->value() << endl;
+			cout << "Number spinner value: " << f1() << endl;
+			cout << "Radio button value: " << f2() << endl;
+		});
+	}
+};
+
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/3.png)
+
+#### 4. Tabs
+
+```c++
+#include"src/zgui.h"
+using namespace std;
+
+struct Win : z::Window 
+{
+	struct Tab1 : z::AsciiWindow {
+		Tab1() : z::AsciiWindow{R"(
+			WTab1----------------
+			|
+			|
+			|   L0-------------
+			|   |TAB1|
+			|
+			|)"}
+		{ 
+			organize_accordingto_zindex(); 
+		}
+	} tab1;
+	struct Tab2 : z::AsciiWindow{
+		Tab2() : z::AsciiWindow{R"(
+		  WTab2------------------
+			|
+			|
+			|   L0--------------
+			|   |TAB2|
+			|
+			|)"}
+		{ 
+			organize_accordingto_zindex();
+		}
+	} tab2;
+	Win() : z::Window{"Tab Example", {0, 0, 300, 200}}
+	{
+		tabs(10, 10, tab1, tab2);
+		start();
+	}
+};
+
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/4.png)
 
 ## Reference
 
