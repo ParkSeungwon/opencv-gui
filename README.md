@@ -162,10 +162,13 @@ Top window can scroll to any rectangular position by calling scroll_to() functio
 - Capital letter is followed by '------' : this determines the width of the widget.
 - Capital letter is followed by '|' vertically : this determines the height of the widget
 - the first line below the Capital letter contains some text and close with another ''|''
-  - this is the text of the widget 
-  - Exceptionally in slider widget, it is start, end, step separated by space.
-  - in Checkbox widget, v should be used to indicate that it is checked.
+  - Usuall this is the text of the widget 
+  - In slider widget, it is start, end, step separated by space.
+  - in Checkbox widget, 'v' should be used to indicate that it is checked.
 - Window size should include all the child widgets.
+- never use tabs inside window.  Only use space.
+- pitfall: if you use n CJK characters inside | |, next opening '|' should be n spaces away from closing '|'. |한글이다| <---at least 4space --> |next|
+- any number after capital letters should not leap. (B0, B2 : error) (B0, B1, B2: ok). But appearing sequence does not matter.
 
 ## Widget Hierachy
 
@@ -326,6 +329,32 @@ int main() {
 ```
 
 ![](image/4.png)
+
+#### 5. Scrolled Window
+
+```c++
+#include"src/zgui.h"
+using namespace std;
+
+struct Win : z::Window 
+{
+	Win() : z::Window{"Scrolled Window Example", {0, 0, 800, 800} }
+	{
+		scroll_to({0, 0, 400, 400});// before adding handle
+		*this + label + handle;
+		start();
+    }
+	z::Handle handle;
+	z::Label label{"Center", {300, 300, 100, 30}};
+};
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/5.png)
 
 ## Reference
 

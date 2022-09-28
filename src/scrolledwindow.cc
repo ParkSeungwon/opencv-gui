@@ -113,24 +113,6 @@ z::VHandle::VHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 	};
 }
 
-int z::VHandle::scroll_delta(int yd) {
-	auto &r = parent_->scrolled_rect_;
-	int prev = r.y;
-	r.y += yd;
-	r.y = std::max(0, r.y);
-	r.y = std::min(parent_->height - r.height, r.y);
-	return r.y - prev;
-}
-
-void z::VHandle::scroll_window(int ypos) 
-{
-	auto &r = parent_->scrolled_rect_;
-	float ratio = float{r.height} / parent_->height;
-	int half = ratio * parent_->height / 2;
-	r.y = std::max(0, parent_->height * (ypos - r.y) / r.height - half) ;
-	r.y = std::min(parent_->height - r.height, r.y);
-}
-
 void z::VHandle::on_register() 
 { // resize mat_, rect, equal to fullsize window height -> change x position
 	resize({parent_->scrolled_rect_.br().x - widget_width_, 0, widget_width_, parent_->height - handle_.widget_size_});
@@ -176,7 +158,7 @@ z::HHandle::HHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 		handle_.position_widgets();
 		handle_.show_widgets();
 	};
-	gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this] (int, int xpos) {
+	gui_callback_[cv::EVENT_LBUTTONDBLCLK] = [this] (int xpos, int) {
 		scroll_window(xpos);
 		draw();
 		*parent_ >> handle_ >> handle_.vh_;
@@ -184,6 +166,24 @@ z::HHandle::HHandle(Handle &h) : z::Widget{{0,0,1,1}}, handle_{h}
 		handle_.show_widgets();
 	};
 }
+
+int z::VHandle::scroll_delta(int yd) {
+	auto &r = parent_->scrolled_rect_;
+	int prev = r.y;
+	r.y += yd;
+	r.y = std::max(0, r.y);
+	r.y = std::min(parent_->height - r.height, r.y);
+	return r.y - prev;
+}
+
+void z::VHandle::scroll_window(int ypos) 
+{
+	auto &r = parent_->scrolled_rect_;
+	float ratio = float{r.height} / parent_->height;
+	r.y = std::max(0, parent_->height * (ypos - r.y) / r.height - r.height / 2) ;
+	r.y = std::min(parent_->height - r.height, r.y);
+}
+
 
 int z::HHandle::scroll_delta(int xd) {
 	auto &r = parent_->scrolled_rect_;
@@ -197,8 +197,7 @@ int z::HHandle::scroll_delta(int xd) {
 void z::HHandle::scroll_window(int xpos) {
 	auto &r = parent_->scrolled_rect_;
 	float ratio = float{r.width} / parent_->width;
-	int half = ratio * parent_->width / 2;
-	r.x = std::max(0, parent_->width * (xpos - r.x) / r.width - half) ;
+	r.x = std::max(0, parent_->width * (xpos - r.x) / r.width - r.width / 2) ;
 	r.x = std::min(parent_->width - r.width, r.x);
 }
 

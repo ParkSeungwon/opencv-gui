@@ -1,10 +1,12 @@
 digraph {
 	Widget -> Label;
 	Widget -> Button;
-	Widget -> Text_Input;
+	Widget -> TextInput -> TextInput2
+	TextInput2 -> TextBox[arrowhead = box];
 	Widget -> Progress_bar;
 	Widget -> Slider;
 	Widget -> Image;
 	Widget -> Checkbox;
 	Widget -> Window -> AsciiWindow;
+	Window -> TextBox;
 }
