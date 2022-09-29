@@ -17,7 +17,7 @@ LGPL v2
 - ASCII art style GUI compose(you can also make GUI by giving coordinations)
 
   ```c++
-#include<iostream>
+  #include<iostream>
   #include"src/zgui.h"
   using namespace std;
   
@@ -43,6 +43,7 @@ LGPL v2
   }
   ```
   
+
 ![](image/1.png)
 
 
