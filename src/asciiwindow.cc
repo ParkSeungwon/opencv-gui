@@ -30,7 +30,6 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
  /// 				If you want to make a bigger widget increase this.
  /// @param unit_height height in pixel that one ascii art character will occupy
  /// @param margin margin space around window 
-	spdlog::debug("{} parsing started {}", z::source_loc(), p);
 	uw_ = unit_width; uh_ = unit_height; margin_ = margin;
 	width = 1;
 	while(*p != 'W') p++;
@@ -56,7 +55,6 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	scrolled_rect_ = *this;
 
 	parse_art();
-	spdlog::debug("{} parsing end", z::source_loc());
 	//add to window
 	for(auto &a : B) *this + *a.get();
 	for(auto &a : L) *this + *a.get();

@@ -1,5 +1,5 @@
 CXX = g++
-PKGS = opencv4 libhangul spdlog
+PKGS = opencv4 libhangul
 CPPFLAGS = -I../ -pthread
 CXXFLAGS = -g -c -w -std=c++23 -fmax-errors=1 $(shell pkg-config --cflags $(PKGS) )
 DIR = $(notdir $(shell pwd))

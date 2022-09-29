@@ -464,10 +464,6 @@ void z::TextInput2::up()
 	}
 }
 
-void print(z::Line a) {
-	spdlog::debug("Line {} {} {} {}", a.fore, a.editting, a.back, a.new_line);
-}
-
 void z::TextInput2::down_stream(iter reset_it, int level)
 { /// next->down_stream(it), reorder textinput2s downward
 	set_iter(reset_it);

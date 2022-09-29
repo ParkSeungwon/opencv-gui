@@ -1,7 +1,7 @@
 CXX = g++
 OBJ = $(wildcard *.o)
 TOBJ = $(wildcard *.t)
-PKGS = opencv4 zbar libhangul spdlog
+PKGS = opencv4 zbar libhangul
 EXE = $(patsubst %.x, ../%.x, $(wildcard *.x))
 LDFLAGS = #-Wl,-rpath=.
 LDLIBS = $(shell pkg-config --libs $(PKGS)) -pthread

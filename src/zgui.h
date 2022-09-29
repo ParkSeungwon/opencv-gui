@@ -2,7 +2,6 @@
 #include<map>
 #include<type_traits>
 #include<functional>
-#include<spdlog/spdlog.h>
 #include<source_location>
 #include<opencv2/highgui.hpp>
 #include<opencv2/freetype.hpp>

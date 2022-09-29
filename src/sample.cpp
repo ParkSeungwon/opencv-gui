@@ -161,7 +161,6 @@ struct Win : z::AsciiWindow
 
 int main()
 {
-	spdlog::set_level(spdlog::level::debug);
 	Win win;
 	win.loop();
 }
