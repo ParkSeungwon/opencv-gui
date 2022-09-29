@@ -425,7 +425,7 @@ int main() {
 
 #### 7. Window with normal cv::Mat
 
-If you want to get mouse event or keyboard event with opened cv::Mat. You should make a window and use 'load_matrix', 'open' function. If you don't want to get event from the cv::Mat, just use imshow("title", matrix).
+If you want to get mouse event or keyboard event with opened cv::Mat. You should make a window and use 'load_matrix', 'open' function. If you don't want to get event from the cv::Mat, just use imshow("title", matrix). 
 
 ```c++
 #include<iostream>
