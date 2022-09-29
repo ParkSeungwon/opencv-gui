@@ -333,6 +333,140 @@ int main() {
 
 ![](image/5.png)
 
+#### 5. Popup Window
+
+```c++
+#include<iostream>
+#include"src/zgui.h"
+using namespace std;
+
+struct Popup : z::AsciiWindow
+{
+	Popup() : z::AsciiWindow {R"(
+		W-----------
+		|
+		|  B0-----
+		|  |OK|
+		|)"}
+	{
+		organize_accordingto_zindex();
+		B[0]->click([this]() { popdown(7); });
+	} 
+};
+
+struct Win : z::AsciiWindow 
+{
+	Popup pop;
+	Win() : z::AsciiWindow{R"(
+	  WPopup Example----------
+		|
+		|   B0--------------
+		|   |Popup|
+		|
+		|)"}
+	{
+		start();
+		B[0]->click( [this]() { 
+			pop.popup ( *this , [](int i) { cout << i << endl;} );//7
+		});
+	}
+};
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/6.gif)
+
+#### 6. Multiple Windows
+
+```c++
+#include<iostream>
+#include"src/zgui.h"
+using namespace std;
+
+struct NewWin : z::AsciiWindow
+{
+	NewWin() : z::AsciiWindow{R"(
+    WNew------------------
+		|  B0----------------
+		|  |A new window|
+		|)"}
+	{
+		organize_accordingto_zindex();
+		B[0]->click([this](){quit(7);});
+	}
+};
+
+struct Win : z::AsciiWindow
+{
+	Win() : z::AsciiWindow{R"(
+	  WMultiple Window example------------
+		|
+		|  B0---------------
+		|  |New Window|
+		|)"}
+	{
+		start();
+		B[0]->click([this]() { if(w.open()==7) cout << "closed" << endl; });
+	}
+	NewWin w;
+};
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/7.png)
+
+#### 7. Window with normal cv::Mat
+
+```c++
+#include<iostream>
+#include"src/zgui.h"
+using namespace std;
+
+struct NewWin : z::Window
+{
+	NewWin() : z::Window{"title", {0,0,1,1}}
+	{
+		gui_callback_[cv::EVENT_LBUTTONUP] = [this](int x, int y) {
+			cv::circle(mat_, {x, y}, 30, {255, 0, 0}, 3);
+			show();
+		};
+	}
+};
+
+struct Win : z::AsciiWindow
+{
+	Win() : z::AsciiWindow{R"(
+	  WMatrix Window exmaple------------
+		|
+		|  B0---------------
+		|  |New Window|
+		|)"}
+	{
+		start();
+		B[0]->click([this]() { 
+            w.load_matrix( cv::imread("Lenna.png")); 
+            w.open(); 
+        });
+	}
+	NewWin w;
+};
+
+int main() {
+	Win win;
+	win.loop();
+}
+```
+
+![](image/8.png)
+
 ## Reference
 
 [Documentation](http://gui.zeta2374.com)

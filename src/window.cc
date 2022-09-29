@@ -285,3 +285,11 @@ void z::Window::on_register()
 	}
 	scrolled_rect_ = {0,0,0,0};
 }
+
+void z::Window::load_matrix(cv::Mat m)
+{
+	mat_ = m;
+	width = m.cols;
+	height = m.rows;
+	scrolled_rect_ = *this;
+}

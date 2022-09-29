@@ -69,7 +69,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
 }
 
-vois z::AsciiWindow::cjk_correction()
+void z::AsciiWindow::cjk_correction()
 {/// CJK character correction
 	for(auto &a : art_) { 
 		string s;

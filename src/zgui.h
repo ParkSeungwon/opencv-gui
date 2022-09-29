@@ -170,6 +170,7 @@ public:
 	int open(int flag = cv::WINDOW_AUTOSIZE, int x = -1, int y = -1);
 	void quit(int r);
 	void focus(bool v);
+	void load_matrix(cv::Mat m);
 	Window &operator+(Widget &w);
 	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
