@@ -425,6 +425,8 @@ int main() {
 
 #### 7. Window with normal cv::Mat
 
+If you want to get mouse event or keyboard event with opened cv::Mat. You should make a window and use 'load_matrix', 'open' function. If you don't want to get event from the cv::Mat, just use imshow("title", matrix).
+
 ```c++
 #include<iostream>
 #include"src/zgui.h"
@@ -446,8 +448,11 @@ struct Win : z::AsciiWindow
 	Win() : z::AsciiWindow{R"(
 	  WMatrix Window exmaple------------
 		|
-		|  B0---------------
-		|  |New Window|
+		|  B0----------------------
+		|  |Window with event|
+		|
+		|  B1-----------------------
+		|  |Just show the image|
 		|)"}
 	{
 		start();
@@ -455,6 +460,7 @@ struct Win : z::AsciiWindow
             w.load_matrix( cv::imread("Lenna.png")); 
             w.open(); 
         });
+		B[1]->click([this]() { imshow("image", cv::imread("len.jpg")); });
 	}
 	NewWin w;
 };

@@ -18,12 +18,16 @@ struct Win : z::AsciiWindow
 	Win() : z::AsciiWindow{R"(
 	  WMatrix Window exmaple------------
 		|
-		|  B0---------------
-		|  |New Window|
+		|  B0----------------------
+		|  |Window with event|
+		|
+		|  B1-----------------------
+		|  |Just show the image|
 		|)"}
 	{
 		start();
 		B[0]->click([this]() { w.load_matrix( cv::imread("Lenna.png")); w.open(); });
+		B[1]->click([this]() { imshow("image", cv::imread("len.jpg")); });
 	}
 	NewWin w;
 };
