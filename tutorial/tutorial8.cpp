@@ -27,7 +27,7 @@ struct Win : z::AsciiWindow
 	{
 		start();
 		B[0]->click([this]() { w.load_matrix( cv::imread("Lenna.png")); w.open(); });
-		B[1]->click([this]() { imshow("image", cv::imread("len.jpg")); });
+		B[1]->click([this]() { cv::imshow("image", cv::imread("len.jpg")); });
 	}
 	NewWin w;
 };

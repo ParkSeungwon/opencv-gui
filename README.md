@@ -23,18 +23,18 @@ LGPL v2
   
   struct Win : z::AsciiWindow 
   {
-  	Win() : z::AsciiWindow{R"(
-  	  WHello World----------------
-  	  | T0-------------------
-  	  | |Enter your name|
-  	  | B0-------------
-  	  | |Hello|
-  	  |)"}
-  	{
-  		start();
-  		B[0]->click([this]() { 
-              cout << "Hello " << T[0]->value() << endl; });
-  	}
+    Win() : z::AsciiWindow{R"(
+      WHello World----------------
+  	| T0-------------------
+  	| |Enter your name|
+  	| B0-------------
+  	| |Hello|
+  	|)"}
+    {
+  	start();
+  	B[0]->click([this]() { 
+        cout << "Hello " << T[0]->value() << endl; });
+    }
   };
   
   int main() {
@@ -174,7 +174,7 @@ Top window can scroll to any rectangular position by calling scroll_to() functio
 - Window size should include all the child widgets.
 - never use tabs inside window.  Only use space.
 - pitfall: if you use n CJK characters inside | |, next opening '|' should be n spaces away from closing '|'. |한글이다| <---at least 4space --> |next|
-- any number after capital letters should not leap. (B0, B2 : error) (B0, B1, B2: ok). But appearing sequence does not matter.
+- any number after capital letters should not leap. (B0, B2 : error) (B0, B2, B1: ok). But appearing sequence does not matter.
 
 ## Widget Hierachy
 
