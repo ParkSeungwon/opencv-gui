@@ -370,7 +370,8 @@ private:
 	void down_stream(iter it, int level = 0);///< call with inserted node iterator
 	void up_stream(iter it);
 	bool on_overflow(std::string fore, std::string editting, std::string back);
-	void up(), down(), new_line();
+	void up(), down(), new_line(), pgup(), pgdn();
+	int chain_size() const;
 	bool del(), backsp();
 	void keyboard_callback(int, int);
 	bool is_end() const { return contents_ptr_->end() == it_;}

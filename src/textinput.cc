@@ -149,6 +149,10 @@ void z::TextInput::key_event(int key, int)
 		case HANJA: hanja(); return;
 		case LSHIFT: return;
 		case RSHIFT: return;
+		case HOME: back_ = fore_ + editting_ + back_; fore_ = ""; editting_ = ""; 
+							 draw(); show_cursor(); return;
+		case END: fore_ += editting_ + back_; editting_ = ""; back_ = ""; 
+							draw(); show_cursor(); return;
 	}
 
 	if(hangul_mode_) {
@@ -350,6 +354,8 @@ void z::TextInput2::keyboard_callback(int key, int)
 		case DOWN: down(); break;
 		case UP: up(); break;
 		case ENTER: new_line(); break;
+		case PGUP: pgup(); break;
+		case PGDN: pgdn(); break;
 	}
 }
 
@@ -464,14 +470,55 @@ void z::TextInput2::up()
 	}
 }
 
+void z::TextInput2::pgup()
+{
+	*it_ = line();
+	focus(false);
+	z::TextInput2 *p = this;
+	while(p->prev_) p = p->prev_;
+	p->focus(true);
+	for(int i=0; i<chain_size() && p->it_ != contents_ptr_->begin(); i++) p->it_--;
+	p->down_stream(p->it_);
+	p->show_cursor();
+	p->update();
+}
+void z::TextInput2::pgdn()
+{
+	*it_ = line();
+	focus(false);
+	z::TextInput2 *p = this;
+	while(p->prev_) p = p->prev_;
+	for(int i=0; i<chain_size() && p->it_ != --contents_ptr_->end(); i++) p->it_++;
+	p->down_stream(p->it_);
+	while(p->next_ && p->it_ != --contents_ptr_->end()) p = p->next_;
+	p->focus(true);
+	p->show_cursor();
+	p->update();
+}
+int z::TextInput2::chain_size() const 
+{
+	int i = 0;
+	const z::TextInput2 *p = this;
+	for(; p->prev_; i++) p = p->prev_;
+	p = this;
+	for(; p->next_; i++) p = p->next_;
+	return i;
+}
+
 void z::TextInput2::down_stream(iter reset_it, int level)
 { /// next->down_stream(it), reorder textinput2s downward
 	set_iter(reset_it);
 	if(!is_end()) line(*it_);
-	else line({"", "", "", false});
+	else {
+		line({"", "", "", false});
+		activated(false);
+	}
 	draw();
 	*parent_ << *this;
-	if(next_ != nullptr && reset_it != contents_ptr_->end()) next_->down_stream(++reset_it, level + 1);
+	if(next_ != nullptr) {
+		if(reset_it != contents_ptr_->end()) next_->down_stream(++reset_it, level + 1);
+		else next_->down_stream(reset_it, level + 1);
+	}
 }
 
 void z::TextInput2::up_stream(iter reset_it)
