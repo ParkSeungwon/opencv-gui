@@ -292,8 +292,9 @@ void CVMat::contain_resize(int w, int h)
 	} else cv::resize(*this, *this, cv::Size(w, h), cv::INTER_LINEAR);
 }
 
-void CVMat::imread(string s) {
+CVMat CVMat::imread(string s) {
 	*this = cv::imread(s);
+	return *this;
 }
 
 void CVMat::imwrite(string s) {

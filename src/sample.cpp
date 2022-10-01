@@ -474,6 +474,10 @@ struct Win : z::AsciiWindow
 			|  L2------ T2------B5                   B7--------
 			|  |회전|   ||      B6                   |변환|
 			|
+			|  
+			|  L3---------------- B8--------- B9----
+			|  |For New Win Only| |Crop|      |Save|
+			| 
 			|  E0---------------------------------------------
 			|  ||
 			|  |
@@ -481,10 +485,6 @@ struct Win : z::AsciiWindow
 			|  |
 			|  |
 			|  |
-			|  |
-			|  |
-			|  |
-			|
 			|)"}
 		{
 			auto scalex = tie(*T[0], *B[0], *B[1], 1., 0.1);
@@ -502,10 +502,51 @@ struct Win : z::AsciiWindow
 				win.m.show();
 				win.show_info();
 			});
+			B[8]->click([this]() {
+				win.newwin.restore();
+				win.newwin.load_matrix(win.newwin.mat_({win.newwin.ul, win.newwin.br}));
+				win.newwin.show();
+			});
+			B[9]->click([this]() {
+					cv::imwrite("cropped.png", win.newwin.mat_);
+			});
 		}
 		Win &win;
 	} trans{*this};
 
+	struct NewWin : z::Window
+	{
+		NewWin() : z::Window{"title", {0,0,1,1}}
+		{
+			gui_callback_[cv::EVENT_LBUTTONDOWN] = [this](int x, int y) {
+				ul = cv::Point2i{x, y};
+				pressed = true;
+			};
+			gui_callback_[cv::EVENT_MOUSEMOVE] = [this](int x, int y) {
+				if(pressed) {
+					restore();
+					cv::rectangle(mat_, {ul, cv::Point2i{x, y}}, {255, 0, 0}, 1);
+					show();
+				}
+			};
+			gui_callback_[cv::EVENT_LBUTTONUP] = [this](int x, int y) {
+				pressed = false;
+				restore();
+				br = cv::Point2i{x, y};
+				cv::rectangle(mat_, {ul, br}, {255, 0, 0}, 1);
+				show();
+			};
+		}
+		void save() {
+			mat_.copyTo(m);
+		}
+		void restore() {
+			m.copyTo(mat_);
+		}
+		cv::Mat m;
+		bool pressed = false;
+		cv::Point2i ul, br;
+	} newwin;
 	Win() : z::AsciiWindow{R"(
 		WOpenCV Tuning Shop----------------------------------------
 		|
@@ -603,21 +644,16 @@ struct Win : z::AsciiWindow
 		B[5]->click([this](){ checkpoint[2].copyTo(m); show_info(); m.show(); });
 		B[11]->click([this]() { m.gray(); show_info(); m.show(); });
 		B[12]->click([this]() { 
-			newwin.mat_ = cv::imread(T[0]->value()); 
-			cout << newwin.mat_.cols << ' ' << newwin.mat_.rows << endl;
-			newwin.cv::Rect2i::operator=(cv::Rect2i{0, 0, newwin.mat_.cols, newwin.mat_.rows});
-			newwin.scrolled_rect_ = newwin;
+			newwin.load_matrix(cv::imread(T[0]->value())); 
+			newwin.save();
 			newwin.open();
 		});
-		newwin.gui_callback_[cv::EVENT_LBUTTONUP] = [](int x, int y) { cout << x << ' ' << y << endl; };
 	}
 
 
 	YesNo yesno;
 	Info info;
 	CVMat m;
-	z::Window newwin{"New Window with event aceept", {0,0,100,100}};
-//	z::Label log{"Event Logging", cv::Rect2i{10, 1470, 300, 20}};
 	cv::Mat checkpoint[3];
 
 	void show_info() {

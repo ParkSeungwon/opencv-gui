@@ -42,7 +42,7 @@ public:
 		return p + ((y * cols + x) * channels());
 	}
 
-	void imread(std::string filename);
+	CVMat imread(std::string filename);
 	void imwrite(std::string filename);
 	void gray();
 	void scale(float x, float y);
