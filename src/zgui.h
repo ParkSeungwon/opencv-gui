@@ -194,6 +194,24 @@ public:
 		b2.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) - step)); *this << t; show();});
 		return [&t]() { return to_number<T>(t.value()); };
 	}
+	template<class... T> auto tie(T&... checks)
+	{/// create a radio button by combining multiple CheckBoxes. 
+	 /// RadioButton is a widget that allows one CheckBox to be selected at one time.
+		static std::vector<z::CheckBox*> v;
+		int k = sizeof...(checks);
+		int sz = v.size();
+		(v.push_back(&checks), ...);
+		for(int i=sz; i < sz + k; i++) v[i]->on_change([i, k, sz, this](bool) {
+					for(int j=sz; j < sz + k; j++) {
+						if(i != j) v[j]->checked(false);
+						else v[j]->checked(true);
+						v[j]->update();
+					}
+				});
+		return [sz, k, &v]() {
+			for(int i=sz; i<sz+k; i++) if(v[i]->checked()) return i - sz;
+		};
+	}
 	template<class... T> void tabs(int xpos, int ypos, T&... wins) 
 	{/// create a tab by combining multiple Womdows and will create tab navigation buttons on top
 	 /// @param xpos x position to create tab. 
@@ -238,24 +256,6 @@ public:
 	void move_widget(Widget &w, cv::Point2i p);
 	void on_register();
 	bool is_window() const {return true;}
-	template<class... T> auto tie(T&... checks)
-	{/// create a radio button by combining multiple CheckBoxes. 
-	 /// RadioButton is a widget that allows one CheckBox to be selected at one time.
-		static std::vector<z::CheckBox*> v;
-		int k = sizeof...(checks);
-		int sz = v.size();
-		(v.push_back(&checks), ...);
-		for(int i=sz; i < sz + k; i++) v[i]->on_change([i, k, sz, this](bool) {
-					for(int j=sz; j < sz + k; j++) {
-						if(i != j) v[j]->checked(false);
-						else v[j]->checked(true);
-						v[j]->update();
-					}
-				});
-		return [sz, k, &v]() {
-			for(int i=sz; i<sz+k; i++) if(v[i]->checked()) return i - sz;
-		};
-	}
 	template<class... T> void wrap(const char* title, int font, int N, const T&... widgets)
 	{/// @parma N margin. 
 	 /// @param font font height
@@ -386,6 +386,7 @@ public:
 	std::string type() const {return "TextBox";}
 	std::string value() const;
 	void value(std::string s);
+	void set_line(int l);
 protected:
 	int top_line_index_ = 0, focus_line_ = 0;
 	std::list<Line> contents_;

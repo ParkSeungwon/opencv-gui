@@ -285,13 +285,13 @@ bool z::TextInput::draw()
 		div = divide_utf_string(s, i);
 		if(ft2_->getTextSize(div.first, height * 0.8, -1, &baseline).width > width - 40) break;
 	}
-	if(div.second == editting_ + back_) // 한글 에딧 중간에 다음 라인으로 넘어가는 문제
-		div.first += pop_front_utf(div.second);
+	//if(div.second == editting_ + back_) // 한글 에딧 중간에 다음 라인으로 넘어가는 문제
+	//	div.first += pop_front_utf(div.second);
 	ft2_->putText(mat_, div.first, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
 	if(div.second != "") { 
 		const auto &[d, c] = divide_utf_string(div.second, count_utf_string(div.second) - count_utf_string(back_));
 		const auto &[a, b] = divide_utf_string(d, count_utf_string(d) - count_utf_string(editting_));
-		return on_overflow(a, b, c); // for subclass textwrapping
+		if(!hangul_mode_ || hangul_ic_is_empty(hic_)) return on_overflow(a, b, c); // for subclass textwrapping
 	}
 	return true;
 }
@@ -403,7 +403,7 @@ bool z::TextInput2::del()
 }
 
 void z::TextInput2::new_line() 
-{ 
+{ /// overflow -> enter bug : new line between wrapped line
 	Line next_line = {"", editting_, back_, false};
 	if(next_ != nullptr) {
 		line({fore_, "", "", true});
@@ -496,7 +496,7 @@ void z::TextInput2::pgdn()
 	p->update();
 }
 int z::TextInput2::chain_size() const 
-{
+{ /// return size of TextInput2 chain - 1
 	int i = 0;
 	const z::TextInput2 *p = this;
 	for(; p->prev_; i++) p = p->prev_;
@@ -594,32 +594,44 @@ z::Line z::TextInput2::line() const
 
 
 z::TextBox::TextBox(cv::Rect2i r, int lines) : z::Window{"", r}
-{ 
+{ /// TextBox for Paragraph input
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int, int) {
 		auto it = std::find_if(inputs_.rbegin(), inputs_.rend(), [](auto a) { return a->activated(); });
 		(*it)->focus(true);
 	};
+	set_line(lines);
+	organize_accordingto_zindex();
+}
+
+void z::TextBox::set_line(int lines) 
+{
+	string store = value();
+	contents_.clear();
 	contents_.push_back(Line{});
+	widgets_.clear();
+	inputs_.clear();
 	int h = height / lines;
 	for(int i=0; i<lines; i++) 
 		inputs_.emplace_back(make_shared<z::TextInput2>(cv::Rect2i{0, i*h, width, h}));
 	z::TextInput2 *prev_input = nullptr, **next_of_prev_input = nullptr;
-	auto contents_it_ = contents_.begin();
+	auto contents_it = contents_.begin();
 	for(auto it : inputs_) {
 		it->contents_ptr_ = &contents_;
 		*this + *it; 
-		it->set_iter(contents_it_);
-		if(contents_it_ != contents_.end()) contents_it_++;
+		it->set_iter(contents_it);
+		if(contents_it != contents_.end()) contents_it++;
 		it->prev_ = prev_input;
 		prev_input = it.get();
 		if(next_of_prev_input) *next_of_prev_input = it.get();
 		next_of_prev_input = &it->next_;
 	}
-	organize_accordingto_zindex();
+	value(store);
+	inputs_[0]->down_stream(contents_.begin());
 }
 
+
 std::string z::TextBox::value() const
-{
+{ /// return current text inside
 	string r;
 	for(const Line &a : contents_) 
 		r += a.fore + a.editting + a.back + (a.new_line ? "\n" : "");
@@ -638,10 +650,12 @@ std::vector <std::string> split(std::string_view str, std::string_view delim) {
 }
 
 void z::TextBox::value(string s) 
-{
+{/// sets text of TextBox
+ /// @param s Text will be split with newline character, and will be assigned to TextInput2 widgets.
 	auto v = split(s, "\n");
+	contents_.clear();
 	for(auto a : v) contents_.push_back({a, "", "", true});
-	if(contents_.size() > 1) contents_.pop_front();
+	if(contents_.empty()) contents_.push_back(Line{});
 	inputs_[0]->down_stream(contents_.begin());
 	update();
 }
