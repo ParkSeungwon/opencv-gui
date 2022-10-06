@@ -359,9 +359,29 @@ void z::TextInput2::keyboard_callback(int key, int)
 	}
 }
 
+bool z::TextInput2::merge_strings()
+{ /// merge non new-line terminated lines starting from this line 
+	auto it = it_;
+	it++;
+	if(it == contents_ptr_->end()) return false;
+	bool processed = false;
+	while(!it_->new_line) {
+		processed = true;
+		back_ += it->value();
+		end_new_line_ = it_->new_line = it->new_line;
+		it = contents_ptr_->erase(it);
+	}
+	if(processed && next_) next_->down_stream(it);
+	return processed;
+}
+
 bool z::TextInput2::backsp()
-{ /// return value determines if textinput key_event backspace function will be called
-	if(fore_ != "" || it_ == contents_ptr_->begin()) return false;
+{ /// return value determines if textinput key_event backspace function will be called. false -> run key event
+	if(fore_ != "") {
+		merge_strings();
+		return false;
+	}
+	if(it_ == contents_ptr_->begin()) return false;
 	if(prev_ == nullptr) {
 		set_iter(contents_ptr_->erase(it_));
 		it_--;
@@ -387,7 +407,10 @@ bool z::TextInput2::backsp()
 
 bool z::TextInput2::del()
 { /// return value determines if textinput key_event del function will be called
-	if(editting_ + back_ != "") return false;
+	if(editting_ + back_ != "") {
+		merge_strings();
+		return false;
+	}
 	auto it = it_;
 	if(++it == contents_ptr_->end()) return false;
 	set_iter(contents_ptr_->erase(it_));

@@ -21,7 +21,7 @@ Interface* Interface::pWin = nullptr;
 class MineButton : public z::Button, public Interface
 {
 public:
-	MineButton(int x, int y) : z::Button{"", cv::Rect2i{x*30, y*30, 30, 30}}
+	MineButton(int x, int y, int w) : z::Button{"", cv::Rect2i{x*w, y*w, w, w}}
 	{
 		text(" ");
 		user_callback_[cv::EVENT_RBUTTONUP] = [this](int, int)
@@ -81,10 +81,11 @@ struct Popup : z::AsciiWindow
 
 struct Win : z::Window, Interface
 { 
-	Win(int w, int h) : z::Window{"mine", cv::Rect2i{0, 0, 30*w, 30*h}}
+	Win(int w, int h, int button_w) : z::Window{"mine", cv::Rect2i{0, 0, button_w*w, button_w*h}}
 	{ 
+		this->button_w = button_w;
 		for(int x=0; x<w; x++) for(int y=0; y<h; y++) {
-			v[x][y] = make_shared<MineButton>(x, y);
+			v[x][y] = make_shared<MineButton>(x, y, button_w);
 			*this + *v[x][y];
 		}
 		start();
@@ -94,6 +95,7 @@ struct Win : z::Window, Interface
 	chrono::time_point<chrono::system_clock> tp_;
 	std::shared_ptr<MineButton> v[100][100] = {nullptr,};
 	Popup pop;
+	int button_w = 30;
 	void popup(string s) { //set popup text and show
 		auto sec = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - tp_ );
 		pop.set_text ( s + " : " +  to_string(sec.count()) );
@@ -112,27 +114,26 @@ struct Win : z::Window, Interface
 	}
 	void append_file(int k) {
 		ofstream f{"bestscore.txt", fstream::app};
-		f << (width / 30) << ' ' << (height / 30) << ' ' << k << '\n';
+		f << (width / button_w) << ' ' << (height / button_w) << ' ' << k << '\n';
 	}
 	void best_score() {
 		ifstream f{"bestscore.txt"};
 		int w, h, score;
 		vector<int> scores;
 		while(f >> w >> h >> score) {
-			if(w == width / 30 && h == height / 30) {
+			if(w == width / button_w && h == height / button_w) {
 				scores.push_back(score);
 			}
 		}
 		std::sort(scores.begin(), scores.end(), [](int a, int b) { return a < b; });
-		cout << "best score" << width / 30 << 'x' << height / 30 << endl;
+		cout << "best score" << width / button_w << 'x' << height / button_w << endl;
 		for(int i=0; i<std::min(10, int(scores.size())); i++) cout << i+1 << ". " << scores[i] << endl;
 	}
 };
 
 
 
-class Mine : public Interface {
-public:
+struct Mine : public Interface {
 	Mine() {
 		for(int x=0; x<100; x++) for(int y=0; y<100; y++) mine[x][y] = 'x';
 		pMine = this;
@@ -202,15 +203,17 @@ public:
 
 int main(int ac, char** av) {
 	if(ac < 3) {
-		cout << "run with width height parameters." << endl;
+		cout << "run with width height button_size parameters." << endl;
 		return 1;
 	}
 	int w = stoi(av[1]);
 	int h = stoi(av[2]);
+	int bu = 30;
+	if(ac > 3) bu = stoi(av[3]);
 	Mine mine;
 	mine.setup(w, h);
 	mine.scatter_bomb(w, h);
-	Win win{w, h};
+	Win win{w, h, bu};
 	win.loop();
 }
 

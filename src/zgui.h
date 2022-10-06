@@ -372,7 +372,7 @@ private:
 	bool on_overflow(std::string fore, std::string editting, std::string back);
 	void up(), down(), new_line(), pgup(), pgdn();
 	int chain_size() const;
-	bool del(), backsp();
+	bool del(), backsp(), merge_strings();
 	void keyboard_callback(int, int);
 	bool is_end() const { return contents_ptr_->end() == it_;}
 	friend class TextBox;
