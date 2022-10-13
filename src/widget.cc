@@ -23,13 +23,16 @@ z::Widget::Widget(cv::Rect_<int> r)
 	mat_ = background_color_;
 	if(!ft2_) {
 		ft2_ = cv::freetype::createFreeType2();
-		ifstream f{"font.dat"};
-		string s;
-		getline(f, s);
-		ft2_->loadFontData(s, 0); // difficult 프린트시 bug
+		try {
+			ifstream f{"font.dat"};
+			string s;
+			getline(f, s);
+			ft2_->loadFontData(s, 0); // difficult 프린트시 bug
+		} catch(...) {
+			ft2_->loadFontData("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", 0); // difficult 프린트시 bug
+		}
     //ft2_->loadFontData("/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf", 0); // 한자 불완전
 		//ft2_->loadFontData("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0); // difficult 프린트시 bug
-		//ft2_->loadFontData("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", 0); // difficult 프린트시 bug
     //ft2_->loadFontData("/home/zeta/Documents/Un.ttf", 0);
     //ft2_->loadFontData("/usr/share/fonts/truetype/baekmuk/batang.ttf", 0);
 	}

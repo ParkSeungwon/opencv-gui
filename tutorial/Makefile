@@ -1,6 +1,6 @@
 CXX = g++
 PKGS = opencv4 libhangul
-CPPFLAGS = -I../ -pthread
+CPPFLAGS = -I../ -pthread -DCVPLOT_HEADER_ONLY 
 CXXFLAGS = -g -c -w -std=c++23 -fmax-errors=1 $(shell pkg-config --cflags $(PKGS) )
 DIR = $(notdir $(shell pwd))
 OBJ = $(patsubst %.cc, ../obj/%.$(DIR).o, $(wildcard *.cc))
