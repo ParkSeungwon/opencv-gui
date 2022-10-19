@@ -2,7 +2,7 @@
 #include<opencv2/opencv.hpp>
 #include<opencv2/objdetect.hpp>
 #include<zbar.h>
-#include"QrCode.hpp"
+#include"src/QrCode.hpp"
 
 std::string decode(cv::Mat &im)
 {// Find and decode barcodes and QR codes

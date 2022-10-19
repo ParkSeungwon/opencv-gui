@@ -2,7 +2,7 @@
 #include<fstream>
 #include<iostream>
 #include<opencv2/freetype.hpp>
-#include"zgui.h"
+#include"src/zgui.h"
 using namespace std;
 
 struct Win : z::AsciiWindow

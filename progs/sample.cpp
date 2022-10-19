@@ -1,7 +1,7 @@
 #include<iostream>
 #include<filesystem>
 #include"cvmat/cvmatrix.h"
-#include"zgui.h"
+#include"src/zgui.h"
 using namespace std;
 
 struct YesNo : z::AsciiWindow
