@@ -3,7 +3,7 @@
 #include<chrono>
 #include<algorithm>
 #include<random>
-#include"zgui.h"
+#include"src/zgui.h"
 using namespace std;
 
 struct Interface {

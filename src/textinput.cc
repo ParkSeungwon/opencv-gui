@@ -335,6 +335,8 @@ z::TextInput2::TextInput2(cv::Rect2i r) : z::TextInput{r}
 						"' | xclip -i -selection clipboard").data());
 			else if(i == 1) {
 				back_ = psstm("xclip -o -selection clipboard") + back_;
+				*it_ = line();
+				dynamic_cast<TextBox*>(parent_)->value(dynamic_cast<TextBox*>(parent_)->value());
 				draw();
 				update();
 			}
@@ -427,7 +429,7 @@ bool z::TextInput2::del()
 
 void z::TextInput2::new_line() 
 { /// overflow -> enter bug : new line between wrapped line
-	Line next_line = {"", editting_, back_, false};
+	Line next_line = {"", editting_, back_, end_new_line_};
 	if(next_ != nullptr) {
 		line({fore_, "", "", true});
 		*it_ = line();
