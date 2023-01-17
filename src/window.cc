@@ -225,12 +225,13 @@ void z::Window::draw_wrapped(const Wrapped &wr)
 	}
 }
 
-void z::Window::start(int flag)
+void z::Window::start(int flag, int x, int y)
 {/// organize according to zindex -> set mouse callback -> show window
 	organize_accordingto_zindex();
 	cv::namedWindow(title_, flag);
 	cv::setMouseCallback(title_, mouse_callback, this);
 	show();
+	if(x >= 0 && y >= 0) cv::moveWindow(title_, x, y);
 }
 
 int z::Window::loop()

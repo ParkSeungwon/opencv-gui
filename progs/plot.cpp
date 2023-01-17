@@ -69,7 +69,6 @@ struct Win : z::AsciiWindow
 				I[0]->update();
 			} catch(const exception &e) {
 				cerr << e.what() << endl;
-				return;
 			} catch(...) {
 				cerr << "error occured " << endl;
 			}

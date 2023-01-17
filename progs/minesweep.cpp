@@ -3,7 +3,9 @@
 #include<chrono>
 #include<algorithm>
 #include<random>
+#include<thread>
 #include"src/zgui.h"
+#include"option.h"
 using namespace std;
 
 struct Interface {
@@ -81,19 +83,26 @@ struct Popup : z::AsciiWindow
 
 struct Win : z::Window, Interface
 { 
-	Win(int w, int h, int button_w) : z::Window{"mine", cv::Rect2i{0, 0, button_w*w, button_w*h}}
+	Win(int w, int h, int button_w) 
+		: z::Window{"mine", cv::Rect2i{0, 0, button_w*w, button_w*h}}
+	  , th{&Win::time_pass, this}
 	{ 
 		this->button_w = button_w;
 		for(int x=0; x<w; x++) for(int y=0; y<h; y++) {
 			v[x][y] = make_shared<MineButton>(x, y, button_w);
 			*this + *v[x][y];
 		}
-		start();
+		start(cv::WINDOW_AUTOSIZE, 500, 500);
 		pWin = this;
 		tp_ = chrono::system_clock::now();
 	}
+	~Win() {
+		run = false;
+	}
 	chrono::time_point<chrono::system_clock> tp_;
 	std::shared_ptr<MineButton> v[100][100] = {nullptr,};
+	std::jthread th;
+	bool run = true;
 	Popup pop;
 	int button_w = 30;
 	void popup(string s) { //set popup text and show
@@ -128,6 +137,13 @@ struct Win : z::Window, Interface
 		std::sort(scores.begin(), scores.end(), [](int a, int b) { return a < b; });
 		cout << "best score" << width / button_w << 'x' << height / button_w << endl;
 		for(int i=0; i<std::min(10, int(scores.size())); i++) cout << i+1 << ". " << scores[i] << endl;
+	}
+	void time_pass() {
+		while(run) {
+			this_thread::sleep_for(1s);
+			auto sec = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - tp_ );
+			cout << to_string(sec.count()) << "초 지났습니다" << endl;
+		}
 	}
 };
 
@@ -202,14 +218,15 @@ struct Mine : public Interface {
 
 
 int main(int ac, char** av) {
-	if(ac < 3) {
-		cout << "run with width height button_size parameters." << endl;
-		return 1;
-	}
-	int w = stoi(av[1]);
-	int h = stoi(av[2]);
-	int bu = 30;
-	if(ac > 3) bu = stoi(av[3]);
+	CMDoption co{
+		{"width", "width size", 40},
+		{"height", "height size", 30},
+		{"button size", "button size", 40}
+	};
+	if(!co.args(ac, av)) return 0;
+	int w = co.get<int>("width");
+	int h = co.get<int>("height");
+	int bu = co.get<int>("button size");
 	Mine mine;
 	mine.setup(w, h);
 	mine.scatter_bomb(w, h);

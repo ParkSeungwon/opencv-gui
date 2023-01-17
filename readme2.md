@@ -39,14 +39,14 @@ LGPL v2
   ```
   
 
-![](image/1.png)
+![](http://gui.zeta2374.com/image/1.png)
 
 
 - fully use modern c++ 
 
 - TextInput : Korean -> Chinese Input Possible(libhangul, CJK font needed)
 
-  ![](image/hanja.png)
+  ![](http://gui.zeta2374.com/image/hanja.png)
 
 - combine basic widgets to make complicated widgets
 
@@ -74,7 +74,7 @@ LGPL v2
   };
   ```
   
-  ![](image/wbutton.gif)
+  ![](http://gui.zeta2374.com/image/wbutton.gif)
   
   We can use 'Z' to draw custom widget into ascii GUI. 
   
@@ -110,7 +110,7 @@ First line of font.dat file should point to CJK font file path.
 
 ## Sample Image
 
-![](image/shot.png)
+![](http://gui.zeta2374.com/image/shot.png)
 
 ## Supported Widgets
 
@@ -133,7 +133,7 @@ First line of font.dat file should point to CJK font file path.
 
 ## Coordinate System
 
-![](image/coordination_system.png)
+![](http://gui.zeta2374.com/image/coordination_system.png)
 
 Top window can scroll to any rectangular position by calling scroll_to() function. Scrolled_rect_ will be shown on the display. All widgets(including Window widget) in herits cv::Rect2i{x, y, width, height}. Basically widget position or mouse event will be calculated by relative position from first parent window. Scrolling will have no effect on these.
 
@@ -209,7 +209,7 @@ int main() {
 }
 ```
 
-![](image/2.png)
+![](http://gui.zeta2374.com/image/2.png)
 
 #### 2. Combined Widgets
 
@@ -251,7 +251,7 @@ int main() {
 }
 ```
 
-![](image/3.png)
+![](http://gui.zeta2374.com/image/3.png)
 
 #### 3. Tabs
 
@@ -301,7 +301,7 @@ int main() {
 }
 ```
 
-![](image/4.png)
+![](http://gui.zeta2374.com/image/4.png)
 
 #### 4. Scrolled Window
 
@@ -327,7 +327,7 @@ int main() {
 }
 ```
 
-![](image/5.png)
+![](http://gui.zeta2374.com/image/5.png)
 
 #### 5. Popup Window
 
@@ -374,7 +374,7 @@ int main() {
 }
 ```
 
-![](image/6.gif)
+![](http://gui.zeta2374.com/image/6.gif)
 
 #### 6. Multiple Windows
 
@@ -417,7 +417,7 @@ int main() {
 }
 ```
 
-![](image/7.png)
+![](http://gui.zeta2374.com/image/7.png)
 
 #### 7. Window with normal cv::Mat
 
@@ -467,7 +467,7 @@ int main() {
 }
 ```
 
-![](image/8.png)
+![](http://gui.zeta2374.com/image/8.png)
 
 #### 8. Integration with Profactor CvPlot
 
@@ -515,7 +515,7 @@ int main() {
 }
 ```
 
-![](image/9.png)
+![](http://gui.zeta2374.com/image/9.png)
 
 ## Reference
 
