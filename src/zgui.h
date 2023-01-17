@@ -174,10 +174,11 @@ public:
 	Window &operator-(Widget &w);
 	Window &operator<<(Widget &r);
 	Window &operator>>(Widget &r);
+	virtual void periodic_execute() {}
 	int loop();
 	std::vector<Widget*>::iterator begin(), end();
 	void close();
-	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO);
+	void start(int flag = cv::WINDOW_AUTOSIZE | cv::WINDOW_KEEPRATIO, int x = -1, int y = -1);
 	void keyboard_callback(int key, int level = 0);
 	//void update(const Widget &r);
 	std::string title() const;
