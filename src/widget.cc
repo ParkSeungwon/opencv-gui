@@ -87,6 +87,7 @@ void z::Widget::update()
 {/// copy this widget's current graphical state to parent window and show it.
 	if(parent_ != nullptr) {
 		*parent_ << *this;
+		parent_->update(); // added after long time passed, possibly buggy
 		show();
 	}
 }
