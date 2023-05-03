@@ -10,7 +10,7 @@ struct Win : z::Window
 		start();
 	}
 	z::Handle handle;
-	z::Label label{"Center", {300, 300, 100, 30}};
+	z::Label label{"Center", {300, 300, 100, 50}};
 };
 
 int main() {

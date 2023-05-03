@@ -606,7 +606,7 @@ struct Win : z::AsciiWindow
 		tabs(10, 650, face, contour, line, circle, corner);
 		tabs(10, 1100, filter_win, color, trans, fourier);
 		scroll_to({0,0,width, height});
-		start();
+		start();//-1 fullscreen
 		connect_events();
 	}
 
