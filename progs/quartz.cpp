@@ -6,14 +6,14 @@ struct Quartz : z::AsciiWindow
   Quartz() 
 	: z::AsciiWindow
 		{ R"(
-			WCalculator--------------------------------
+			WCalculator----------------------------------
 			|
 			| Q0--Q1--Q2--Q3--Q4--Q5--Q6--Q7--Q8--Q9-- 
 			| ||  ||  ||  ||  ||  ||  ||  ||  ||  |0|    
 			| |   |   |   |   |   |   |   |   |   | 
 			| |   |   |   |   |   |   |   |   |   | 
 			| 
-			| B>-----B?-----B@-----Z0----- V0--------
+			| B>-----B?-----B@-----Z0----- V0-----------
 			| |AC|   |%|    ||     ||      ||
 			| |      |      |      |       |
 			| |      |      |      |       |
@@ -24,22 +24,31 @@ struct Quartz : z::AsciiWindow
 			| B4-----B5-----B6-----B;----- |
 			| |4|    |5|    |6|    |+|     |
 			| |      |      |      |       |
-			| |      |      |      |
-			| B1-----B2-----B3-----B<-----
-			| |1|    |2|    |3|    |=|
-			| |      |      |      |
-			| |      |      |      |
-			| B0------------B=-----|    
-			| |0|           |.|    |
-			| |             |      |
-			| |             |      |
+			| |      |      |      |       |
+			| B1-----B2-----B3-----B<----- |
+			| |1|    |2|    |3|    |=|     |
+			| |      |      |      |       L0 C0- L1 C1-
+			| |      |      |      |       |R|||  |G||| 
+			| B0------------B=-----|       L2 C2- L3 C3-  
+			| |0|           |.|    |       |B|||  |K||v|
+			| |             |      |       Z1-----------
+			| |             |      |       || 
 			|
 			|)",10 ,15 ,0
 		}
 	{
-		*this + bt;
+		*this + bt + bt2;
 		bt.resize(*Z[0]); // if the original mat_ of bt_ is too small resize can't properly reflect contents.
-		
+		bt2.resize(*Z[1]);
+		bt2.draw();
+
+		auto f1 = tie_with_callback
+		( [this](int i)
+			{ cv::Vec3b color[4] = {{0, 0, 255}, {0, 255, 0}, {255, 0, 0}, {0, 0, 0}};
+			  V[0]->draw_color(color[i]);
+			}
+		, *C[0], *C[1], *C[2], *C[3]);
+
 		B[16]->text("\u00f7");
 		B[10]->text("\u2212");
 		organize_accordingto_zindex();
@@ -84,9 +93,13 @@ struct Quartz : z::AsciiWindow
 			mode = '*';
 			current = 0;
 		});
+		bt2.click([this]() {
+			V[0]->clear();
+		});
 	}
 
 	z::Button bt{"\u00d7", {0,0,100,100}};
+	z::Button bt2{"clear", {0, 0, 300, 300}};
 	long current = 0, store;;
 	char mode = ' ';
 	void enter(int i) {

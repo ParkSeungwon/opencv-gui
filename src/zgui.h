@@ -213,6 +213,25 @@ public:
 			for(int i=sz; i<sz+k; i++) if(v[i]->checked()) return i - sz;
 		};
 	}
+	template<class... T> auto tie_with_callback(std::function<void(int)> f, T&... checks)
+	{/// create a radio button by combining multiple CheckBoxes. 
+	 /// RadioButton is a widget that allows one CheckBox to be selected at one time.
+		static std::vector<z::CheckBox*> v;
+		int k = sizeof...(checks);
+		int sz = v.size();
+		(v.push_back(&checks), ...);
+		for(int i=sz; i < sz + k; i++) v[i]->on_change([i, k, sz, f, this](bool) {
+					for(int j=sz; j < sz + k; j++) {
+						if(i != j) v[j]->checked(false);
+						else v[j]->checked(true);
+						v[j]->update();
+						f(i-sz);
+					}
+				});
+		return [sz, k, &v]() {
+			for(int i=sz; i<sz+k; i++) if(v[i]->checked()) return i - sz;
+		};
+	}
 	template<class... T> void tabs(int xpos, int ypos, T&... wins) 
 	{/// create a tab by combining multiple Womdows and will create tab navigation buttons on top
 	 /// @param xpos x position to create tab. 
@@ -470,6 +489,7 @@ class Canvas : public z::Widget
 public:
 	Canvas(cv::Rect2i r = {0, 0, 50, 100});
 	void draw_color(cv::Vec3b color) { draw_color_ = color; }
+	void clear();
 protected:
 	bool pen_down_ = false;
 	cv::Vec3b draw_color_{0, 0, 0};
