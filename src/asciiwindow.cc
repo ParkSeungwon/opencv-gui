@@ -64,6 +64,8 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : I) *this + *a.get();
 	for(auto &a : P) *this + *a.get();
 	for(auto &a : E) *this + *a.get();
+	for(auto &a : Q) *this + *a.get();
+	for(auto &a : V) *this + *a.get();
 	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
 }
 
@@ -116,6 +118,8 @@ int z::AsciiWindow::get_size(char c)
 		case 'P': return P.size();
 		case 'Z': return Z.size();
 		case 'E': return E.size();
+		case 'Q': return Q.size();
+		case 'V': return V.size();
 		default: throw 0;
 	}
 }
@@ -160,6 +164,11 @@ bool z::AsciiWindow::parse_widget_area(int y, int x)
 		case 'Z': Z.emplace_back(make_shared<z::Widget>(r)); break;
 		case 'E': E.emplace_back(make_shared<z::TextBox>(r, h/2)); 
 							E.back()->value(text);
+							break;
+		case 'Q': Q.emplace_back(make_shared<z::Quartz>(r)); 
+							if(text != "") Q.back()->number(stoi(text)); 
+							break;
+		case 'V': V.emplace_back(make_shared<z::Canvas>(r)); 
 							break;
 	}
 	return true;

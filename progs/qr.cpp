@@ -18,7 +18,7 @@ std::string decode(cv::Mat &im)
 
 int main()
 {
-	const char *text = "https://adnet.zeta2374.com";
+	const char *text = "https://www.zeta2374.com/Page/119/0";
 	const auto qr = qrcodegen::QrCode::encodeText(text, qrcodegen::QrCode::Ecc::LOW);
 
 	{
