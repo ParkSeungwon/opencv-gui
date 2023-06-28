@@ -44,7 +44,7 @@ LGPL v2
   ```
   
 
-![Widget gallery](image/1.png "widget gallery")
+![Widget gallery](/image/1.png "widget gallery")
 
 - fully use modern c++ 
 
