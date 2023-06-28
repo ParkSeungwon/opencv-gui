@@ -1,5 +1,4 @@
 catch
-*.jpg
 .*
 !/.gitignore
 *.x

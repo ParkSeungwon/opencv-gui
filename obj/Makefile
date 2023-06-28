@@ -7,12 +7,9 @@ LDFLAGS = #-Wl,-rpath=.
 LDLIBS = $(shell pkg-config --libs $(PKGS)) -pthread
 
 
-all : $(EXE) ../catch
+all : $(EXE)
 
 ../%.x : %.x $(OBJ)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
-../catch : catch $(OBJ) $(TOBJ)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 #    $@ |현재 목표 파일의 이름
