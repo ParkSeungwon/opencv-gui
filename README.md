@@ -45,12 +45,14 @@ LGPL v2
   
 
 ![Widget gallery](/image/1.png "widget gallery")
+<img src='image/1.png' width=200 height=200 />
 
 - fully use modern c++ 
 
 - TextInput : Korean -> Chinese Input Possible(libhangul, CJK font needed)
 
   ![](image/hanja.png)
+  
 
 - combine basic widgets to make complicated widgets
 
