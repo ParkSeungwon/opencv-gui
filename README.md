@@ -45,7 +45,7 @@ LGPL v2
   
 
 ![](image/1.png)
-<img src='image/1.png' />
+<img src='https://github.com/ParkSeung/opencv-gui/image/1.png' />
 
 - fully use modern c++ 
 
