@@ -7,7 +7,6 @@ all :
 		if [ -f $${i}/Makefile ]; then make -j 8 -C $$i; fi;\
 	done
 	make -j 8 -C obj/
-	./catch
 
 clean :
 	for i in obj/*.?; do \
