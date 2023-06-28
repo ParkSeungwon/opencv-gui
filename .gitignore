@@ -2,7 +2,6 @@ catch
 *.jpg
 .*
 !/.gitignore
-core
 *.x
 *~
 *.swp
