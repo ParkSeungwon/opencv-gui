@@ -17,3 +17,9 @@ z::Canvas::Canvas(cv::Rect2i r) : z::Widget(r)
 		}
 	};
 }
+
+void z::Canvas::clear()
+{
+	mat_ = cv::Vec3b{255, 255, 255};
+	update();
+}
