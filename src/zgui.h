@@ -4,7 +4,6 @@
 #include<functional>
 #include<source_location>
 #include<opencv2/highgui.hpp>
-#include<opencv2/freetype.hpp>
 #include<opencv2/imgproc.hpp>
 #include<list>
 #include<hangul.h>
@@ -62,7 +61,6 @@ protected:
 											///< Window widget sholud be first focused to get its child widgets to be focused.
 											///< If there is no focused child widget, window widget's event callback will be called, 
 											///< if it is defined
-	static cv::Ptr<cv::freetype::FreeType2> ft2_;///< freetype2 font. CJK font needed
 	int zIndex_ = 0;///< higher zIndex widget will be in front of lower zIndex widget.
 };
 

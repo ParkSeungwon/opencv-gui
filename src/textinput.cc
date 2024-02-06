@@ -97,7 +97,7 @@ z::TextInput::TextInput(cv::Rect2i r) : z::Widget{r}
 	gui_callback_[cv::EVENT_LBUTTONUP] = [this](int xpos, int) {
 		std::string s = value();
 		int baseline = 0, i = 0, k = count_utf_string(s);
-		while(10 + ft2_->getTextSize(divide_utf_string(s, i).first, height * 0.8, -1, &baseline).width < xpos - x 
+		while(10 + getTextSize(divide_utf_string(s, i).first, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, -1, &baseline).width < xpos - x 
 			&& i <= k) i++;
 		std::tie(fore_, back_) = divide_utf_string(s, i-1);
 		editting_ = pop_front_utf(back_);
@@ -180,8 +180,8 @@ void z::TextInput::key_event(int key, int)
 void z::TextInput::show_cursor() 
 { /// show rectangular cursor on editting_
 	int baseline = 0;
-	auto sz1 = ft2_->getTextSize(fore_, height * 0.8, -1, &baseline);
-	auto sz2 = ft2_->getTextSize(fore_ + editting_, height * 0.8, -1, &baseline); 
+	auto sz1 = getTextSize(fore_, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, -1, &baseline);
+	auto sz2 = getTextSize(fore_ + editting_, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, -1, &baseline); 
 	cv::rectangle(mat_, cv::Rect2i{{sz1.width + 10, 0}, 
 			cv::Point2i{std::max(10 + sz2.width, 20 + sz1.width), height}}, {0,0,0}, 1);
 }
@@ -283,11 +283,11 @@ bool z::TextInput::draw()
 	std::string s = fore_ + editting_ + back_;
 	for(int i=0; i<count_utf_string(s) + 1; i++) {// 표시될 수 있는 스트링의 지점을 찾는다.
 		div = divide_utf_string(s, i);
-		if(ft2_->getTextSize(div.first, height * 0.8, -1, &baseline).width > width - 40) break;
+		if(getTextSize(div.first, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, -1, &baseline).width > width - 40) break;
 	}
 	//if(div.second == editting_ + back_) // 한글 에딧 중간에 다음 라인으로 넘어가는 문제
 	//	div.first += pop_front_utf(div.second);
-	ft2_->putText(mat_, div.first, {10, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	putText(mat_, div.first, {10, 0}, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, {0, 0, 0}, -1, 4, false);
 	if(div.second != "") { 
 		const auto &[d, c] = divide_utf_string(div.second, count_utf_string(div.second) - count_utf_string(back_));
 		const auto &[a, b] = divide_utf_string(d, count_utf_string(d) - count_utf_string(editting_));

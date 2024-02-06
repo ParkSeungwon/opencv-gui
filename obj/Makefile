@@ -1,7 +1,7 @@
 CXX = g++
 OBJ = $(wildcard *.o)
 TOBJ = $(wildcard *.t)
-PKGS = opencv4 zbar libhangul python3-embed
+PKGS = opencv4 zbar libhangul # python3-embed 
 EXE = $(patsubst %.x, ../%.x, $(wildcard *.x))
 LDFLAGS = #-Wl,-rpath=.
 LDLIBS = $(shell pkg-config --libs $(PKGS)) -pthread

@@ -16,5 +16,5 @@ void z::Label::text(string s)
 {/// sets the text as s
 	text_ = s;
 	mat_ = background_color_;
-	ft2_->putText(mat_, text_, {0, 0}, height * 0.8, {0, 0, 0}, -1, 4, false);
+	putText(mat_, text_, {0, 0}, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, {0, 0, 0}, -1, 4, false);
 }

@@ -5,7 +5,7 @@ struct Tie : z::Window {
 	Tie(int font, vector<string> v) : z::Window{"", {0,0,1,1}} {
 		int length = 0;
 		for(int i=0, base=0; i<v.size(); i++) {
-			int k = ft2_->getTextSize(v[i], font, -1, &base).width;
+			int k = getTextSize(v[i], cv::FONT_HERSHEY_SIMPLEX, font, -1, &base).width;
 			if(length < k) length = k;
 		}
 		resize({0, 0, length, font * v.size()});

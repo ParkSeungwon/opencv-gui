@@ -219,9 +219,9 @@ void z::Window::draw_wrapped(const Wrapped &wr)
 	cv::rectangle(mat_, wr.rect, {100,100,100}, 1);
 	int base = 0;
 	if(wr.title != "") {
-		auto sz = ft2_->getTextSize(wr.title, wr.fontsize, -1, &base);
+		auto sz = getTextSize(wr.title, cv::FONT_HERSHEY_SIMPLEX, wr.fontsize, -1, &base);
 		cv::line(mat_, {wr.rect.x + 20, wr.rect.y}, {wr.rect.x + sz.width + 40, wr.rect.y}, background_color_, 1);
-		ft2_->putText(mat_, wr.title, {wr.rect.x + 30, wr.rect.y - 5 - wr.fontsize / 2}, wr.fontsize, {0,0,0}, -1, 4, false);
+		putText(mat_, wr.title, {wr.rect.x + 30, wr.rect.y - 5 - wr.fontsize / 2}, cv::FONT_HERSHEY_SIMPLEX, wr.fontsize, {0,0,0}, -1, 4, false);
 	}
 }
 
