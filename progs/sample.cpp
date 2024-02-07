@@ -16,7 +16,7 @@ struct YesNo : z::AsciiWindow
 		|    ||
 		|
 		|    B0----------    B1----------
-		|    |예|            |아니오|
+		|    |Yes|           |No|
 		|)"}
 	{
 		B[0]->click([this]() { popdown(1); });
@@ -39,7 +39,7 @@ struct Info : z::AsciiWindow
 		|  ||
 		|
 		|            B0-----------
-		|            |확인|
+		|            |OK|
 		|
 		|)"}
 	{
@@ -153,7 +153,7 @@ struct Win : z::AsciiWindow
 			|   |Max Size|     ||      B5- |X|  ||      B7-
 			|
 			|        B8--------------   L4---------------
-			|        |안면 인식|        ||
+			|        |Face Recog|       ||
 			|
 			|)"}
 		{
@@ -292,12 +292,12 @@ struct Win : z::AsciiWindow
 			| |0 1000 1|
 			|
 			| L3-------------         L7--------
-			| |최소 반경|             ||
+			| |Min Radius|             ||
 			| S2---------------------------------------------
 			| |0 1000 1|
 			|
 			| L4-------------         L8--------
-			| |최대 반경|             ||
+			| |Max Radius|             ||
 			| S3---------------------------------------------
 			| |0 1000 1|
 			|
@@ -350,11 +350,11 @@ struct Win : z::AsciiWindow
 			|
 			|
 			|  B0-------    C1- L0-  C2- L1-  C3- L2-
-			|  |색 선택|    |v| |R|  |v| |G|  |v| |B|
+			|  |Color|      |v| |R|  |v| |G|  |v| |B|
 			|
 			|
 			|  B1-------    C5- L3-  C6- L4-  C0- L5-  C4- L6-
-			|  |색 선택|    |v| |C|  |v| |M|  |v| |Y|  |v| |K|
+			|  |Color|      |v| |C|  |v| |M|  |v| |Y|  |v| |K|
 			|
 			|
 			|       Z0-------
@@ -465,14 +465,14 @@ struct Win : z::AsciiWindow
 	struct Trans : z::AsciiWindow
 	{
 		Trans(Win& w) : win{w}, z::AsciiWindow{R"(
-		  W변형-----------------------------------------------
+		  W변형------------------------------------------------
 			|
 			|
-			|  L0------ T0----B0  L1------ T1----B2  B4-------- 
-			|  |ScaleX| ||    B1  |ScaleY| ||    B3  |변환|
+			|  L0------ T0----B0  L1------ T1----B2  B4--------- 
+			|  |ScaleX| ||    B1  |ScaleY| ||    B3  |Transform|
 			|
-			|  L2------ T2------B5                   B7--------
-			|  |회전|   ||      B6                   |변환|
+			|  L2------ T2------B5                   B7---------
+			|  |Rotate| ||      B6                   |Transform|
 			|
 			|  
 			|  L3---------------- B8--------- B9----
@@ -551,11 +551,11 @@ struct Win : z::AsciiWindow
 		WOpenCV Tuning Shop----------------------------------------
 		|
 		| T0---------------------B2- B0------ B1------ B3------
-		| |파일 이름|            ||  |열기|   |저장|   |종료|
+		| |File Name|            ||  |Open|   |Save|   |Quit|
 		|
 		|
 		| B4------- L0---------------------- B<--- B;----------
-		| |정보|    ||                       |New| |Gray|
+		| |Info|    ||                       |New| |Gray|
 		|
 		|                                    
 		| I3-----------------------    I4------------------------
@@ -589,7 +589,7 @@ struct Win : z::AsciiWindow
 		| |                  |                  |
 		| |                  |                  |
 		| B6------ B7------  B8------ B9------  B:------ B5------
-		| |저장|   |로드|    |저장|   |로드|    |저장|   |로드|
+		| |Save|   |Load|    |Save|   |Load|    |Save|   |Load|
 		|)"}
 	{
 		static vector<string> v;
@@ -598,9 +598,9 @@ struct Win : z::AsciiWindow
 				v.push_back(p.filename());
 		resize({0,0,width, 1500});
 		tie(*T[0], *B[2], v, 30);//combo box
-		wrap("체크포인트1", 20, 10, *I[0], *B[7]);
-		wrap("체크포인트2", 20, 10, *I[1], *B[9]);
-		wrap("체크포인트3", 20, 10, *I[2], *B[5]);
+		wrap("CheckPoint1", 20, 10, *I[0], *B[7]);
+		wrap("CheckPoint2", 20, 10, *I[1], *B[9]);
+		wrap("CheckPoint3", 20, 10, *I[2], *B[5]);
 		wrap("Histogram", 20, 10, *I[3]);
 		wrap("Fourier", 20, 10, *I[4]);
 		tabs(10, 650, face, contour, line, circle, corner);
@@ -623,7 +623,7 @@ struct Win : z::AsciiWindow
 		B[1]->click([this](){
 			filesystem::path p = T[0]->value();
 			if(filesystem::exists(p)) {
-				yesno.set("파일이 이미 존재합니다.", "덮어쓰시겠습니까?");
+				yesno.set("File already exist.", "Will you replace it?");
 				yesno.popup(*this, [this, p](int i) {if(i) m.imwrite(p);});
 			} else{
 				try {
@@ -632,7 +632,7 @@ struct Win : z::AsciiWindow
 			}
 		});
 		B[3]->click([this]() {
-			yesno.set("종료하시겠습니까?", "");
+			yesno.set("Will you quit?", "");
 			yesno.popup(*this, [this] (int i) {if(i) cv::destroyAllWindows();});
 		});
 		B[4]->click([this]() { L[0]->text(m.info()); L[0]->update(); });

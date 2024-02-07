@@ -19,10 +19,10 @@ void z::Button::draw(cv::Vec3b color, bool repaint)
 {/// @param color background color
  /// @param rapaint if repaint is false, do not draw background and just draw text
 	int baseline = 0;
-	auto sz = getTextSize(text_, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, -1, &baseline);
+	auto sz = getTextSize(text_, cv::FONT_HERSHEY_SIMPLEX, height * 0.025, 1, &baseline);
 	int pos = (width - sz.width) / 2;
 	if(repaint) shade_rect({0, 0, width, height}, 3, color);
-	putText(mat_, text_, {pos, 0}, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, {0,0,0}, -1, 4, false);
+	putText(mat_, text_, {pos, (height + sz.height) / 2}, cv::FONT_HERSHEY_SIMPLEX, height * 0.025, {0,0,0}, 1, cv::LINE_AA, false);
 }
 
 void z::Button::click(function<void()> f) 

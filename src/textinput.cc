@@ -287,7 +287,7 @@ bool z::TextInput::draw()
 	}
 	//if(div.second == editting_ + back_) // 한글 에딧 중간에 다음 라인으로 넘어가는 문제
 	//	div.first += pop_front_utf(div.second);
-	putText(mat_, div.first, {10, 0}, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, {0, 0, 0}, -1, 4, false);
+	putText(mat_, div.first, {10, 0.8*height}, cv::FONT_HERSHEY_SIMPLEX, height * 0.03, {0, 0, 0}, 1, 4, false);
 	if(div.second != "") { 
 		const auto &[d, c] = divide_utf_string(div.second, count_utf_string(div.second) - count_utf_string(back_));
 		const auto &[a, b] = divide_utf_string(d, count_utf_string(d) - count_utf_string(editting_));

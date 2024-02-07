@@ -186,7 +186,7 @@ public:
 	{/// create a numeric spin button by tying a textinput and two buttons.
 	 /// @param start number to begin with
 	 /// @param step step to increase or decrease when buttons are clicked.
-		b1.text("\u25b2"); b2.text("\u25bc");
+		b1.text("^"); b2.text("v");
 		if(t.value() == "") t.value(std::to_string(start));
 		*this << b1; *this << b2; *this << t;
 		b1.click([&, step](){t.value(std::to_string(to_number<T>(t.value()) + step)); *this << t; show();});

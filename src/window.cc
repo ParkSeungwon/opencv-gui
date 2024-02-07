@@ -90,7 +90,7 @@ void z::Window::move_widget(z::Widget &w, cv::Point2i p)
 //}
 
 string z::Window::title() const
-{/// get title
+{ /// get title
 	return title_;
 }
 
@@ -101,7 +101,7 @@ string z::Window::title() const
 
 void z::Window::copy_widget_to_mat(const z::Widget &r)
 {
-	//if(!contains(r.tl())) return;
+	/// if(!contains(r.tl())) return;
 	cv::Point2i pt{std::min(r.br().x, br().x), std::min(r.br().y, br().y)};
 	cv::Rect2i rect{r.tl(), pt};
 	if(r.alpha() == 1) r.mat_({0, 0, rect.width, rect.height}).copyTo(mat_(rect));
@@ -219,9 +219,9 @@ void z::Window::draw_wrapped(const Wrapped &wr)
 	cv::rectangle(mat_, wr.rect, {100,100,100}, 1);
 	int base = 0;
 	if(wr.title != "") {
-		auto sz = getTextSize(wr.title, cv::FONT_HERSHEY_SIMPLEX, wr.fontsize, -1, &base);
+		auto sz = getTextSize(wr.title, cv::FONT_HERSHEY_SIMPLEX, wr.fontsize * 0.025, 1, &base);
 		cv::line(mat_, {wr.rect.x + 20, wr.rect.y}, {wr.rect.x + sz.width + 40, wr.rect.y}, background_color_, 1);
-		putText(mat_, wr.title, {wr.rect.x + 30, wr.rect.y - 5 - wr.fontsize / 2}, cv::FONT_HERSHEY_SIMPLEX, wr.fontsize, {0,0,0}, -1, 4, false);
+		putText(mat_, wr.title, {wr.rect.x + 30, wr.rect.y + sz.height / 2}, cv::FONT_HERSHEY_SIMPLEX, wr.fontsize * 0.025, {0,0,0}, 1, cv::LINE_AA, false);
 	}
 }
 
@@ -229,7 +229,7 @@ void z::Window::start(int flag, int x, int y)
 {/// organize according to zindex -> set mouse callback -> show window
 	organize_accordingto_zindex();
 	if(flag == -1) {
-		cv::namedWindow(title_, cv::WINDOW_NORMAL);
+		cv::namedWindow(title_, cv::WINDOW_NORMAL | cv::WINDOW_GUI_NORMAL);
 		cv::setWindowProperty(title_, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
 	} else cv::namedWindow(title_, flag);// WINDOW_NORMAL 
 	cv::setMouseCallback(title_, mouse_callback, this);

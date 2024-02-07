@@ -1,3 +1,4 @@
+#include<iostream>
 #include<opencv2/opencv.hpp>
 #include"zgui.h"
 using namespace std;
@@ -16,5 +17,7 @@ void z::Label::text(string s)
 {/// sets the text as s
 	text_ = s;
 	mat_ = background_color_;
-	putText(mat_, text_, {0, 0}, cv::FONT_HERSHEY_SIMPLEX, height * 0.8, {0, 0, 0}, -1, 4, false);
+  int baseline = 0;
+	auto sz = getTextSize(text_, cv::FONT_HERSHEY_SIMPLEX, height * 0.025, 1, &baseline);
+	putText(mat_, text_, {0, (height + sz.height)/2}, cv::FONT_HERSHEY_SIMPLEX, height * 0.025, {0, 0, 0}, 1, cv::LINE_AA, false);
 }
