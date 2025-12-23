@@ -469,8 +469,8 @@ protected:
 	cv::Scalar on_{0x1a, 0x27, 0x26}, off_{0x4e, 0xd7, 0xd8}, background_{0x53, 0xE7, 0xEA};
 	std::vector<cv::Point2i> p[7];
 	std::vector<int> lcd_on_[12] = 
-	{ { 0, 2, 3, 4, 5, 6 }
-	, { 4, 6 }
+	{ { 0, 2, 3, 4, 5, 6 } // 6 unit should be on to show 0
+	, { 4, 6 } // 2 unit should be on to show 1
 	, { 0, 1, 2, 4, 5 }
 	, { 0, 1, 2, 4, 6 }
 	, { 1, 3, 4, 6 }
@@ -495,6 +495,27 @@ protected:
 	cv::Vec3b draw_color_{0, 0, 0};
 };
 
+class Gauge : public z::Widget
+{ // shape like speedometer of cars 
+public:
+  Gauge(int start, int end, int step, int nth, cv::Rect2i r = {0, 0, 300, 300}); 
+  // every nth step is big scale 
+  void value(float v); // setter
+protected:
+  float value_ = 0;
+  cv::Mat mat_tmp_ = cv::Mat::zeros(300, 300, CV_8UC3);
+  cv::Vec3b back_{0,0,0}, needle_{255, 0, 0}, scale_{200, 200, 200};
+  int margin_ = 15;
+  void draw_scale();
+private:
+  double total_angle() const;
+  void draw_needle(float value);
+  double radius_ = 0;
+  cv::Point2i center_;
+  int start_, end_, step_, nth_;
+  double start_angle_, end_angle_;
+};
+
 class AsciiWindow : public Window
 {
 public:
@@ -513,6 +534,7 @@ protected:
 	std::vector<std::shared_ptr<TextBox>> E;
 	std::vector<std::shared_ptr<Quartz>> Q;
 	std::vector<std::shared_ptr<Canvas>> V;
+	std::vector<std::shared_ptr<Gauge>> G;
 private:
 	int get_size(char c);
 	bool parse_widget_area(int y, int x);

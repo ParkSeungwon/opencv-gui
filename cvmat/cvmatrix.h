@@ -74,7 +74,7 @@ public:
 	template<typename T> void feature();
 	void draw_feature();
 	std::vector<cv::DMatch> match(const CVMat& r, double thres = 0.5) const;
-	CVMat background();
+	void remove_background();
 	void rotate(double angle, cv::Point center={-1,-1}, double scale=1);
 	void transform3(cv::Point2f src[3], cv::Point2f dst[3], cv::Size sz = {0,0});
 	void transform4(cv::Point2f src[4], cv::Point2f dst[4], cv::Size sz = {0,0});
@@ -83,6 +83,8 @@ public:
 	std::vector<cv::Vec4i> lines() { return lines_;}
 	void title(std::string s) { title_ = s; }
 	std::string title() const { return title_; }
+	void cartoonize(float sig_s=60, float sig_r = 0.45);
+	void resize(cv::Size sz);
 	
 protected:
 	cv::Mat save_, harris_, descriptor_, fourier_;

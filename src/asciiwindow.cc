@@ -66,6 +66,7 @@ z::AsciiWindow::AsciiWindow(const char *p, int unit_width, int unit_height, int 
 	for(auto &a : E) *this + *a.get();
 	for(auto &a : Q) *this + *a.get();
 	for(auto &a : V) *this + *a.get();
+	for(auto &a : G) *this + *a.get(); 
 	for(auto &a : Z) { *this + *a.get(); a->zIndex(-1); }
 }
 
@@ -120,6 +121,7 @@ int z::AsciiWindow::get_size(char c)
 		case 'E': return E.size();
 		case 'Q': return Q.size();
 		case 'V': return V.size();
+    case 'G': return G.size();
 		default: throw 0;
 	}
 }
@@ -131,6 +133,15 @@ array<int, 3> get_slider_param(string s)
 	ss << s;
 	ss >> r[0] >> r[1] >> r[2];
 	return r;
+}
+
+array<int, 4> get_gauge_param(string s)
+{
+  array<int, 4> r;
+  stringstream ss;
+  ss << s;
+  for(int i=0; i<4; i++) ss >> r[i];
+  return r;
 }
 
 bool z::AsciiWindow::parse_widget_area(int y, int x)
@@ -169,6 +180,9 @@ bool z::AsciiWindow::parse_widget_area(int y, int x)
 							if(text != "") Q.back()->number(stoi(text)); 
 							break;
 		case 'V': V.emplace_back(make_shared<z::Canvas>(r)); 
+							break;
+    case 'G': { auto [a, b, c, d] = get_gauge_param(text);
+								G.emplace_back(make_shared<z::Gauge>(a, b, c, d, r)); }
 							break;
 	}
 	return true;

@@ -248,12 +248,15 @@ pair<int, int> CVMat::text(string s, Point p, double scale, Scalar color, int th
 	return {sz.width, sz.height};
 }
 
-CVMat CVMat::background()
-{
-//	static cv::BackgroundSubtractorMOG2 mog2{10, 16, false}; 
-//	CVMat mat{Mat()};
-//	mog2(*this, mat);
-//	return mat;
+void CVMat::remove_background()
+{ //create Background Subtractor objects
+	//Ptr<BackgroundSubtractor> pBackSub;
+	//pBackSub = createBackgroundSubtractorMOG2();
+	//static cv::BackgroundSubtractorMOG2 mog2{10, 16, false}; 
+	//CVMat mat{Mat()};
+	//mog2(*this, mat);
+	//mat_ = mat;
+	//return mat;
 }
 
 //CVMat::operator cv::Mat() {
@@ -624,4 +627,14 @@ void CVMat::template_init()
 {
 	feature<ORB>();
 	feature<BRISK>();
+}
+
+void CVMat::cartoonize(float sig_s, float sig_r)
+{
+	cv::stylization(*this, *this, sig_s, sig_r);
+}
+
+void CVMat::resize(cv::Size sz)
+{
+	cv::resize(*this, *this, sz);
 }

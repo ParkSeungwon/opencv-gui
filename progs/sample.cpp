@@ -478,13 +478,12 @@ struct Win : z::AsciiWindow
 			|  L3---------------- B8--------- B9----
 			|  |For New Win Only| |Crop|      |Save|
 			| 
-			|  E0---------------------------------------------
-			|  ||
-			|  |
-			|  |
-			|  |
-			|  |
-			|  |
+			|
+      |  S0----------------- L4-- S1---------------- L5--
+			|  |0 200 1|           ||   |0 100 1|          ||
+			|  B:------------------ 
+			|  |Cartoonify save|   
+			|
 			|)"}
 		{
 			auto scalex = tie(*T[0], *B[0], *B[1], 1., 0.1);
@@ -510,6 +509,25 @@ struct Win : z::AsciiWindow
 			B[9]->click([this]() {
 					cv::imwrite("cropped.png", win.newwin.mat_);
 			});
+
+			static cv::Mat cartoon;
+			S[0]->on_change
+			( [this](int k) 
+				{ L[4]->text(to_string(S[0]->value()));
+				  L[4]->update();
+					cv::stylization(win.m, cartoon, S[0]->value(), S[1]->value() / 100.f);
+					cv::imshow("cartoon", cartoon);
+				}
+			);
+			S[1]->on_change
+			( [this](int k) 
+				{ L[5]->text(to_string(S[1]->value() / 100.f));
+				  L[5]->update();
+					cv::stylization(win.m, cartoon, S[0]->value(), S[1]->value() / 100.f);
+					cv::imshow("cartoon", cartoon);
+				}
+			);
+			B[10]->click([this]() { cv::imwrite("cartoon.png", cartoon); });
 		}
 		Win &win;
 	} trans{*this};
@@ -547,7 +565,8 @@ struct Win : z::AsciiWindow
 		bool pressed = false;
 		cv::Point2i ul, br;
 	} newwin;
-	Win() : z::AsciiWindow{R"(
+
+	Win(string file_choose) : z::AsciiWindow{R"(
 		WOpenCV Tuning Shop----------------------------------------
 		|
 		| T0---------------------B2- B0------ B1------ B3------
@@ -608,6 +627,10 @@ struct Win : z::AsciiWindow
 		scroll_to({0,0,width, height});
 		start();//-1 fullscreen
 		connect_events();
+		if(file_choose != "") {
+			T[0]->value(file_choose);
+			T[0]->update();
+		}
 	}
 
 	void connect_events() {
@@ -671,8 +694,11 @@ struct Win : z::AsciiWindow
 	}
 };
 
-int main() {
-	Win win;
+int main(int ac, char **av) {
+	string s;
+	if(ac > 1) s = av[1];
+	cout << s << endl;
+	Win win{s};
 	win.loop();
 }
 
