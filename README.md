@@ -1,522 +1,244 @@
 # OpenCV zGUI
 
-## License
+> **Build C++ GUIs with OpenCV using ASCII art layouts — no Qt, no GTK, no extra dependencies.**
 
-LGPL v2
+Define your entire window layout in a text string. Event-driven, cross-platform, and fully modern C++.
 
-## Features
-- based on opencv (C++)
-- Cross platform : can be compiled on every platform that supports opencv
-- Easy to use
-- Event driven, no polling, less CPU
-- ASCII art style GUI compose(you can also make GUI by giving coordinations)
-
-  ```c++
-  #include<iostream>
-  #include"src/zgui.h"
-  using namespace std;
-  
-  struct Win : z::AsciiWindow 
-  {
-    Win() : z::AsciiWindow{R"(
-      WHello World----------------
-  	| T0-------------------
-  	| |Enter your name|
-  	| B0-------------
-  	| |Hello|
-  	|)"}
-    {
-  	start();
-  	B[0]->click([this]() { 
-        cout << "Hello " << T[0]->value() << endl; });
-    }
-  };
-  
-  int main() {
-  	Win win;
-  	win.loop();
+```cpp
+struct Win : z::AsciiWindow {
+  Win() : z::AsciiWindow{R"(
+    WHello World----------------
+    | T0-------------------
+    | |Enter your name|
+    | B0-------------
+    | |Hello|
+    |)"} {
+    start();
+    B[0]->click([this]() {
+      cout << "Hello " << T[0]->value() << endl;
+    });
   }
-  ```
-  
+};
+```
 
-![Widget gallery](image/1.png "widget gallery")
+---
 
-- fully use modern c++ 
+## Why opencv-gui?
 
-- TextInput : Korean -> Chinese Input Possible(libhangul, CJK font needed)
+Most OpenCV projects already link against OpenCV. This library gives you a complete GUI toolkit on top of what you already have — no additional framework needed.
 
-  ![](image/hanja.png)
-  
+- **Zero extra dependencies** beyond OpenCV (and optionally libhangul for Korean/CJK input)
+- **ASCII art layout** — declare your UI as a text diagram, positions computed automatically
+- **Event-driven** — no polling loop eating your CPU
+- **Cross-platform** — anywhere OpenCV builds, this builds
+- **Modern C++** — lambdas, composition, type-safe widget access
 
-- combine basic widgets to make complicated widgets
+---
 
-  - ComboBox = TextInput + Button + vector<string>
-  - Number Spinner = TextInput + Button + Button
-  - Tabs = Window + Window + Window + ....
-  - RadioButton = CheckBox + CheckBox + CheckBox + ... 
+## Widget gallery
 
-- Make complicated GUI by nesting Windows inside Window
+![Widget gallery](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/1.png)
 
-- easily make your own widget : just draw into cv::Mat
+All common widgets are included out of the box:
 
-  Let's make a wierd button. if we click left half of the button it will turn red, while right half will make it blue.
-  
-  ```c++
-  struct WButton : Widget {
-  	  WButton(cv::Rect2i r) : z::Widget{r} {
-  		mat_ = widget_color_;
-  		gui_callback_[cv::EVENT_LBUTTONUP] = [this](int xpos, int) {
-  			if(xpos - x < width / 2) mat_ = cv::Vec3b{0,0,255};
-  			else mat_ = cv::Vec3b{255,0,0};
-  			update();
-  		};
-  	}
-  };
-  ```
-  
-  ![](image/wbutton.gif)
-  
-  We can use 'Z' to draw custom widget into ascii GUI. 
-  
-  ```c++
-  struct Color : z::AsciiWindow{
-  	Color(): z::AsciiWindow{R"(
-  		W----------------------------------------------
-  		|
-  		|       Z0-------
-  		|       ||
-  		|
-  		|)"}
-  	{
-  		wb.resize(*Z[0]); //position will be copied
-  		*this + wb;
-  		organize_accordingto_zindex();
-  	}
-  	WButton wb{{0,0,1,1}}
+| Widget | Access | Description |
+|--------|--------|-------------|
+| Button | `B[n]` | Clickable button with lambda callback |
+| TextInput | `T[n]` | Single-line text field |
+| TextBox | `E[n]` | Multi-line text area |
+| Label | `L[n]` | Static text label |
+| Checkbox | `C[n]` | Toggle with checked state |
+| RadioButton | Grouped `C[]` | Mutually exclusive selection |
+| Slider | `S[n]` | Range input with configurable min/max/step |
+| ProgressBar | `P[n]` | Progress indicator |
+| Image | `I[n]` | Display `cv::Mat` inline |
+| ComboBox | `tie(T, B, vector)` | TextInput + Button + list |
+| NumberSpinner | `tie(T, B, B)` | TextInput + up/down buttons |
+| Tabs | `tabs(...)` | Switchable tabbed panels |
+| ScrolledWindow | `scroll_to()` | Scrollable content area |
+| Popup | `popup(...)` | Modal sub-window with return value |
+| Custom (`Z[n]`) | Any `cv::Mat` | Draw your own widget |
+
+---
+
+## How the layout syntax works
+
+Each character in the ASCII string maps to a widget:
+
+```
+WHello World----------------    ← Window title
+| T0-------------------         ← TextInput, index 0, width from dashes
+| |Enter your name|             ← Default text
+| B0-------------               ← Button, index 0, width from dashes
+| |Hello|                       ← Button label
+|
+```
+
+**Capital letters** are widget types. The number after is the index (accessed as `B[0]`, `T[0]`, etc.). Dashes set width; vertical bars set height.
+
+---
+
+## Combined widgets
+
+Combine primitives into compound controls with `tie()`:
+
+![Combined widgets](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/3.png)
+
+```cpp
+// ComboBox = TextInput + dropdown Button + list
+tie(*T[0], *B[0], v, 30);
+
+// NumberSpinner = TextInput + up/down Buttons
+auto f1 = tie(*T[1], *B[1], *B[2], 0, 1);
+
+// RadioButton group = multiple Checkboxes
+auto f2 = tie(*C[0], *C[1], *C[2]);
+```
+
+---
+
+## Tabs
+
+![Tabs example](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/4.png)
+
+```cpp
+tabs(10, 10, tab1, tab2);
+```
+
+---
+
+## Scrolled window
+
+![Scrolled window](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/5.png)
+
+```cpp
+scroll_to({0, 0, 400, 400});
+*this + label + handle;
+```
+
+---
+
+## Popup windows
+
+![Popup example](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/6.gif)
+
+```cpp
+// Pop up a sub-window and get its return value
+B[0]->click([this]() {
+  pop.popup(*this, [](int i) { cout << i << endl; });
+});
+
+// Inside the popup, close with a return value
+B[0]->click([this]() { popdown(7); });
+```
+
+---
+
+## Multiple windows
+
+![Multiple windows](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/7.png)
+
+```cpp
+B[0]->click([this]() {
+  if(w.open() == 7) cout << "closed" << endl;
+});
+```
+
+---
+
+## Custom widgets
+
+Any `cv::Mat` drawing is a valid widget. Inherit `Widget`, draw into `mat_`, call `update()`:
+
+```cpp
+struct WButton : Widget {
+  WButton(cv::Rect2i r) : z::Widget{r} {
+    mat_ = widget_color_;
+    gui_callback_[cv::EVENT_LBUTTONUP] = [this](int xpos, int) {
+      if(xpos - x < width / 2) mat_ = cv::Vec3b{0,0,255};
+      else mat_ = cv::Vec3b{255,0,0};
+      update();
+    };
   }
-  ```
-  
+};
+```
+
+![Custom widget](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/wbutton.gif)
+
+Place custom widgets inside ASCII layouts using `Z`:
+
+```
+W----------------------------------------------
+|
+|   Z0-------
+|   ||
+|
+```
+
+---
+
+## Korean / CJK input
+
+![Korean input](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/hanja.png)
+
+TextInput supports Korean → Hanja conversion via libhangul. Set the CJK font path in the first line of `font.dat`.
+
+---
+
+## CvPlot integration
+
+Embed scientific plots directly into your GUI using [CvPlot](https://github.com/Profactor/cv-plot):
+
+![CvPlot integration](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/9.png)
+
+```cpp
+B[1]->click([this]() {
+  auto axes = CvPlot::plot(std::vector<double>{3, 3, 4, 6, 4, 3}, "-o");
+  *I[0] = axes.render(I[0]->height, I[0]->width);
+  I[0]->update();
+});
+```
+
+---
+
+## Coordinate system
+
+![Coordinate system](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/image/coordination_system.png)
+
+Widgets inherit `cv::Rect2i{x, y, width, height}`. Positions are relative to their parent window. Scrolling is handled by the parent — child widgets are unaffected.
+
+---
+
+## Widget hierarchy
+
+![Widget hierarchy](https://raw.githubusercontent.com/ParkSeungwon/opencv-gui/master/dot/graph.png)
+
+---
 
 ## Install
 
 ```bash
-> sudo apt install libhangul-dev libopencv-dev xclip
-> git clone --depth=1 https://github.com/ParkSeungwon/opencv-gui
-> cd opencv-gui
-> make
+sudo apt install libhangul-dev libopencv-dev xclip
+git clone --depth=1 https://github.com/ParkSeungwon/opencv-gui
+cd opencv-gui
+make
 ```
 
-First line of font.dat file should point to CJK font file path.
+Set the CJK font path in the first line of `font.dat`.
 
-## Sample Image
+---
 
-![](image/shot.png)
+## Good for
 
-## Supported Widgets
+- **Rapid prototyping** — get a GUI up in minutes, not hours
+- **OpenCV parameter tuning** — sliders, live image display, buttons, all in one window
+- **Cross-platform tools** — one codebase, everywhere OpenCV runs
+- **Embedding plots** — CvPlot integration for scientific/data apps
 
-- Button
-- Label
-- Checkbox
-- radiobutton
-- frame
-- Text input
-- TextBox
-- combo box
-- Number spinner
-- Image
-- Slider
-- Progress bar
-- Window
-- popup window
-- Tabs
-- ScrolledWindow
-
-## Coordinate System
-
-![](image/coordination_system.png)
-
-Top window can scroll to any rectangular position by calling scroll_to() function. Scrolled_rect_ will be shown on the display. All widgets(including Window widget) in herits cv::Rect2i{x, y, width, height}. Basically widget position or mouse event will be calculated by relative position from first parent window. Scrolling will have no effect on these.
-
-## Useful for 
-
-- gui project that needs fast prototyping
-- cross platform gui
-- gui for opencv parameter tuning
-
-
-
-## ASCII drawing Rules
-
-- Capital letter stands for 
-  - B : Button
-  - C : CheckBox
-  - T : Text Input
-  - E : Text Box
-  - W : Window
-  - P : Progress bar
-  - S : Slider
-  - I : Image
-  - L : Label
-  - Z : Custom Widget
-  
-- Capital letter is followed by a number : this should be one digit and it is the index of this widget. You can also use printable ascii characters after 9.(0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E .... | } ~)
-- Capital letter is followed by '------' : this determines the width of the widget.
-- Capital letter is followed by '|' vertically : this determines the height of the widget
-- the first line below the Capital letter contains some text and close with another ''|''
-  - Usuall this is the text of the widget 
-  - In slider widget, it is start, end, step separated by space.
-  - in Checkbox widget, 'v' should be used to indicate that it is checked.
-- Window size should include all the child widgets.
-- never use tabs inside window.  Only use space.
-- pitfall: if you use n CJK characters inside | |, next opening '|' should be n spaces away from closing '|'. |한글이다| <---at least 4space --> |next|
-- any number after capital letters should not leap. (B0, B2 : error) (B0, B2, B1: ok). But appearing sequence does not matter.
-
-## Widget Hierachy
-
-![](dot/graph.png)
-
-## Tutorial
-
-
-
-#### 1. Basic Widget Gallery
-
-```c++
-#include"src/zgui.h"
-using namespace std;
-
-struct Win : z::AsciiWindow 
-{
-	Win() : z::AsciiWindow{R"(
-		WBasic Widget Gallery------------------
-		|  L0-----B0-------C0- T0--------------
-		|  |Label||Button| |v| |TextInput| 
-		|  S0---------------  P0-------------
-		|  |1 100 1|          |333|
-		|  E0---------------------------------
-		|  |Text Box|
-		|  |
-		|  |
-		|)"}
-	{
-		start();
-	}
-};
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/2.png)
-
-#### 2. Combined Widgets
-
-```c++
-#include<iostream>
-#include"src/zgui.h"
-using namespace std;
-
-struct Win : z::AsciiWindow 
-{
-	Win() : z::AsciiWindow{R"(
-		WCombined Widgets----------------
-		|  T0-------------B0  T1------B1
-		|  ||             ||  ||      B2
-		|
-		|
-		|    C0-   C1-   C2-    B3------
-		|    ||    ||    |v|    |values|
-		|)"}
-	{
-		static vector<string> v{"abc", "def", "ghi"};
-		tie(*T[0], *B[0], v, 30);
-		auto f1 = tie(*T[1], *B[1], *B[2], 0, 1);
-		auto f2 = tie(*C[0], *C[1], *C[2]);
-		wrap("Radio Button", 20, 10, *C[0], *C[1], *C[2]);
-		start();
-		B[3]->click([this, f1, f2]() {
-			cout << "combo box value : " << T[0]->value() << endl;
-			cout << "Number spinner value: " << f1() << endl;
-			cout << "Radio button value: " << f2() << endl;
-		});
-	}
-};
-
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/3.png)
-
-#### 3. Tabs
-
-```c++
-#include"src/zgui.h"
-using namespace std;
-
-struct Win : z::Window 
-{
-	struct Tab1 : z::AsciiWindow {
-		Tab1() : z::AsciiWindow{R"(
-			WTab1----------------
-			|
-			|
-			|   L0-------------
-			|   |TAB1|
-			|
-			|)"}
-		{ 
-			organize_accordingto_zindex(); 
-		}
-	} tab1;
-	struct Tab2 : z::AsciiWindow{
-		Tab2() : z::AsciiWindow{R"(
-		  WTab2------------------
-			|
-			|
-			|   L0--------------
-			|   |TAB2|
-			|
-			|)"}
-		{ 
-			organize_accordingto_zindex();
-		}
-	} tab2;
-	Win() : z::Window{"Tab Example", {0, 0, 300, 200}}
-	{
-		tabs(10, 10, tab1, tab2);
-		start();
-	}
-};
-
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/4.png)
-
-#### 4. Scrolled Window
-
-```c++
-#include"src/zgui.h"
-using namespace std;
-
-struct Win : z::Window 
-{
-	Win() : z::Window{"Scrolled Window Example", {0, 0, 800, 800} }
-	{
-		scroll_to({0, 0, 400, 400});// before adding handle
-		*this + label + handle;
-		start();
-    }
-	z::Handle handle;
-	z::Label label{"Center", {300, 300, 100, 30}};
-};
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/5.png)
-
-#### 5. Popup Window
-
-```c++
-#include<iostream>
-#include"src/zgui.h"
-using namespace std;
-
-struct Popup : z::AsciiWindow
-{
-	Popup() : z::AsciiWindow {R"(
-		W-----------
-		|
-		|  B0-----
-		|  |OK|
-		|)"}
-	{
-		organize_accordingto_zindex();
-		B[0]->click([this]() { popdown(7); });
-	} 
-};
-
-struct Win : z::AsciiWindow 
-{
-	Popup pop;
-	Win() : z::AsciiWindow{R"(
-	  WPopup Example----------
-		|
-		|   B0--------------
-		|   |Popup|
-		|
-		|)"}
-	{
-		start();
-		B[0]->click( [this]() { 
-			pop.popup ( *this , [](int i) { cout << i << endl;} );//7
-		});
-	}
-};
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/6.gif)
-
-#### 6. Multiple Windows
-
-```c++
-#include<iostream>
-#include"src/zgui.h"
-using namespace std;
-
-struct NewWin : z::AsciiWindow
-{
-	NewWin() : z::AsciiWindow{R"(
-    WNew------------------
-		|  B0----------------
-		|  |A new window|
-		|)"}
-	{
-		organize_accordingto_zindex();
-		B[0]->click([this](){quit(7);});
-	}
-};
-
-struct Win : z::AsciiWindow
-{
-	Win() : z::AsciiWindow{R"(
-	  WMultiple Window example------------
-		|
-		|  B0---------------
-		|  |New Window|
-		|)"}
-	{
-		start();
-		B[0]->click([this]() { if(w.open()==7) cout << "closed" << endl; });
-	}
-	NewWin w;
-};
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/7.png)
-
-#### 7. Window with normal cv::Mat
-
-If you want to get mouse event or keyboard event with opened cv::Mat. You should make a window and use 'load_matrix', 'open' function. If you don't want to get event from the cv::Mat, just use imshow("title", matrix). 
-
-```c++
-#include<iostream>
-#include"src/zgui.h"
-using namespace std;
-
-struct NewWin : z::Window
-{
-	NewWin() : z::Window{"title", {0,0,1,1}}
-	{
-		gui_callback_[cv::EVENT_LBUTTONUP] = [this](int x, int y) {
-			cv::circle(mat_, {x, y}, 30, {255, 0, 0}, 3);
-			show();
-		};
-	}
-};
-
-struct Win : z::AsciiWindow
-{
-	Win() : z::AsciiWindow{R"(
-	  WMatrix Window exmaple------------
-		|
-		|  B0----------------------
-		|  |Window with event|
-		|
-		|  B1-----------------------
-		|  |Just show the image|
-		|)"}
-	{
-		start();
-		B[0]->click([this]() { 
-            w.load_matrix( cv::imread("Lenna.png")); 
-            w.open(); 
-        });
-		B[1]->click([this]() { imshow("image", cv::imread("len.jpg")); });
-	}
-	NewWin w;
-};
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/8.png)
-
-#### 8. Integration with Profactor CvPlot
-
-```C++
-#include"CvPlot/cvplot.h"
-#include"src/zgui.h"
-using namespace std;
-
-struct Win : z::AsciiWindow
-{
-	Win() : z::AsciiWindow{R"(
-	  WIntegration with CvPlot----------------------
-		|
-		|  I0------------------------------ B0------
-		|  |Lenna.png|                      |Quit|
-		|  |
-		|  |                                B1------
-		|  |                                |Plot|
-		|  |
-		|  |                  
-		|  |                 
-		|  |
-		|  |
-		|  |
-		|  |
-		|  |
-		|  |
-		|  |
-		|
-		|)", 20, 30}
-	{
-		start();
-		B[0]->click([this]() { cv::destroyAllWindows(); });
-		B[1]->click([this]() { 
-			auto axes = CvPlot::plot(std::vector<double>{ 3, 3, 4, 6, 4, 3 }, "-o");
-			*I[0] = axes.render(I[0]->height, I[0]->width);
-			I[0]->update();
-		});
-	}
-};
-
-int main() {
-	Win win;
-	win.loop();
-}
-```
-
-![](image/9.png)
+---
 
 ## Reference
 
-[Documentation](http://gui.zeta2374.com)
+Full API documentation: [gui.zeta2374.com](http://gui.zeta2374.com)
+
+**License**: LGPL v2
